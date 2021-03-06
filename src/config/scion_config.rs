@@ -2,12 +2,24 @@ use std::io::{Error, Read, Write, ErrorKind};
 use std::path::Path;
 use std::fs::File;
 use serde::{Serialize, Deserialize};
+use crate::config::window_config::WindowConfig;
 
 /// Main configuration used by `crate::Scion` to configure the game.
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct ScionConfig{
-    /// Name of the application, used for the window name in Windowed mode
-    pub(crate) app_name: String
+    /// Name of the application
+    pub(crate) app_name: String,
+    /// Configuration for the game window
+    pub(crate) window_config: Option<WindowConfig>
+}
+
+impl Default for ScionConfig{
+    fn default() -> Self {
+        Self{
+            app_name: "Scion game".to_string(),
+            window_config: Some(Default::default())
+        }
+    }
 }
 
 pub struct ScionConfigReader;

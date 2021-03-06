@@ -3,13 +3,17 @@ use crate::legion::systems::{ParallelRunnable, Runnable, Builder};
 use std::thread;
 use std::time::Duration;
 use crate::config::scion_config::{ScionConfig, ScionConfigReader};
+use winit::window::{Window, WindowBuilder};
+use winit::event_loop::{EventLoop, ControlFlow};
+use winit::event::{Event, WindowEvent};
 
 /// `Scion` is the entry point of any application made with Scion engine.
 pub struct Scion{
     config: ScionConfig,
     world: World,
     resources: Resources,
-    schedule: Schedule
+    schedule: Schedule,
+    window: Option<Window>
 }
 
 impl Scion {
@@ -27,10 +31,27 @@ impl Scion {
     }
 
     fn run (mut self) {
-        loop {
+        let event_loop = EventLoop::new();
+        let window_builder: WindowBuilder = self.config.window_config.clone()
+            .expect("The window configuration has not been found").into();
+        self.window = Some(window_builder.build(&event_loop).expect(""));
+
+        event_loop.run(move |event, _, control_flow| {
+            *control_flow = ControlFlow::Poll;
+            match event {
+                Event::WindowEvent {
+                    event: WindowEvent::CloseRequested,
+                    window_id,
+                } if window_id == self.window.as_ref().unwrap().id() => {
+                    *control_flow = ControlFlow::Exit;
+                },
+                Event::MainEventsCleared => {
+                    self.window.as_ref().unwrap().request_redraw();
+                }
+                _ => (),
+            }
             self.schedule.execute(&mut self.world, &mut self.resources);
-            thread::sleep(Duration::from_secs(1));
-        }
+        });
     }
 }
 pub struct ScionBuilder{
@@ -67,7 +88,8 @@ impl ScionBuilder{
             config: self.config,
             world: Default::default(),
             resources: Default::default(),
-            schedule: self.schedule_builder.build()
+            schedule: self.schedule_builder.build(),
+            window: None
         };
         scion.setup();
         scion.run();
