@@ -6,3 +6,6 @@ edition = "2018"
 
 [dependencies]
 legion = "0.4.0"
+
+serde = "1.0.124"
+toml = "0.5.8"
