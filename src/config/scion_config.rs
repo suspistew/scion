@@ -4,6 +4,7 @@ use std::fs::File;
 use serde::{Serialize, Deserialize};
 use crate::config::window_config::WindowConfig;
 use crate::utils::frame_limiter::{FrameLimiterStrategy, FrameLimiterConfig};
+use crate::utils::logger::LoggerConfig;
 
 /// Main configuration used by `crate::Scion` to configure the game.
 #[derive(Debug, Serialize, Deserialize)]
@@ -12,8 +13,10 @@ pub(crate) struct ScionConfig {
     pub(crate) app_name: String,
     /// Configuration for the game window
     pub(crate) window_config: Option<WindowConfig>,
-    /// `FrameLimiterStrategy` to use while running the main loop. Will use Sleep{fps:60} by default
+    /// `FrameLimiterStrategy` to use while running the main loop. Will use Sleep with 60 fps by default
     pub(crate) frame_limiter: Option<FrameLimiterConfig>,
+    /// Logger configuration to use.
+    pub(crate) logger_config: Option<LoggerConfig>
 }
 
 impl Default for ScionConfig {
@@ -22,6 +25,7 @@ impl Default for ScionConfig {
             app_name: "Scion game".to_string(),
             window_config: Some(Default::default()),
             frame_limiter: Some(Default::default()),
+            logger_config: Some(Default::default())
         }
     }
 }
@@ -54,7 +58,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_crystal_toml() {
+    fn test_read_scion_toml() {
 
         // Delete scion.toml before the test
         let path = Path::new("Scion.toml");

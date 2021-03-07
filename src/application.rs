@@ -8,6 +8,7 @@ use winit::event_loop::{EventLoop, ControlFlow};
 use winit::event::{Event, WindowEvent};
 use crate::utils::time::Time;
 use crate::utils::frame_limiter::{FRAME_LOCKED, FrameLimiter, FrameLimiterStrategy};
+use log::{info, debug, warn, error};
 
 /// `Scion` is the entry point of any application made with Scion engine.
 pub struct Scion{
@@ -24,7 +25,8 @@ impl Scion {
     pub fn app() -> ScionBuilder {
         let app_config = ScionConfigReader::read_or_create_scion_toml()
                 .expect("Fatal error when trying to retrieve and deserialize `Scion.toml` configuration file.");
-        println!("Launching Scion application with the following configuration: {:?}", app_config);
+        crate::utils::logger::Logger::init_logging(app_config.logger_config.clone());
+        info!("Launching Scion application with the following configuration: {:?}", app_config);
         ScionBuilder::new(app_config)
     }
 
