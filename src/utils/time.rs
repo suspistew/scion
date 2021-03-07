@@ -5,15 +5,15 @@ use std::time::{Duration, Instant};
 pub struct Time {
     delta_duration: Duration,
     frame_number: u64,
-    measure_start: Instant
+    measure_start: Instant,
 }
 
-impl Default for Time{
+impl Default for Time {
     fn default() -> Self {
-        Self{
+        Self {
             delta_duration: Default::default(),
             frame_number: 0,
-            measure_start: Instant::now()
+            measure_start: Instant::now(),
         }
     }
 }

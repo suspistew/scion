@@ -1,8 +1,8 @@
-use std::time::{Duration, Instant};
+use serde::{Deserialize, Serialize};
 use std::thread;
-use serde::{Serialize, Deserialize};
+use std::time::{Duration, Instant};
 
-pub(crate) static mut FRAME_LOCKED : bool = false ;
+pub(crate) static mut FRAME_LOCKED: bool = false;
 
 /// In order to reduce the cpu usage, the `FrameLimiter` will handle an
 /// ecs Lock if a frame used less time than expected.
@@ -14,32 +14,32 @@ pub(crate) enum FrameLimiterStrategy {
     /// The `FrameLimiter` will compute the expected duration of a frame and
     /// do a background sleep, locking the ecs, but not the rendering or window events.
     /// usize is the maximum expected fps number
-    Sleep
+    Sleep,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub(crate) struct FrameLimiterConfig{
+pub(crate) struct FrameLimiterConfig {
     strategy: FrameLimiterStrategy,
-    fps: Option<u32>
+    fps: Option<u32>,
 }
 
-impl Default for FrameLimiterConfig{
+impl Default for FrameLimiterConfig {
     fn default() -> Self {
-        Self{
+        Self {
             strategy: FrameLimiterStrategy::Sleep,
-            fps: Some(60)
+            fps: Some(60),
         }
     }
 }
 
-pub(crate) struct FrameLimiter{
+pub(crate) struct FrameLimiter {
     strategy: FrameLimiterStrategy,
     target_frame_duration: Duration,
-    frame_start: Instant
+    frame_start: Instant,
 }
 
-impl FrameLimiter{
-    pub fn new(config: FrameLimiterConfig) -> FrameLimiter{
+impl FrameLimiter {
+    pub fn new(config: FrameLimiterConfig) -> FrameLimiter {
         let target_frame_duration = {
             match config.strategy {
                 FrameLimiterStrategy::Unlimited => Duration::from_secs(0),
@@ -54,16 +54,16 @@ impl FrameLimiter{
         Self {
             strategy: config.strategy,
             target_frame_duration,
-            frame_start: Instant::now()
+            frame_start: Instant::now(),
         }
     }
 
-    pub fn start_frame(&mut self){
+    pub fn start_frame(&mut self) {
         self.frame_start = Instant::now();
     }
 
     pub fn end_frame(&mut self) {
-        match self.strategy{
+        match self.strategy {
             FrameLimiterStrategy::Unlimited => {
                 // Just continue
             }
@@ -86,5 +86,3 @@ impl FrameLimiter{
         }
     }
 }
-
-

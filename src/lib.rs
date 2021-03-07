@@ -1,6 +1,6 @@
 // Convenience reexport
-pub use legion as legion;
+pub use legion;
 
 pub mod application;
-pub mod utils;
 mod config;
+pub mod utils;

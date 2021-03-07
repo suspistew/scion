@@ -1,7 +1,7 @@
-use std::path::PathBuf;
-use winit::window::{WindowBuilder, WindowAttributes};
-use winit::dpi::Size;
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
+use winit::dpi::Size;
+use winit::window::{WindowAttributes, WindowBuilder};
 
 /// Main configuration for the game window
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -54,7 +54,7 @@ impl Default for WindowConfig {
             decorations: true,
             maximized: false,
             resizable: true,
-            transparent: false
+            transparent: false,
         }
     }
 }
