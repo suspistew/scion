@@ -8,5 +8,7 @@ edition = "2018"
 legion = "0.4.0"
 winit = "0.24.0"
 
+spin_sleep = "1.0.0"
+
 serde = "1.0.124"
 toml = "0.5.8"

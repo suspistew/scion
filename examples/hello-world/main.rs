@@ -1,9 +1,10 @@
 use scion::application::Scion;
-use scion::legion::system;
+use scion::legion::{system};
+use scion::utils::time::Time;
 
 #[system]
-fn hello(){
-    println!("Hello from system")
+fn hello(#[resource] time: &Time){
+    println!("Hello from system {:?}", time.delta_duration());
 }
 
 fn main() {

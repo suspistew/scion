@@ -6,6 +6,8 @@ use crate::config::scion_config::{ScionConfig, ScionConfigReader};
 use winit::window::{Window, WindowBuilder};
 use winit::event_loop::{EventLoop, ControlFlow};
 use winit::event::{Event, WindowEvent};
+use crate::utils::time::Time;
+use crate::utils::frame_limiter::{FRAME_LOCKED, FrameLimiter, FrameLimiterStrategy};
 
 /// `Scion` is the entry point of any application made with Scion engine.
 pub struct Scion{
@@ -27,7 +29,10 @@ impl Scion {
     }
 
     fn setup(&mut self) {
-        // TODO : Add needed resources
+        self.resources.insert(Time::default());
+        self.resources.insert(FrameLimiter::new(
+            self.config.frame_limiter.clone().unwrap_or(Default::default())
+        ));
     }
 
     fn run (mut self) {
@@ -50,8 +55,19 @@ impl Scion {
                 }
                 _ => (),
             }
-            self.schedule.execute(&mut self.world, &mut self.resources);
+            self.next_frame();
         });
+    }
+
+    fn next_frame(&mut self) {
+        let locked_ecs = unsafe { FRAME_LOCKED };
+        if !locked_ecs {
+            self.resources.get_mut::<Time>()
+                .expect("Time is an internal resource and can't be missing")
+                .frame();
+            self.schedule.execute(&mut self.world, &mut self.resources);
+            self.resources.get_mut::<FrameLimiter>().unwrap().end_frame();
+        }
     }
 }
 pub struct ScionBuilder{
