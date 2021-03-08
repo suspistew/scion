@@ -6,7 +6,9 @@ edition = "2018"
 
 [dependencies]
 legion = "0.4.0"
-winit = "0.24.0"
+
+# window & rendering
+miniquad = "0.3.0-alpha.26"
 
 # accurate time sleeping
 spin_sleep = "1.0.0"

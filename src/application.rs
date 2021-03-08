@@ -1,13 +1,10 @@
-use legion::systems::{Builder, ParallelRunnable, Runnable};
 use legion::{Resources, Schedule, World};
+use legion::systems::{Builder, ParallelRunnable, Runnable};
+use log::info;
+use miniquad::{conf, Context, EventHandler, EventHandlerFree, UserData};
 
 use crate::config::scion_config::{ScionConfig, ScionConfigReader};
-use crate::utils::frame_limiter::{FrameLimiter, FRAME_LOCKED};
 use crate::utils::time::Time;
-use log::info;
-use winit::event::{Event, WindowEvent};
-use winit::event_loop::{ControlFlow, EventLoop};
-use winit::window::{Window, WindowBuilder};
 
 /// `Scion` is the entry point of any application made with Scion engine.
 pub struct Scion {
@@ -15,7 +12,18 @@ pub struct Scion {
     world: World,
     resources: Resources,
     schedule: Schedule,
-    window: Option<Window>,
+    context: Option<Context>
+}
+
+impl EventHandlerFree for Scion {
+    fn update(&mut self) {
+        self.next_frame();
+    }
+
+    fn draw(&mut self) {
+        self.context.as_mut().expect("Miniquad context is mandatory to use the eventHandlerFree")
+            .clear(Some((0., 1., 1., 1.)), None, None);
+    }
 }
 
 impl Scion {
@@ -33,59 +41,18 @@ impl Scion {
         ScionBuilder::new(app_config)
     }
 
-    fn setup(&mut self) {
+    fn setup(mut self, context: Context ) -> Self{
+        self.context = Some(context);
         self.resources.insert(Time::default());
-        self.resources.insert(FrameLimiter::new(
-            self.config
-                .frame_limiter
-                .clone()
-                .unwrap_or(Default::default()),
-        ));
-    }
-
-    fn run(mut self) {
-        let event_loop = EventLoop::new();
-        let window_builder: WindowBuilder = self
-            .config
-            .window_config
-            .clone()
-            .expect("The window configuration has not been found")
-            .into();
-        self.window = Some(window_builder.build(&event_loop).expect(""));
-
-        event_loop.run(move |event, _, control_flow| {
-            *control_flow = ControlFlow::Poll;
-            match event {
-                Event::WindowEvent {
-                    event: WindowEvent::CloseRequested,
-                    window_id,
-                } if window_id == self.window.as_ref().unwrap().id() => {
-                    *control_flow = ControlFlow::Exit;
-                }
-                Event::MainEventsCleared => {
-                    self.window.as_ref().unwrap().request_redraw();
-                }
-                _ => (),
-            }
-            self.next_frame();
-        });
+        self
     }
 
     fn next_frame(&mut self) {
-        let locked_ecs = unsafe { FRAME_LOCKED };
-        if !locked_ecs {
-            self.resources
-                .get_mut::<Time>()
-                .expect("Time is an internal resource and can't be missing")
-                .frame();
+            self.resources.get_mut::<Time>().expect("Time is an internal resource and can't be missing").frame();
             self.schedule.execute(&mut self.world, &mut self.resources);
-            self.resources
-                .get_mut::<FrameLimiter>()
-                .unwrap()
-                .end_frame();
-        }
     }
 }
+
 pub struct ScionBuilder {
     config: ScionConfig,
     schedule_builder: Builder,
@@ -124,9 +91,8 @@ impl ScionBuilder {
             world: Default::default(),
             resources: Default::default(),
             schedule: self.schedule_builder.build(),
-            window: None,
+            context: None
         };
-        scion.setup();
-        scion.run();
+        miniquad::start(conf::Conf::default(), |ctx| UserData::free(scion.setup(ctx)));
     }
 }

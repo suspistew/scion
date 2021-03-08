@@ -1,20 +1,16 @@
-use crate::config::window_config::WindowConfig;
-use crate::utils::frame_limiter::FrameLimiterConfig;
-use crate::utils::logger::LoggerConfig;
-use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{Error, Read, Write};
 use std::path::Path;
+
+use serde::{Deserialize, Serialize};
+
+use crate::utils::logger::LoggerConfig;
 
 /// Main configuration used by `crate::Scion` to configure the game.
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct ScionConfig {
     /// Name of the application
     pub(crate) app_name: String,
-    /// Configuration for the game window
-    pub(crate) window_config: Option<WindowConfig>,
-    /// `FrameLimiterStrategy` to use while running the main loop. Will use Sleep with 60 fps by default
-    pub(crate) frame_limiter: Option<FrameLimiterConfig>,
     /// Logger configuration to use.
     pub(crate) logger_config: Option<LoggerConfig>,
 }
@@ -23,8 +19,6 @@ impl Default for ScionConfig {
     fn default() -> Self {
         Self {
             app_name: "Scion game".to_string(),
-            window_config: Some(Default::default()),
-            frame_limiter: Some(Default::default()),
             logger_config: Some(Default::default()),
         }
     }
