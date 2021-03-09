@@ -1,10 +1,11 @@
 use legion::{Resources, Schedule, World};
 use legion::systems::{Builder, ParallelRunnable, Runnable};
 use log::info;
-use miniquad::{conf, Context, EventHandler, EventHandlerFree, UserData};
+use miniquad::{conf, Context, EventHandlerFree, UserData};
 
 use crate::config::scion_config::{ScionConfig, ScionConfigReader};
 use crate::utils::time::Time;
+use crate::utils::window::WindowDimensions;
 
 /// `Scion` is the entry point of any application made with Scion engine.
 pub struct Scion {
@@ -24,6 +25,10 @@ impl EventHandlerFree for Scion {
         self.context.as_mut().expect("Miniquad context is mandatory to use the eventHandlerFree")
             .clear(Some((0., 1., 1., 1.)), None, None);
     }
+    fn resize_event(&mut self, w: f32, h: f32) {
+        self.resources
+            .get_mut::<WindowDimensions>().expect("Missing Screen Dimension Resource. Did something deleted it ?").set(w, h);
+    }
 }
 
 impl Scion {
@@ -42,8 +47,11 @@ impl Scion {
     }
 
     fn setup(mut self, context: Context ) -> Self{
+        let screen_size = context.screen_size();
         self.context = Some(context);
         self.resources.insert(Time::default());
+
+        self.resources.insert(WindowDimensions::new(screen_size));
         self
     }
 

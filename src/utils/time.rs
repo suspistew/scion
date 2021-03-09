@@ -1,7 +1,7 @@
 use std::time::{Duration, Instant};
 
 /// Resource dedicated to compute the time durations between frames and keep a track of
-/// frame number
+/// frame numbers
 pub struct Time {
     delta_duration: Duration,
     frame_number: u64,
@@ -25,7 +25,7 @@ impl Time {
         self.measure_start = Instant::now();
     }
 
-    /// Returns the duration of the last ran frame
+    /// Returns the duration of the last executed frame
     pub fn delta_duration(&self) -> Duration {
         self.delta_duration
     }
