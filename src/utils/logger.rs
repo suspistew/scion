@@ -1,22 +1,8 @@
 use log::debug;
-use log::LevelFilter;
 use std::io;
 
 use fern::colors::ColoredLevelConfig;
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub(crate) struct LoggerConfig {
-    pub(crate) level_filter: LevelFilter,
-}
-
-impl Default for LoggerConfig {
-    fn default() -> Self {
-        Self {
-            level_filter: LevelFilter::Info,
-        }
-    }
-}
+use crate::config::logger_config::LoggerConfig;
 
 /// Logging utility provided by Scion
 pub(crate) struct Logger;

@@ -4,15 +4,18 @@ use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 
-use crate::utils::logger::LoggerConfig;
+use crate::config::logger_config::LoggerConfig;
+use crate::config::window_config::WindowConfig;
 
 /// Main configuration used by `crate::Scion` to configure the game.
 #[derive(Debug, Serialize, Deserialize)]
-pub(crate) struct ScionConfig {
+pub struct ScionConfig {
     /// Name of the application
     pub(crate) app_name: String,
     /// Logger configuration to use.
     pub(crate) logger_config: Option<LoggerConfig>,
+    /// Window configuration to use.
+    pub(crate) window_config: Option<WindowConfig>,
 }
 
 impl Default for ScionConfig {
@@ -20,11 +23,43 @@ impl Default for ScionConfig {
         Self {
             app_name: "Scion game".to_string(),
             logger_config: Some(Default::default()),
+            window_config: Some(Default::default())
         }
     }
 }
 
-pub struct ScionConfigReader;
+pub struct ScionConfigBuilder{
+    config: ScionConfig
+}
+
+impl ScionConfigBuilder{
+    pub fn new() -> Self{
+        Self {
+            config:Default::default()
+        }
+    }
+
+    pub fn with_app_name(mut self, app_name: String )-> Self{
+        self.config.app_name = app_name;
+        self
+    }
+
+    pub fn with_logger_config(mut self, logger_config: LoggerConfig)-> Self{
+        self.config.logger_config = Some(logger_config);
+        self
+    }
+
+    pub fn with_window_config(mut self, window_config: WindowConfig)-> Self{
+        self.config.window_config = Some(window_config);
+        self
+    }
+
+    pub fn get(self) -> ScionConfig {
+        self.config
+    }
+}
+
+pub(crate) struct ScionConfigReader;
 
 impl ScionConfigReader {
     pub(crate) fn read_or_create_scion_toml() -> Result<ScionConfig, Error> {

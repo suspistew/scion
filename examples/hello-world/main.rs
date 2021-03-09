@@ -3,6 +3,8 @@ use scion::legion::system;
 use scion::utils::time::Time;
 use log::info;
 use scion::utils::window::WindowDimensions;
+use scion::config::scion_config::{ScionConfig, ScionConfigBuilder};
+use scion::config::window_config::{WindowConfig, WindowConfigBuilder};
 
 
 #[system]

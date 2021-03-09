@@ -33,11 +33,15 @@ impl EventHandlerFree for Scion {
 
 impl Scion {
     /// Creates a new `Scion` application.
-    /// The application need to have a Scion.toml file at root to find its mandatory configurations
+    /// The application will check for a Scion.toml file at root to find its configurations
     pub fn app() -> ScionBuilder {
         let app_config = ScionConfigReader::read_or_create_scion_toml().expect(
             "Fatal error when trying to retrieve and deserialize `Scion.toml` configuration file.",
         );
+        Scion::app_with_config(app_config)
+    }
+
+    pub fn app_with_config(app_config: ScionConfig) -> ScionBuilder {
         crate::utils::logger::Logger::init_logging(app_config.logger_config.clone());
         info!(
             "Launching Scion application with the following configuration: {:?}",
@@ -94,13 +98,18 @@ impl ScionBuilder {
 
     /// Builds, setups and runs the Scion application
     pub fn run(mut self) {
-        let mut scion = Scion {
+        let scion = Scion {
             config: self.config,
             world: Default::default(),
             resources: Default::default(),
             schedule: self.schedule_builder.build(),
             context: None
         };
-        miniquad::start(conf::Conf::default(), |ctx| UserData::free(scion.setup(ctx)));
+
+        let mut miniquad_conf = conf::Conf::default();
+        if let Some(window_config) = scion.config.window_config.as_ref() {
+            miniquad_conf.fullscreen = window_config.fullscreen;
+        }
+        miniquad::start(miniquad_conf, |ctx| UserData::free(scion.setup(ctx)));
     }
 }
