@@ -23,7 +23,7 @@ impl Default for ScionConfig {
         Self {
             app_name: "Scion game".to_string(),
             logger_config: Some(Default::default()),
-            window_config: Some(Default::default())
+            window_config: Some(Default::default()),
         }
     }
 }

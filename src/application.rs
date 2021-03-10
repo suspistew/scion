@@ -6,6 +6,7 @@ use miniquad::{conf, Context, EventHandlerFree, UserData};
 use crate::config::scion_config::{ScionConfig, ScionConfigReader};
 use crate::utils::time::Time;
 use crate::utils::window::WindowDimensions;
+use crate::renderer::RendererType;
 
 /// `Scion` is the entry point of any application made with Scion engine.
 pub struct Scion {
@@ -68,6 +69,7 @@ impl Scion {
 pub struct ScionBuilder {
     config: ScionConfig,
     schedule_builder: Builder,
+    renderer: RendererType
 }
 
 impl ScionBuilder {
@@ -75,6 +77,7 @@ impl ScionBuilder {
         Self {
             config,
             schedule_builder: Default::default(),
+            renderer: Default::default()
         }
     }
 
@@ -88,11 +91,16 @@ impl ScionBuilder {
         self
     }
 
-    fn with_thread_local_fn<F: FnMut(&mut World, &mut Resources) + 'static>(
+    pub fn with_thread_local_fn<F: FnMut(&mut World, &mut Resources) + 'static>(
         mut self,
         function: F,
     ) -> Self {
         self.schedule_builder.add_thread_local_fn(function);
+        self
+    }
+
+    pub fn with_renderer(mut self, renderer_type: RendererType) -> Self{
+        self.renderer = renderer_type;
         self
     }
 
