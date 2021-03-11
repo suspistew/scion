@@ -90,7 +90,7 @@ mod tests {
     fn test_read_scion_toml() {
         // Delete scion.toml before the test
         let path = Path::new("Scion.toml");
-        std::fs::remove_file(path);
+        let _r = std::fs::remove_file(path);
 
         let config = ScionConfigReader::read_or_create_scion_toml();
         assert!(config.is_ok());

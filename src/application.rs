@@ -6,7 +6,9 @@ use miniquad::{conf, Context, EventHandlerFree, UserData};
 use crate::config::scion_config::{ScionConfig, ScionConfigReader};
 use crate::utils::time::Time;
 use crate::utils::window::WindowDimensions;
-use crate::renderer::RendererType;
+use crate::renderer::{RendererType, ScionRenderer};
+
+use crate::renderer::bidimensional::triangle::Triangle;
 
 /// `Scion` is the entry point of any application made with Scion engine.
 pub struct Scion {
@@ -14,7 +16,8 @@ pub struct Scion {
     world: World,
     resources: Resources,
     schedule: Schedule,
-    context: Option<Context>
+    context: Option<Context>,
+    renderer: Box<dyn ScionRenderer>,
 }
 
 impl EventHandlerFree for Scion {
@@ -23,9 +26,11 @@ impl EventHandlerFree for Scion {
     }
 
     fn draw(&mut self) {
-        self.context.as_mut().expect("Miniquad context is mandatory to use the eventHandlerFree")
-            .clear(Some((0., 1., 1., 1.)), None, None);
+        self.renderer.draw(
+            self.context.as_mut().expect("Miniquad context is mandatory"),
+            &mut self.world, &mut self.resources)
     }
+
     fn resize_event(&mut self, w: f32, h: f32) {
         self.resources
             .get_mut::<WindowDimensions>().expect("Missing Screen Dimension Resource. Did something deleted it ?").set(w, h);
@@ -51,18 +56,19 @@ impl Scion {
         ScionBuilder::new(app_config)
     }
 
-    fn setup(mut self, context: Context ) -> Self{
+    fn setup(mut self, context: Context) -> Self {
         let screen_size = context.screen_size();
         self.context = Some(context);
         self.resources.insert(Time::default());
 
         self.resources.insert(WindowDimensions::new(screen_size));
+        self.world.push((Triangle,));
         self
     }
 
     fn next_frame(&mut self) {
-            self.resources.get_mut::<Time>().expect("Time is an internal resource and can't be missing").frame();
-            self.schedule.execute(&mut self.world, &mut self.resources);
+        self.resources.get_mut::<Time>().expect("Time is an internal resource and can't be missing").frame();
+        self.schedule.execute(&mut self.world, &mut self.resources);
     }
 }
 
@@ -111,10 +117,12 @@ impl ScionBuilder {
             world: Default::default(),
             resources: Default::default(),
             schedule: self.schedule_builder.build(),
-            context: None
+            context: None,
+            renderer: self.renderer.into_boxed_renderer()
         };
 
         let mut miniquad_conf = conf::Conf::default();
+        miniquad_conf.high_dpi=true;
         if let Some(window_config) = scion.config.window_config.as_ref() {
             miniquad_conf.fullscreen = window_config.fullscreen;
         }
