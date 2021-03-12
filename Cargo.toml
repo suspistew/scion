@@ -4,17 +4,17 @@ version = "0.1.0"
 authors = ["grzi <jeremy.thulliez@gmail.com>"]
 edition = "2018"
 
+[features]
+parallel = ["legion/parallel"]
+
 [dependencies]
-legion = "0.4.0"
+legion = { git = "https://github.com/grzi/legion", branch = "feat/uuid_as_optional", default-features = false, features = ["codegen"]}
 
 # window & rendering
 miniquad = "0.3.0-alpha.26"
 
-# accurate time sleeping
-spin_sleep = "1.0.0"
-
 # serialization
-serde = "1.0.124"
+serde = { version = "1.0.124", features = ["derive"] }
 toml = "0.5.8"
 
 # logging
