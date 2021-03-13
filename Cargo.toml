@@ -13,6 +13,9 @@ legion = { git = "https://github.com/grzi/legion", branch = "feat/uuid_as_option
 # window & rendering
 miniquad = "0.3.0-alpha.26"
 
+# maths
+ultraviolet = "0.7"
+
 # serialization
 serde = { version = "1.0.124", features = ["derive"] }
 toml = "0.5.8"

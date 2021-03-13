@@ -11,11 +11,6 @@ pub trait ScionRenderer {
     fn draw(&mut self, context: &mut Context, world: &mut World, resource: &mut Resources);
 }
 
-pub trait Renderable2D {
-    fn render(context: &mut Context,
-              material: Option<&Material2D>);
-}
-
 /// Type of renderer to use to render the game.
 pub enum RendererType {
     Scion2D,

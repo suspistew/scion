@@ -63,7 +63,6 @@ impl Scion {
         self.context = Some(context);
         self.resources.insert(Time::default());
         self.resources.insert(WindowDimensions::new(screen_size));
-
         self.apply_layers_action(LayerAction::START);
         self
     }
