@@ -4,4 +4,3 @@ Scion is a minimalist, **easy** to use, modulable game engine built on top of le
 
 
 
-

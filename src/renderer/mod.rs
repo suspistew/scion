@@ -1,5 +1,4 @@
 pub mod bidimensional;
-use log::*;
 use miniquad::Context;
 use legion::{World, Resources};
 
@@ -29,8 +28,8 @@ impl Default for RendererType{
 impl RendererType{
     pub(crate) fn into_boxed_renderer(self) -> Box<dyn ScionRenderer>{
         match self{
-            RendererType::Scion2D => { warn!("scion2S");Box::new(bidimensional::renderer::Scion2D) }
-            RendererType::Custom(boxed) => { warn!("Boxed"); boxed }
+            RendererType::Scion2D => { Box::new(bidimensional::renderer::Scion2D) }
+            RendererType::Custom(boxed) => { boxed }
         }
     }
 }
