@@ -1,15 +1,19 @@
 use crate::renderer::Renderable2D;
 use miniquad::{Context, Buffer, BufferType, Bindings, Shader, Pipeline, BufferLayout, VertexAttribute, VertexFormat };
-use crate::renderer::bidimensional::{Vertex, Vec2, Uniforms, Vec4};
+use crate::renderer::bidimensional::gl_representations::{GlVertex, GlVec2, GlColor, GlUniform};
+use crate::renderer::bidimensional::material::Material2D;
 
 pub struct Triangle;
 
 impl Renderable2D for Triangle {
-    fn render(context: &mut Context) {
-        let vertices: [Vertex; 3] = [
-            Vertex { pos: Vec2 { x: -0.5, y: -0.5 }, color: Vec4 { r: 1.0, g: 0., b: 0., a: 1.0, }, },
-            Vertex { pos: Vec2 { x: 0.5, y: -0.5 }, color: Vec4 { r: 0., g: 1., b: 0., a: 1.0 } },
-            Vertex { pos: Vec2 { x: 0., y: 0.5 }, color: Vec4 { r: 0., g: 0., b: 1., a: 1.0 } },
+    fn render(context: &mut Context, material: Option<&Material2D>) {
+        let color: GlColor = match material.expect("Render function must not be called without a material") {
+            Material2D::Color(c) =>  c.into()
+        };
+        let vertices: [GlVertex; 3] = [
+            GlVertex { pos: GlVec2 { x: -0.5, y: -0.5 }, color: color.clone(), },
+            GlVertex { pos: GlVec2 { x: 0.5, y: -0.5 }, color: color.clone() },
+            GlVertex { pos: GlVec2 { x: 0., y: 0.5 }, color },
         ];
         let vertex_buffer = Buffer::immutable(context, BufferType::VertexBuffer, &vertices);
 
@@ -39,7 +43,7 @@ impl Renderable2D for Triangle {
         context.apply_pipeline(&pipeline);
         context.apply_bindings(&bindings);
 
-        context.apply_uniforms(&Uniforms {
+        context.apply_uniforms(&GlUniform {
             offset: (0., 0.),
         });
 
