@@ -1,5 +1,5 @@
 use miniquad::{Context, Buffer, BufferType, Bindings, Shader, Pipeline, BufferLayout, VertexAttribute, VertexFormat};
-use crate::renderer::bidimensional::gl_representations::{GlVertex, GlVec2,GlVec4, GlColor, GlUniform};
+use crate::renderer::bidimensional::gl_representations::{GlVertex, GlVec2, GlColor, GlUniform, create_glmat4};
 use crate::renderer::bidimensional::material::Material2D;
 use ultraviolet::{Isometry3, Similarity3, Vec4, Vec3, Rotor3, Rotor2, Similarity2, Vec2, Mat4};
 use crate::renderer::bidimensional::renderer::Renderable2D;
@@ -44,10 +44,10 @@ impl Renderable2D for Triangle {
         context.apply_bindings(&bindings);
 
         let mut transform_rotate = Isometry3::identity();
-        transform_rotate.append_translation(Vec3{
+        transform_rotate.append_translation(Vec3 {
             x: transform.position.x,
             y: transform.position.y,
-            z: 1.0
+            z: 1.0,
         });
         transform_rotate.prepend_rotation(Rotor3::from_rotation_xy(transform.angle).normalized());
 
@@ -57,11 +57,7 @@ impl Renderable2D for Triangle {
         let mut transform_rotate = transform_rotate.into_homogeneous_matrix();
         let mut scale = scale.into_homogeneous_matrix();
 
-        context.apply_uniforms(&GlUniform {
-            offset: (0. , 0.),
-            trans: Triangle::create_glmat4(&mut transform_rotate),
-            scale: Triangle::create_glmat4(&mut scale),
-        });
+        context.apply_uniforms(&GlUniform { offset: (0., 0.), trans: create_glmat4(&mut transform_rotate), scale: create_glmat4(&mut scale) });
 
         context.draw(0, 3, 1);
     }

@@ -2,7 +2,7 @@ pub mod bidimensional;
 pub mod color;
 use miniquad::Context;
 use legion::{World, Resources};
-use crate::renderer::bidimensional::material::Material2D;
+
 
 
 /// Trait to implement in order to create a renderer to use in a `Scion` application

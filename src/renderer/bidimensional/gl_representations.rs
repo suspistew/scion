@@ -48,6 +48,6 @@ pub(crate) struct GlUniform {
     pub scale: (GlVec4, GlVec4, GlVec4, GlVec4),
 }
 
-fn create_glmat4(t: &mut Mat4) -> (GlVec4, GlVec4, GlVec4, GlVec4) {
+pub(crate) fn create_glmat4(t: &mut Mat4) -> (GlVec4, GlVec4, GlVec4, GlVec4) {
     (GlVec4::from(t.cols[0]), GlVec4::from(t.cols[1]), GlVec4::from(t.cols[2]), GlVec4::from(t.cols[3]))
 }
