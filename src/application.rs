@@ -8,7 +8,7 @@ use crate::utils::time::Time;
 use crate::utils::window::WindowDimensions;
 use crate::renderer::{RendererType, ScionRenderer};
 
-use crate::renderer::bidimensional::triangle::Triangle;
+
 use crate::game_layer::{GameLayer, SimpleGameLayer, GameLayerType, LayerAction};
 
 /// `Scion` is the entry point of any application made with Scion engine.
@@ -63,7 +63,6 @@ impl Scion {
         self.context = Some(context);
         self.resources.insert(Time::default());
         self.resources.insert(WindowDimensions::new(screen_size));
-
         self.apply_layers_action(LayerAction::START);
         self
     }

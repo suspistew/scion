@@ -1,5 +1,5 @@
 use legion::{Resources, World};
-use std::fmt::Debug;
+
 
 /// Trait to implement in order to create a `GameLayer`.
 pub trait SimpleGameLayer {
