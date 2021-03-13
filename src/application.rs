@@ -9,6 +9,7 @@ use crate::utils::window::WindowDimensions;
 use crate::renderer::{RendererType, ScionRenderer};
 
 use crate::renderer::bidimensional::triangle::Triangle;
+use crate::game_layer::{GameLayer, SimpleGameLayer, GameLayerType, LayerAction};
 
 /// `Scion` is the entry point of any application made with Scion engine.
 pub struct Scion {
@@ -16,6 +17,7 @@ pub struct Scion {
     world: World,
     resources: Resources,
     schedule: Schedule,
+    game_layers: Vec<Box<GameLayer>>,
     context: Option<Context>,
     renderer: Box<dyn ScionRenderer>,
 }
@@ -60,22 +62,47 @@ impl Scion {
         let screen_size = context.screen_size();
         self.context = Some(context);
         self.resources.insert(Time::default());
-
         self.resources.insert(WindowDimensions::new(screen_size));
-        self.world.push((Triangle,));
+
+        self.apply_layers_action(LayerAction::START);
         self
     }
 
     fn next_frame(&mut self) {
+        self.apply_layers_action(LayerAction::UPDATE);
         self.resources.get_mut::<Time>().expect("Time is an internal resource and can't be missing").frame();
         self.schedule.execute(&mut self.world, &mut self.resources);
+        self.apply_layers_action(LayerAction::LATE_UPDATE);
+    }
+
+    fn apply_layers_action(&mut self, action: LayerAction) {
+        let layers_len = self.game_layers.len();
+        if layers_len > 0 {
+            for layer_index in (0..layers_len).rev(){
+                let current_layer = self.game_layers.get_mut(layer_index).expect("We just checked the len");
+                match &mut current_layer.layer {
+                    GameLayerType::Strong(simple_layer) | GameLayerType::Weak(simple_layer) => {
+                        match action {
+                            LayerAction::UPDATE => simple_layer.update(&mut self.world, &mut self.resources),
+                            LayerAction::START => simple_layer.on_start(&mut self.world, &mut self.resources),
+                            LayerAction::STOP => simple_layer.on_stop(&mut self.world, &mut self.resources),
+                            LayerAction::LATE_UPDATE => simple_layer.late_update(&mut self.world, &mut self.resources),
+                        };
+                    }
+                }
+                if let GameLayerType::Strong(_) = current_layer.layer{
+                    break;
+                }
+            }
+        }
     }
 }
 
 pub struct ScionBuilder {
     config: ScionConfig,
     schedule_builder: Builder,
-    renderer: RendererType
+    renderer: RendererType,
+    game_layers: Vec<Box<GameLayer>>
 }
 
 impl ScionBuilder {
@@ -83,7 +110,8 @@ impl ScionBuilder {
         Self {
             config,
             schedule_builder: Default::default(),
-            renderer: Default::default()
+            renderer: Default::default(),
+            game_layers: Default::default()
         }
     }
 
@@ -110,6 +138,11 @@ impl ScionBuilder {
         self
     }
 
+    pub fn with_game_layer(mut self, game_layer: Box<GameLayer>) -> Self{
+        self.game_layers.push(game_layer);
+        self
+    }
+
     /// Builds, setups and runs the Scion application
     pub fn run(mut self) {
         let scion = Scion {
@@ -117,6 +150,7 @@ impl ScionBuilder {
             world: Default::default(),
             resources: Default::default(),
             schedule: self.schedule_builder.build(),
+            game_layers: self.game_layers,
             context: None,
             renderer: self.renderer.into_boxed_renderer()
         };
