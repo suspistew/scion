@@ -1,4 +1,4 @@
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Copy, Clone)]
 pub struct Position2D {
     pub x: f32,
     pub y: f32
