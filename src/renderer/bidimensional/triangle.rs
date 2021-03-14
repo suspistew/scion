@@ -3,19 +3,34 @@ use crate::renderer::bidimensional::gl_representations::{GlVertex, GlVec2, GlCol
 use crate::renderer::bidimensional::material::Material2D;
 use ultraviolet::{Isometry3, Similarity3, Vec4, Vec3, Rotor3, Rotor2, Similarity2, Vec2, Mat4};
 use crate::renderer::bidimensional::renderer::Renderable2D;
-use crate::renderer::bidimensional::transform::Transform2D;
+use crate::renderer::bidimensional::transform::{Transform2D, Position2D};
 
-pub struct Triangle;
+pub struct Triangle {
+    pub vertices: [Position2D; 3]
+}
+
+
+impl Default for Triangle {
+    fn default() -> Self {
+        Self {
+            vertices: [
+                Position2D { x: -0.5, y: -0.5 },
+                Position2D { x: 0., y: 0.5 },
+                Position2D { x: 0.5, y: -0.5 }
+            ]
+        }
+    }
+}
 
 impl Renderable2D for Triangle {
-    fn render(context: &mut Context, material: Option<&Material2D>, transform: &Transform2D) {
+    fn render(&self, context: &mut Context, material: Option<&Material2D>, transform: &Transform2D) {
         let color: GlColor = match material.expect("Render function must not be called without a material") {
             Material2D::Color(c) => c.into()
         };
         let vertices: [GlVertex; 3] = [
-            GlVertex { pos: GlVec2 { x: -0.5, y: -0.5 }, color: color.clone() },
-            GlVertex { pos: GlVec2 { x: 0., y: 0.5 }, color: color.clone() },
-            GlVertex { pos: GlVec2 { x: 0.5, y: -0.5 }, color },
+            GlVertex { pos: GlVec2::from(&self.vertices[0]), color: color.clone() },
+            GlVertex { pos: GlVec2::from(&self.vertices[1]), color: color.clone() },
+            GlVertex { pos: GlVec2::from(&self.vertices[2]), color },
         ];
         let vertex_buffer = Buffer::immutable(context, BufferType::VertexBuffer, &vertices);
 

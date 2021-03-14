@@ -1,12 +1,6 @@
 use scion::application::Scion;
 use scion::legion::{system, Resources, World};
 use scion::utils::time::Time;
-
-
-
-
-
-
 use scion::game_layer::{SimpleGameLayer, GameLayer};
 
 use scion::renderer::bidimensional::triangle::Triangle;
@@ -20,10 +14,12 @@ fn color(#[state] timer: &mut f32, #[resource] time: &Time, material: &mut Mater
     *timer += time.delta_duration().as_secs_f32();
     if *timer > 0.01 {
         *timer = 0.;
-        match material { Material2D::Color(color) => {
-            let new_red = if color.red() < 255 { color.red() + 1 } else{ 0 };
-            color.replace(Color::new_rgb(new_red, color.green(), color.blue()));
-        } }
+        match material {
+            Material2D::Color(color) => {
+                let new_red = if color.red() < 255 { color.red() + 1 } else { 0 };
+                color.replace(Color::new_rgb(new_red, color.green(), color.blue()));
+            }
+        }
     }
     transform.append_angle(0.1);
 }
@@ -34,14 +30,21 @@ struct Layer;
 impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, _resource: &mut Resources) {
         let triangle1 =
-            (Triangle,
+            (Triangle::default(),
              Material2D::Color(Color::new(0, 47, 110, 1.0)),
-             Transform2D::new(Position2D{ x: 0.0, y: 0.0 }, 0.5, 0.)
+             Transform2D::new(Position2D { x: 0.0, y: 0.0 }, 0.5, 0.)
             );
+
         let triangle2 =
-            (Triangle,
+            (Triangle {
+                vertices: [
+                    Position2D { x: -0.5, y: -0.5 },
+                    Position2D { x: 0., y: 1. },
+                    Position2D { x: 0.5, y: -0.5 }
+                ]
+            },
              Material2D::Color(Color::new(90, 47, 210, 1.0)),
-             Transform2D::new(Position2D{ x: -1.5, y: 0.0 }, 0.5, 0.)
+             Transform2D::new(Position2D { x: -1.5, y: 0.0 }, 0.5, 0.)
             );
         world.extend(vec![triangle1, triangle2]);
     }

@@ -1,9 +1,16 @@
 use ultraviolet::{Mat4, Vec4};
+use crate::renderer::bidimensional::transform::Position2D;
 
 #[repr(C)]
 pub(crate) struct GlVec2 {
     pub x: f32,
     pub y: f32,
+}
+
+impl From<&Position2D> for GlVec2{
+    fn from(position: &Position2D) -> Self {
+        Self{ x: position.x, y: position.y }
+    }
 }
 
 #[repr(C)]
