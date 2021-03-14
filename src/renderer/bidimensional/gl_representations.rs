@@ -43,9 +43,15 @@ impl From<Vec4> for GlVec4 {
 }
 
 #[repr(C)]
-pub(crate) struct GlVertex {
+pub(crate) struct ColoredGlVertex {
     pub pos: GlVec2,
     pub color: GlColor,
+}
+
+#[repr(C)]
+pub(crate) struct TexturedGlVertex {
+    pub pos: GlVec2,
+    pub uv: GlVec2
 }
 
 #[repr(C)]

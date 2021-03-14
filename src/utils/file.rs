@@ -1,6 +1,6 @@
 use std::fs::File;
-use std::path::{Path, PathBuf};
-use std::io::{Error, Read};
+use std::path::{Path};
+use std::io::{Read};
 use std::{path, io, env};
 
 pub struct FileReaderError {
