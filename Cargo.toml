@@ -11,7 +11,9 @@ parallel = ["legion/parallel"]
 legion = { git = "https://github.com/grzi/legion", branch = "feat/uuid_as_optional", default-features = false, features = ["codegen"]}
 
 # window & rendering
-miniquad = "0.3.0-alpha.26"
+winit = "0.24.0"
+wgpu = "0.7.0"
+futures = "0.3"
 
 # maths
 ultraviolet = "0.7"
@@ -24,3 +26,9 @@ image = {version = "0.23", default-features = false, features = ["png"]}
 # logging
 log = { version = "0.4.14", features = ["serde"] }
 fern = { version = "0.6.0", features = ["colored"] }
+
+[build-dependencies]
+anyhow = "1.0"
+fs_extra = "1.1"
+glob = "0.3"
+shaderc = "0.7"

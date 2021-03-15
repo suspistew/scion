@@ -1,4 +1,3 @@
-use miniquad::{Context, Buffer, BufferType, Bindings, Shader, Pipeline, BufferLayout, VertexAttribute, VertexFormat};
 use crate::renderer::bidimensional::gl_representations::{ColoredGlVertex, GlVec2, GlColor, GlUniform, create_glmat4, TexturedGlVertex};
 use crate::renderer::bidimensional::material::{Material2D, Texture2D};
 use ultraviolet::{Isometry3, Similarity3, Vec4, Vec3, Rotor3, Rotor2, Similarity2, Vec2, Mat4};
@@ -6,14 +5,64 @@ use crate::renderer::bidimensional::renderer::Renderable2D;
 use crate::renderer::bidimensional::transform::{Transform2D, Position2D};
 use image::{GenericImageView};
 use crate::renderer::color::Color;
+use wgpu::{Device, SwapChainDescriptor, RenderPipeline};
 
 pub struct Triangle {
     pub vertices: [Position2D; 3],
     pub uvs: Option<[Position2D; 3]>,
 }
 
+pub(crate) fn triangle_pipeline(device: &Device, sc_desc: &SwapChainDescriptor) -> RenderPipeline {
+    let vs_module = device.create_shader_module(&wgpu::include_spirv!("shaders/shader.vert.spv"));
+    let fs_module = device.create_shader_module(&wgpu::include_spirv!("shaders/shader.frag.spv"));
+
+    let render_pipeline_layout =
+        device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("Basic triangle pipeline layout"),
+            bind_group_layouts: &[],
+            push_constant_ranges: &[],
+        });
+
+    let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("Triangle render pipeline"),
+        layout: Some(&render_pipeline_layout),
+        vertex: wgpu::VertexState {
+            module: &vs_module,
+            entry_point: "main", // 1.
+            buffers: &[], // 2.
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &fs_module,
+            entry_point: "main",
+            targets: &[wgpu::ColorTargetState {
+                format: sc_desc.format,
+                alpha_blend: wgpu::BlendState::REPLACE,
+                color_blend: wgpu::BlendState::REPLACE,
+                write_mask: wgpu::ColorWrite::ALL,
+            }],
+        }),
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: wgpu::CullMode::Back,
+            polygon_mode: wgpu::PolygonMode::Fill,
+        },
+        depth_stencil: None, // 1.
+        multisample: wgpu::MultisampleState {
+            count: 1, // 2.
+            mask: !0, // 3.
+            alpha_to_coverage_enabled: false, // 4.
+        },
+    });
+    render_pipeline
+}
+
 impl Triangle {
-    pub fn render_colored(&self, context: &mut Context, transform: &Transform2D, color: &Color) -> (Pipeline, Bindings){
+    /*
+}
+    pub fn render_colored(&self, transform: &Transform2D, color: &Color) -> (Pipeline, Bindings){
+
         let color: GlColor = color.into();
         let vertices: [ColoredGlVertex; 3] = [
             ColoredGlVertex { pos: GlVec2::from(&self.vertices[0]), color: color.clone() },
@@ -81,8 +130,10 @@ impl Triangle {
 
         (pipeline, bindings)
     }
-}
 
+     */
+}
+/*
 impl Renderable2D for Triangle {
     fn render(&self, context: &mut Context, material: Option<&Material2D>, transform: &Transform2D) {
         let (pipeline, bindings) = match material.expect("Render function must not be called without a material") {
@@ -112,10 +163,9 @@ impl Renderable2D for Triangle {
         context.draw(0, 3, 1);
     }
 }
-
+*/
 
 mod shader {
-    use miniquad::*;
 
     pub const VERTEX_TEXTURED: &str =
         r#"
@@ -171,7 +221,7 @@ mod shader {
                 FragColor = texture(tex, texcoord);
             }
         "#;
-
+/*
     pub fn meta(images: Vec<String>) -> ShaderMeta {
         ShaderMeta {
             images,
@@ -183,4 +233,6 @@ mod shader {
             },
         }
     }
+
+ */
 }
