@@ -1,5 +1,5 @@
-use ultraviolet::{Mat4, Vec4};
 use crate::renderer::bidimensional::transform::Position2D;
+use ultraviolet::{Mat4, Vec4};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -9,9 +9,13 @@ pub(crate) struct GlVec3 {
     pub z: f32,
 }
 
-impl From<&Position2D> for GlVec3{
+impl From<&Position2D> for GlVec3 {
     fn from(position: &Position2D) -> Self {
-        Self{ x: position.x, y: position.y, z: 0. }
+        Self {
+            x: position.x,
+            y: position.y,
+            z: 0.,
+        }
     }
 }
 
@@ -66,8 +70,8 @@ impl ColoredGlVertex {
                     offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
                     shader_location: 1,
                     format: wgpu::VertexFormat::Float3,
-                }
-            ]
+                },
+            ],
         }
     }
 }
@@ -75,7 +79,7 @@ impl ColoredGlVertex {
 #[repr(C)]
 pub(crate) struct TexturedGlVertex {
     pub pos: GlVec3,
-    pub uv: GlVec3
+    pub uv: GlVec3,
 }
 
 #[repr(C)]
@@ -86,5 +90,10 @@ pub(crate) struct GlUniform {
 }
 
 pub(crate) fn create_glmat4(t: &mut Mat4) -> (GlVec4, GlVec4, GlVec4, GlVec4) {
-    (GlVec4::from(t.cols[0]), GlVec4::from(t.cols[1]), GlVec4::from(t.cols[2]), GlVec4::from(t.cols[3]))
+    (
+        GlVec4::from(t.cols[0]),
+        GlVec4::from(t.cols[1]),
+        GlVec4::from(t.cols[2]),
+        GlVec4::from(t.cols[3]),
+    )
 }

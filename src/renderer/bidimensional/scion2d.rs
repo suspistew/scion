@@ -1,50 +1,89 @@
-use crate::renderer::ScionRenderer;
-use legion::{Resources, World};
-use crate::renderer::bidimensional::triangle::{triangle_pipeline};
 use crate::renderer::bidimensional::material::Material2D;
 use crate::renderer::bidimensional::transform::Transform2D;
+use crate::renderer::bidimensional::triangle::triangle_pipeline;
+use crate::renderer::ScionRenderer;
+use legion::{Resources, World};
 
-
-
-use wgpu::{Device, SwapChainDescriptor, CommandEncoder, SwapChainTexture, RenderPassColorAttachmentDescriptor};
+use crate::renderer::bidimensional::gl_representations::{ColoredGlVertex, GlColor, GlVec3};
 use std::collections::HashMap;
 use wgpu::util::DeviceExt;
-use crate::renderer::bidimensional::gl_representations::{ColoredGlVertex, GlVec3, GlColor};
+use wgpu::{
+    CommandEncoder, Device, RenderPassColorAttachmentDescriptor, SwapChainDescriptor,
+    SwapChainTexture,
+};
 
 const VERTICES: &[ColoredGlVertex] = &[
-    ColoredGlVertex { position: GlVec3 { x: 0.0, y: 0.5, z: 0.0 }, color: GlColor { r: 1.0, g: 0.0, b: 0.0, a: 1. } },
-    ColoredGlVertex { position: GlVec3 { x: -0.5, y: -0.5, z: 0.0 }, color: GlColor { r: 0.0, g: 1.0, b: 0.0, a: 1.0 } },
-    ColoredGlVertex { position: GlVec3 { x: 0.5, y: -0.5, z: 0.0 }, color: GlColor { r: 0.0, g: 0.0, b: 1.0, a: 1.0 } },
+    ColoredGlVertex {
+        position: GlVec3 {
+            x: 0.0,
+            y: 0.5,
+            z: 0.0,
+        },
+        color: GlColor {
+            r: 1.0,
+            g: 0.0,
+            b: 0.0,
+            a: 1.,
+        },
+    },
+    ColoredGlVertex {
+        position: GlVec3 {
+            x: -0.5,
+            y: -0.5,
+            z: 0.0,
+        },
+        color: GlColor {
+            r: 0.0,
+            g: 1.0,
+            b: 0.0,
+            a: 1.0,
+        },
+    },
+    ColoredGlVertex {
+        position: GlVec3 {
+            x: 0.5,
+            y: -0.5,
+            z: 0.0,
+        },
+        color: GlColor {
+            r: 0.0,
+            g: 0.0,
+            b: 1.0,
+            a: 1.0,
+        },
+    },
 ];
 
 pub trait Renderable2D {
-    fn render(&self,
-              material: Option<&Material2D>,
-              transform: &Transform2D);
+    fn render(&self, material: Option<&Material2D>, transform: &Transform2D);
 }
 
 #[derive(Default)]
-pub struct Scion2D{
+pub struct Scion2D {
     render_pipelines: HashMap<String, wgpu::RenderPipeline>,
     vertex_buffer: Option<wgpu::Buffer>,
 }
 
-impl ScionRenderer for Scion2D{
+impl ScionRenderer for Scion2D {
+    fn setup_pipelines(&mut self, device: &Device, sc_desc: &SwapChainDescriptor) {
+        self.render_pipelines
+            .insert("triangle".to_string(), triangle_pipeline(&device, &sc_desc));
 
-    fn setup_pipelines(&mut self, device: &Device, sc_desc: &SwapChainDescriptor){
-        self.render_pipelines.insert("triangle".to_string(), triangle_pipeline(&device, &sc_desc));
-
-        let vertex_buffer = device.create_buffer_init(
-            &wgpu::util::BufferInitDescriptor {
-                label: Some("Vertex Buffer"),
-                contents: bytemuck::cast_slice(VERTICES),
-                usage: wgpu::BufferUsage::VERTEX,
-            }
-        );
+        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Vertex Buffer"),
+            contents: bytemuck::cast_slice(VERTICES),
+            usage: wgpu::BufferUsage::VERTEX,
+        });
         self.vertex_buffer = Some(vertex_buffer);
     }
 
-    fn render(&mut self, _world: &mut World, _resources: &mut Resources, frame: &SwapChainTexture, encoder: &mut CommandEncoder){
+    fn render(
+        &mut self,
+        _world: &mut World,
+        _resources: &mut Resources,
+        frame: &SwapChainTexture,
+        encoder: &mut CommandEncoder,
+    ) {
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Scion 2D Render Pass"),

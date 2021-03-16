@@ -1,38 +1,41 @@
 pub mod bidimensional;
 pub mod color;
 pub mod renderer_state;
-use legion::{World, Resources};
-
+use legion::{Resources, World};
 
 use crate::renderer::bidimensional::scion2d::Scion2D;
 
-
-use wgpu::{Device, SwapChainDescriptor, CommandEncoder, SwapChainTexture};
-
+use wgpu::{CommandEncoder, Device, SwapChainDescriptor, SwapChainTexture};
 
 /// Trait to implement in order to create a renderer to use in a `Scion` application
 pub trait ScionRenderer {
     fn setup_pipelines(&mut self, device: &Device, sc_desc: &SwapChainDescriptor);
-    fn render(&mut self, world: &mut World, resources: &mut Resources, frame: &SwapChainTexture, encoder: &mut CommandEncoder);
+    fn render(
+        &mut self,
+        world: &mut World,
+        resources: &mut Resources,
+        frame: &SwapChainTexture,
+        encoder: &mut CommandEncoder,
+    );
 }
 
 /// Type of renderer to use to render the game.
 pub enum RendererType {
     Scion2D,
-    Custom(Box<dyn ScionRenderer>)
+    Custom(Box<dyn ScionRenderer>),
 }
 
-impl Default for RendererType{
+impl Default for RendererType {
     fn default() -> Self {
         RendererType::Scion2D
     }
 }
 
-impl RendererType{
-    pub(crate) fn into_boxed_renderer(self) -> Box<dyn ScionRenderer>{
+impl RendererType {
+    pub(crate) fn into_boxed_renderer(self) -> Box<dyn ScionRenderer> {
         match self {
             RendererType::Scion2D => Box::new(Scion2D::default()),
-            RendererType::Custom(boxed) => { boxed }
+            RendererType::Custom(boxed) => boxed,
         }
     }
 }

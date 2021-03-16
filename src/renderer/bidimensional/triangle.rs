@@ -1,12 +1,8 @@
-
-
 use wgpu::{Device, RenderPipeline, SwapChainDescriptor};
 
-use crate::renderer::bidimensional::gl_representations::{ColoredGlVertex};
+use crate::renderer::bidimensional::gl_representations::ColoredGlVertex;
 
-
-use crate::renderer::bidimensional::transform::{Position2D};
-
+use crate::renderer::bidimensional::transform::Position2D;
 
 pub struct Triangle {
     pub vertices: [Position2D; 3],
@@ -17,12 +13,11 @@ pub(crate) fn triangle_pipeline(device: &Device, sc_desc: &SwapChainDescriptor) 
     let vs_module = device.create_shader_module(&wgpu::include_spirv!("shaders/shader.vert.spv"));
     let fs_module = device.create_shader_module(&wgpu::include_spirv!("shaders/shader.frag.spv"));
 
-    let render_pipeline_layout =
-        device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("Basic triangle pipeline layout"),
-            bind_group_layouts: &[],
-            push_constant_ranges: &[],
-        });
+    let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("Basic triangle pipeline layout"),
+        bind_group_layouts: &[],
+        push_constant_ranges: &[],
+    });
 
     let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("Triangle render pipeline"),
@@ -30,9 +25,7 @@ pub(crate) fn triangle_pipeline(device: &Device, sc_desc: &SwapChainDescriptor) 
         vertex: wgpu::VertexState {
             module: &vs_module,
             entry_point: "main",
-            buffers: &[
-                ColoredGlVertex::desc(),
-            ],
+            buffers: &[ColoredGlVertex::desc()],
         },
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
@@ -53,8 +46,8 @@ pub(crate) fn triangle_pipeline(device: &Device, sc_desc: &SwapChainDescriptor) 
         },
         depth_stencil: None, // 1.
         multisample: wgpu::MultisampleState {
-            count: 1, // 2.
-            mask: !0, // 3.
+            count: 1,                         // 2.
+            mask: !0,                         // 3.
             alpha_to_coverage_enabled: false, // 4.
         },
     });
@@ -63,78 +56,78 @@ pub(crate) fn triangle_pipeline(device: &Device, sc_desc: &SwapChainDescriptor) 
 
 impl Triangle {
     /*
-}
-    pub fn render_colored(&self, transform: &Transform2D, color: &Color) -> (Pipeline, Bindings){
-
-        let color: GlColor = color.into();
-        let vertices: [ColoredGlVertex; 3] = [
-            ColoredGlVertex { pos: GlVec2::from(&self.vertices[0]), color: color.clone() },
-            ColoredGlVertex { pos: GlVec2::from(&self.vertices[1]), color: color.clone() },
-            ColoredGlVertex { pos: GlVec2::from(&self.vertices[2]), color },
-        ];
-
-        let vertex_buffer = Buffer::immutable(context, BufferType::VertexBuffer, &vertices);
-        let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
-        let index_buffer = Buffer::immutable(context, BufferType::IndexBuffer, &indices);
-
-        let bindings = Bindings {
-            vertex_buffers: vec![vertex_buffer],
-            index_buffer,
-            images: vec![],
-        };
-
-        let shader = Shader::new(context, shader::VERTEX_COLORED, shader::FRAGMENT_COLORED, shader::meta(vec![])).unwrap();
-
-        let pipeline = Pipeline::new(
-            context,
-            &[BufferLayout::default()],
-            &[
-                VertexAttribute::new("pos", VertexFormat::Float2),
-                VertexAttribute::new("color", VertexFormat::Float4),
-            ],
-            shader,
-        );
-
-        (pipeline, bindings)
-
     }
+        pub fn render_colored(&self, transform: &Transform2D, color: &Color) -> (Pipeline, Bindings){
 
-    pub fn render_textured(&self, context: &mut Context, transform: &Transform2D, texture: &Texture2D) -> (Pipeline, Bindings){
-        let uvs = self.uvs.unwrap_or_else(|| {
-            log::error!("No uv map found for shape with Texture2D material. Using default positions.");
-            [Position2D { x: 0.0, y: 0.0 }; 3]
-        });
-        let vertices: [TexturedGlVertex; 3] = [
-            TexturedGlVertex { pos: GlVec2::from(&self.vertices[0]), uv: GlVec2::from(&uvs[0]) },
-            TexturedGlVertex { pos: GlVec2::from(&self.vertices[1]), uv: GlVec2::from(&uvs[1]) },
-            TexturedGlVertex { pos: GlVec2::from(&self.vertices[2]), uv: GlVec2::from(&uvs[2]) },
-        ];
-        let vertex_buffer = Buffer::immutable(context, BufferType::VertexBuffer, &vertices);
-        let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
-        let index_buffer = Buffer::immutable(context, BufferType::IndexBuffer, &indices);
+            let color: GlColor = color.into();
+            let vertices: [ColoredGlVertex; 3] = [
+                ColoredGlVertex { pos: GlVec2::from(&self.vertices[0]), color: color.clone() },
+                ColoredGlVertex { pos: GlVec2::from(&self.vertices[1]), color: color.clone() },
+                ColoredGlVertex { pos: GlVec2::from(&self.vertices[2]), color },
+            ];
 
-        let bindings = Bindings {
-            vertex_buffers: vec![vertex_buffer],
-            index_buffer,
-            images: vec![miniquad::Texture::from_rgba8(context, texture.width, texture.height, &texture.bytes)],
-        };
+            let vertex_buffer = Buffer::immutable(context, BufferType::VertexBuffer, &vertices);
+            let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
+            let index_buffer = Buffer::immutable(context, BufferType::IndexBuffer, &indices);
 
-        let shader = Shader::new(context, shader::VERTEX_TEXTURED, shader::FRAGMENT_TEXTURED, shader::meta(vec!["tex".to_string()])).unwrap();
+            let bindings = Bindings {
+                vertex_buffers: vec![vertex_buffer],
+                index_buffer,
+                images: vec![],
+            };
 
-        let pipeline = Pipeline::new(
-            context,
-            &[BufferLayout::default()],
-            &[
-                VertexAttribute::new("pos", VertexFormat::Float2),
-                VertexAttribute::new("uv", VertexFormat::Float2),
-            ],
-            shader,
-        );
+            let shader = Shader::new(context, shader::VERTEX_COLORED, shader::FRAGMENT_COLORED, shader::meta(vec![])).unwrap();
 
-        (pipeline, bindings)
-    }
+            let pipeline = Pipeline::new(
+                context,
+                &[BufferLayout::default()],
+                &[
+                    VertexAttribute::new("pos", VertexFormat::Float2),
+                    VertexAttribute::new("color", VertexFormat::Float4),
+                ],
+                shader,
+            );
 
-     */
+            (pipeline, bindings)
+
+        }
+
+        pub fn render_textured(&self, context: &mut Context, transform: &Transform2D, texture: &Texture2D) -> (Pipeline, Bindings){
+            let uvs = self.uvs.unwrap_or_else(|| {
+                log::error!("No uv map found for shape with Texture2D material. Using default positions.");
+                [Position2D { x: 0.0, y: 0.0 }; 3]
+            });
+            let vertices: [TexturedGlVertex; 3] = [
+                TexturedGlVertex { pos: GlVec2::from(&self.vertices[0]), uv: GlVec2::from(&uvs[0]) },
+                TexturedGlVertex { pos: GlVec2::from(&self.vertices[1]), uv: GlVec2::from(&uvs[1]) },
+                TexturedGlVertex { pos: GlVec2::from(&self.vertices[2]), uv: GlVec2::from(&uvs[2]) },
+            ];
+            let vertex_buffer = Buffer::immutable(context, BufferType::VertexBuffer, &vertices);
+            let indices: [u16; 6] = [0, 1, 2, 0, 2, 3];
+            let index_buffer = Buffer::immutable(context, BufferType::IndexBuffer, &indices);
+
+            let bindings = Bindings {
+                vertex_buffers: vec![vertex_buffer],
+                index_buffer,
+                images: vec![miniquad::Texture::from_rgba8(context, texture.width, texture.height, &texture.bytes)],
+            };
+
+            let shader = Shader::new(context, shader::VERTEX_TEXTURED, shader::FRAGMENT_TEXTURED, shader::meta(vec!["tex".to_string()])).unwrap();
+
+            let pipeline = Pipeline::new(
+                context,
+                &[BufferLayout::default()],
+                &[
+                    VertexAttribute::new("pos", VertexFormat::Float2),
+                    VertexAttribute::new("uv", VertexFormat::Float2),
+                ],
+                shader,
+            );
+
+            (pipeline, bindings)
+        }
+
+         */
 }
 /*
 impl Renderable2D for Triangle {
@@ -170,8 +163,7 @@ impl Renderable2D for Triangle {
 
 mod shader {
 
-    pub const VERTEX_TEXTURED: &str =
-        r#"
+    pub const VERTEX_TEXTURED: &str = r#"
             #version 330 core
             in vec2 pos;
             in vec2 uv;
@@ -187,8 +179,7 @@ mod shader {
             }
         "#;
 
-    pub const VERTEX_COLORED: &str =
-        r#"
+    pub const VERTEX_COLORED: &str = r#"
             #version 330 core
             in vec2 pos;
             in vec4 color;
@@ -204,8 +195,7 @@ mod shader {
             }
         "#;
 
-    pub const FRAGMENT_COLORED: &str =
-        r#"
+    pub const FRAGMENT_COLORED: &str = r#"
             #version 330 core
             in lowp vec4 color_lowp;
             out vec4 FragColor;
@@ -214,8 +204,7 @@ mod shader {
             }
         "#;
 
-    pub const FRAGMENT_TEXTURED: &str =
-        r#"
+    pub const FRAGMENT_TEXTURED: &str = r#"
             #version 330 core
             in lowp vec2 texcoord;
             out vec4 FragColor;
@@ -224,18 +213,18 @@ mod shader {
                 FragColor = texture(tex, texcoord);
             }
         "#;
-/*
-    pub fn meta(images: Vec<String>) -> ShaderMeta {
-        ShaderMeta {
-            images,
-            uniforms: UniformBlockLayout {
-                uniforms: vec![
-                    UniformDesc::new("offset", UniformType::Float2),
-                    UniformDesc::new("trans", UniformType::Mat4),
-                    UniformDesc::new("scale", UniformType::Mat4)],
-            },
-        }
-    }
+    /*
+       pub fn meta(images: Vec<String>) -> ShaderMeta {
+           ShaderMeta {
+               images,
+               uniforms: UniformBlockLayout {
+                   uniforms: vec![
+                       UniformDesc::new("offset", UniformType::Float2),
+                       UniformDesc::new("trans", UniformType::Mat4),
+                       UniformDesc::new("scale", UniformType::Mat4)],
+               },
+           }
+       }
 
- */
+    */
 }

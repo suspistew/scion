@@ -1,6 +1,5 @@
 use legion::{Resources, World};
 
-
 /// Trait to implement in order to create a `GameLayer`.
 pub trait SimpleGameLayer {
     fn on_start(&mut self, _world: &mut World, _resource: &mut Resources) {}
@@ -10,20 +9,27 @@ pub trait SimpleGameLayer {
 }
 
 pub(crate) enum LayerAction {
-    UPDATE, START, STOP, LATE_UPDATE
+    UPDATE,
+    START,
+    STOP,
+    LATE_UPDATE,
 }
 
-pub struct GameLayer{
-    pub(crate) layer: GameLayerType
+pub struct GameLayer {
+    pub(crate) layer: GameLayerType,
 }
 
 impl GameLayer {
     pub fn weak<T: SimpleGameLayer + Default + 'static>() -> Box<GameLayer> {
-        Box::new(GameLayer{layer: GameLayerType::Weak(Box::new(T::default()))})
+        Box::new(GameLayer {
+            layer: GameLayerType::Weak(Box::new(T::default())),
+        })
     }
 
     pub fn strong<T: SimpleGameLayer + Default + 'static>() -> Box<GameLayer> {
-        Box::new(GameLayer{layer: GameLayerType::Strong(Box::new(T::default()))})
+        Box::new(GameLayer {
+            layer: GameLayerType::Strong(Box::new(T::default())),
+        })
     }
 }
 

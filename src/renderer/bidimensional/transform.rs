@@ -1,33 +1,32 @@
 #[derive(Default, Debug, Copy, Clone)]
 pub struct Position2D {
     pub x: f32,
-    pub y: f32
+    pub y: f32,
 }
 
 #[derive(Debug)]
 pub struct Transform2D {
     pub(crate) position: Position2D,
     pub(crate) scale: f32,
-    pub(crate) angle: f32
+    pub(crate) angle: f32,
 }
 
-impl Default for Transform2D{
+impl Default for Transform2D {
     fn default() -> Self {
         Self {
             position: Default::default(),
             scale: 1.0,
-            angle: 0.0
+            angle: 0.0,
         }
     }
 }
 
 impl Transform2D {
-
-    pub fn new(position: Position2D, scale: f32, angle: f32) -> Self{
+    pub fn new(position: Position2D, scale: f32, angle: f32) -> Self {
         Self {
             position,
             scale,
-            angle
+            angle,
         }
     }
 
@@ -40,5 +39,3 @@ impl Transform2D {
         self.angle += angle;
     }
 }
-
-

@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
 use log::LevelFilter;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LoggerConfig {

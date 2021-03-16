@@ -1,5 +1,5 @@
-use legion::{Resources, Schedule, World};
 use legion::systems::{Builder, ParallelRunnable, Runnable};
+use legion::{Resources, Schedule, World};
 use log::info;
 
 use crate::config::scion_config::{ScionConfig, ScionConfigReader};
@@ -7,11 +7,10 @@ use crate::utils::time::Time;
 
 use crate::renderer::{RendererType, ScionRenderer};
 
-
-use crate::game_layer::{GameLayer, SimpleGameLayer, GameLayerType, LayerAction};
-use winit::window::{Window, WindowBuilder};
-use winit::event_loop::{EventLoop, ControlFlow};
+use crate::game_layer::{GameLayer, GameLayerType, LayerAction, SimpleGameLayer};
 use winit::event::{Event, WindowEvent};
+use winit::event_loop::{ControlFlow, EventLoop};
+use winit::window::{Window, WindowBuilder};
 
 use crate::renderer::renderer_state::RendererState;
 
@@ -52,23 +51,44 @@ impl Scion {
                 Event::WindowEvent {
                     ref event,
                     window_id,
-                } if window_id == self.window.as_ref().expect("A window is mandatory to run this game !").id() =>
+                } if window_id
+                    == self
+                        .window
+                        .as_ref()
+                        .expect("A window is mandatory to run this game !")
+                        .id() =>
+                {
                     match event {
                         WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                         WindowEvent::Resized(physical_size) => {
-                            self.renderer.as_mut().expect("A renderer is mandatory to run this game !").resize(*physical_size);
+                            self.renderer
+                                .as_mut()
+                                .expect("A renderer is mandatory to run this game !")
+                                .resize(*physical_size);
                         }
                         WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            self.renderer.as_mut().expect("A renderer is mandatory to run this game !").resize(**new_inner_size);
+                            self.renderer
+                                .as_mut()
+                                .expect("A renderer is mandatory to run this game !")
+                                .resize(**new_inner_size);
                         }
                         _ => {}
-                    },
+                    }
+                }
                 Event::MainEventsCleared => {
                     self.window.as_ref().unwrap().request_redraw();
                 }
                 Event::RedrawRequested(_) => {
-                    self.renderer.as_mut().expect("A renderer is mandatory to run this game !").update();
-                    match self.renderer.as_mut().expect("A renderer is mandatory to run this game !").render(&mut self.world, &mut self.resources) {
+                    self.renderer
+                        .as_mut()
+                        .expect("A renderer is mandatory to run this game !")
+                        .update();
+                    match self
+                        .renderer
+                        .as_mut()
+                        .expect("A renderer is mandatory to run this game !")
+                        .render(&mut self.world, &mut self.resources)
+                    {
                         Ok(_) => {}
                         Err(e) => log::error!("{:?}", e),
                     }
@@ -88,7 +108,10 @@ impl Scion {
 
     fn next_frame(&mut self) {
         self.apply_layers_action(LayerAction::UPDATE);
-        self.resources.get_mut::<Time>().expect("Time is an internal resource and can't be missing").frame();
+        self.resources
+            .get_mut::<Time>()
+            .expect("Time is an internal resource and can't be missing")
+            .frame();
         self.schedule.execute(&mut self.world, &mut self.resources);
         self.apply_layers_action(LayerAction::LATE_UPDATE);
     }
@@ -97,14 +120,25 @@ impl Scion {
         let layers_len = self.game_layers.len();
         if layers_len > 0 {
             for layer_index in (0..layers_len).rev() {
-                let current_layer = self.game_layers.get_mut(layer_index).expect("We just checked the len");
+                let current_layer = self
+                    .game_layers
+                    .get_mut(layer_index)
+                    .expect("We just checked the len");
                 match &mut current_layer.layer {
                     GameLayerType::Strong(simple_layer) | GameLayerType::Weak(simple_layer) => {
                         match action {
-                            LayerAction::UPDATE => simple_layer.update(&mut self.world, &mut self.resources),
-                            LayerAction::START => simple_layer.on_start(&mut self.world, &mut self.resources),
-                            LayerAction::STOP => simple_layer.on_stop(&mut self.world, &mut self.resources),
-                            LayerAction::LATE_UPDATE => simple_layer.late_update(&mut self.world, &mut self.resources),
+                            LayerAction::UPDATE => {
+                                simple_layer.update(&mut self.world, &mut self.resources)
+                            }
+                            LayerAction::START => {
+                                simple_layer.on_start(&mut self.world, &mut self.resources)
+                            }
+                            LayerAction::STOP => {
+                                simple_layer.on_stop(&mut self.world, &mut self.resources)
+                            }
+                            LayerAction::LATE_UPDATE => {
+                                simple_layer.late_update(&mut self.world, &mut self.resources)
+                            }
                         };
                     }
                 }
@@ -172,7 +206,9 @@ impl ScionBuilder {
             .into();
         let window = window_builder.build(&event_loop).expect("");
         let renderer = self.renderer.into_boxed_renderer();
-        let renderer_state = futures::executor::block_on(crate::renderer::renderer_state::RendererState::new(&window, renderer));
+        let renderer_state = futures::executor::block_on(
+            crate::renderer::renderer_state::RendererState::new(&window, renderer),
+        );
         let mut scion = Scion {
             config: self.config,
             world: Default::default(),
