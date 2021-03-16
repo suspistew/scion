@@ -2,19 +2,21 @@ use ultraviolet::{Mat4, Vec4};
 use crate::renderer::bidimensional::transform::Position2D;
 
 #[repr(C)]
-pub(crate) struct GlVec2 {
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+pub(crate) struct GlVec3 {
     pub x: f32,
     pub y: f32,
+    pub z: f32,
 }
 
-impl From<&Position2D> for GlVec2{
+impl From<&Position2D> for GlVec3{
     fn from(position: &Position2D) -> Self {
-        Self{ x: position.x, y: position.y }
+        Self{ x: position.x, y: position.y, z: 0. }
     }
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub(crate) struct GlColor {
     pub r: f32,
     pub g: f32,
@@ -43,15 +45,37 @@ impl From<Vec4> for GlVec4 {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub(crate) struct ColoredGlVertex {
-    pub pos: GlVec2,
+    pub position: GlVec3,
     pub color: GlColor,
+}
+
+impl ColoredGlVertex {
+    pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        wgpu::VertexBufferLayout {
+            array_stride: std::mem::size_of::<ColoredGlVertex>() as wgpu::BufferAddress,
+            step_mode: wgpu::InputStepMode::Vertex,
+            attributes: &[
+                wgpu::VertexAttribute {
+                    offset: 0,
+                    shader_location: 0,
+                    format: wgpu::VertexFormat::Float3,
+                },
+                wgpu::VertexAttribute {
+                    offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    shader_location: 1,
+                    format: wgpu::VertexFormat::Float3,
+                }
+            ]
+        }
+    }
 }
 
 #[repr(C)]
 pub(crate) struct TexturedGlVertex {
-    pub pos: GlVec2,
-    pub uv: GlVec2
+    pub pos: GlVec3,
+    pub uv: GlVec3
 }
 
 #[repr(C)]

@@ -1,8 +1,14 @@
-use std::collections::HashMap;
-use crate::renderer::bidimensional::triangle::triangle_pipeline;
-use winit::window::Window;
-use crate::renderer::ScionRenderer;
+
+
+
 use winit::event::WindowEvent;
+use winit::window::Window;
+
+
+
+use crate::renderer::ScionRenderer;
+use legion::{World, Resources};
+
 
 pub struct RendererState {
     surface: wgpu::Surface,
@@ -11,12 +17,11 @@ pub struct RendererState {
     sc_desc: wgpu::SwapChainDescriptor,
     swap_chain: wgpu::SwapChain,
     size: winit::dpi::PhysicalSize<u32>,
-    render_pipelines: HashMap<String,wgpu::RenderPipeline>,
-    scion_renderer: Box<dyn ScionRenderer>
+    scion_renderer: Box<dyn ScionRenderer>,
 }
 
 impl RendererState {
-    pub(crate) async fn new(window: &Window, scion_renderer: Box<ScionRenderer>) -> Self {
+    pub(crate) async fn new(window: &Window, mut scion_renderer: Box<dyn ScionRenderer>) -> Self {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
@@ -44,9 +49,7 @@ impl RendererState {
             present_mode: wgpu::PresentMode::Fifo,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
-        let mut pipelines = HashMap::new();
-
-        pipelines.insert("triangle".to_string(),triangle_pipeline(&device, &sc_desc));
+        scion_renderer.setup_pipelines(&device, &sc_desc);
 
         Self {
             surface,
@@ -55,8 +58,7 @@ impl RendererState {
             sc_desc,
             swap_chain,
             size,
-            render_pipelines: pipelines,
-            scion_renderer
+            scion_renderer,
         }
     }
 
@@ -67,7 +69,7 @@ impl RendererState {
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
     }
 
-    pub(crate) fn input(&mut self, event: &WindowEvent) -> bool {
+    pub(crate) fn input(&mut self, _event: &WindowEvent) -> bool {
         //todo!()
         false
     }
@@ -76,7 +78,7 @@ impl RendererState {
         //todo!()
     }
 
-    pub(crate) fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+    pub(crate) fn render(&mut self, world: &mut World, resources: &mut Resources) -> Result<(), wgpu::SwapChainError> {
         let frame = self
             .swap_chain
             .get_current_frame()?
@@ -84,30 +86,10 @@ impl RendererState {
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Render Encoder"),
         });
-        {
-            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("Render Pass"),
-                color_attachments: &[
-                    wgpu::RenderPassColorAttachmentDescriptor {
-                        attachment: &frame.view,
-                        resolve_target: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color {
-                                r: 0.5,
-                                g: 0.2,
-                                b: 0.7,
-                                a: 1.0,
-                            }),
-                            store: true,
-                        }
-                    }
-                ],
-                depth_stencil_attachment: None,
-            });
-            render_pass.set_pipeline(&self.render_pipelines.get("triangle").unwrap()); // 2.
-            render_pass.draw(0..3, 0..1);
-        }
+
+        self.scion_renderer.render(world, resources, &frame, &mut encoder);
         self.queue.submit(std::iter::once(encoder.finish()));
+
         Ok(())
     }
 }

@@ -1,11 +1,12 @@
-use crate::renderer::bidimensional::gl_representations::{ColoredGlVertex, GlVec2, GlColor, GlUniform, create_glmat4, TexturedGlVertex};
-use crate::renderer::bidimensional::material::{Material2D, Texture2D};
-use ultraviolet::{Isometry3, Similarity3, Vec4, Vec3, Rotor3, Rotor2, Similarity2, Vec2, Mat4};
-use crate::renderer::bidimensional::renderer::Renderable2D;
-use crate::renderer::bidimensional::transform::{Transform2D, Position2D};
-use image::{GenericImageView};
-use crate::renderer::color::Color;
-use wgpu::{Device, SwapChainDescriptor, RenderPipeline};
+
+
+use wgpu::{Device, RenderPipeline, SwapChainDescriptor};
+
+use crate::renderer::bidimensional::gl_representations::{ColoredGlVertex};
+
+
+use crate::renderer::bidimensional::transform::{Position2D};
+
 
 pub struct Triangle {
     pub vertices: [Position2D; 3],
@@ -28,8 +29,10 @@ pub(crate) fn triangle_pipeline(device: &Device, sc_desc: &SwapChainDescriptor) 
         layout: Some(&render_pipeline_layout),
         vertex: wgpu::VertexState {
             module: &vs_module,
-            entry_point: "main", // 1.
-            buffers: &[], // 2.
+            entry_point: "main",
+            buffers: &[
+                ColoredGlVertex::desc(),
+            ],
         },
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,

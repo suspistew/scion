@@ -4,7 +4,7 @@ use log::info;
 
 use crate::config::scion_config::{ScionConfig, ScionConfigReader};
 use crate::utils::time::Time;
-use crate::utils::window::WindowDimensions;
+
 use crate::renderer::{RendererType, ScionRenderer};
 
 
@@ -12,7 +12,7 @@ use crate::game_layer::{GameLayer, SimpleGameLayer, GameLayerType, LayerAction};
 use winit::window::{Window, WindowBuilder};
 use winit::event_loop::{EventLoop, ControlFlow};
 use winit::event::{Event, WindowEvent};
-use wgpu::SwapChainError;
+
 use crate::renderer::renderer_state::RendererState;
 
 /// `Scion` is the entry point of any application made with Scion engine.
@@ -68,7 +68,7 @@ impl Scion {
                 }
                 Event::RedrawRequested(_) => {
                     self.renderer.as_mut().expect("A renderer is mandatory to run this game !").update();
-                    match self.renderer.as_mut().expect("A renderer is mandatory to run this game !").render() {
+                    match self.renderer.as_mut().expect("A renderer is mandatory to run this game !").render(&mut self.world, &mut self.resources) {
                         Ok(_) => {}
                         Err(e) => log::error!("{:?}", e),
                     }

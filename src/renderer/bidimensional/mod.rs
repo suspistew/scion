@@ -1,4 +1,4 @@
-pub mod renderer;
+pub mod scion2d;
 pub mod material;
 pub mod triangle;
 pub mod transform;
