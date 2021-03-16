@@ -5,17 +5,19 @@ use legion::{Resources, World};
 
 use crate::renderer::bidimensional::scion2d::Scion2D;
 
-use wgpu::{CommandEncoder, Device, SwapChainDescriptor, SwapChainTexture};
+use wgpu::{CommandEncoder, Device, SwapChainDescriptor, SwapChainTexture, Queue};
 
 /// Trait to implement in order to create a renderer to use in a `Scion` application
 pub trait ScionRenderer {
-    fn setup_pipelines(&mut self, device: &Device, sc_desc: &SwapChainDescriptor);
     fn render(
         &mut self,
-        world: &mut World,
-        resources: &mut Resources,
+        _world: &mut World,
+        _resources: &mut Resources,
         frame: &SwapChainTexture,
         encoder: &mut CommandEncoder,
+        device: &Device,
+        sc_desc: &SwapChainDescriptor,
+        queue: &mut Queue
     );
 }
 

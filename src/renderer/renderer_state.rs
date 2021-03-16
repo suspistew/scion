@@ -27,7 +27,7 @@ impl RendererState {
             .await
             .unwrap();
 
-        let (device, queue) = adapter
+        let (device, mut queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
                     features: wgpu::Features::empty(),
@@ -47,7 +47,6 @@ impl RendererState {
             present_mode: wgpu::PresentMode::Fifo,
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
-        scion_renderer.setup_pipelines(&device, &sc_desc);
 
         Self {
             surface,
@@ -89,7 +88,7 @@ impl RendererState {
             });
 
         self.scion_renderer
-            .render(world, resources, &frame, &mut encoder);
+            .render(world, resources, &frame, &mut encoder, &self.device, &self.sc_desc, &mut self.queue);
         self.queue.submit(std::iter::once(encoder.finish()));
 
         Ok(())

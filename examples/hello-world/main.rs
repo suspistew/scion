@@ -1,11 +1,12 @@
 use scion::application::Scion;
 use scion::game_layer::{GameLayer, SimpleGameLayer};
 use scion::legion::{system, Resources, World};
-use scion::renderer::bidimensional::material::Material2D;
+use scion::renderer::bidimensional::material::{Material2D, Texture2D};
 use scion::renderer::bidimensional::transform::{Position2D, Transform2D};
 use scion::renderer::bidimensional::triangle::Triangle;
 use scion::renderer::color::Color;
 use scion::utils::time::Time;
+use std::path::Path;
 
 fn triangle() -> Triangle {
     Triangle {
@@ -50,7 +51,7 @@ impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, _resource: &mut Resources) {
         let triangle1 = (
             triangle(),
-            Material2D::Color(Color::new(0, 47, 110, 1.0)),
+            Material2D::Texture(Texture2D::from_png(Path::new("Yo"))),
             Transform2D::new(Position2D { x: 0.0, y: 0.0 }, 0.5, 0.),
         );
         world.extend(vec![triangle1]);
