@@ -1,3 +1,6 @@
+use crate::renderer::bidimensional::gl_representations::{create_glmat4, GlUniform};
+use ultraviolet::{Isometry3, Rotor3, Similarity3, Vec3};
+
 #[derive(Default, Debug, Copy, Clone)]
 pub struct Position2D {
     pub x: f32,
@@ -37,5 +40,27 @@ impl Transform2D {
 
     pub fn append_angle(&mut self, angle: f32) {
         self.angle += angle;
+    }
+}
+
+impl From<&Transform2D> for GlUniform {
+    fn from(transform: &Transform2D) -> Self {
+        let mut transform_rotate = Isometry3::identity();
+        transform_rotate.append_translation(Vec3 {
+            x: transform.position.x,
+            y: transform.position.y,
+            z: 1.0,
+        });
+        transform_rotate.prepend_rotation(Rotor3::from_rotation_xy(transform.angle).normalized());
+
+        let mut scale = Similarity3::identity();
+        scale.append_scaling(transform.scale);
+
+        let mut transform_rotate = transform_rotate.into_homogeneous_matrix();
+        let mut scale = scale.into_homogeneous_matrix();
+        GlUniform {
+            trans: create_glmat4(&mut transform_rotate),
+            scale: create_glmat4(&mut scale),
+        }
     }
 }

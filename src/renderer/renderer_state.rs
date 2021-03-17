@@ -15,7 +15,7 @@ pub struct RendererState {
 }
 
 impl RendererState {
-    pub(crate) async fn new(window: &Window, mut scion_renderer: Box<dyn ScionRenderer>) -> Self {
+    pub(crate) async fn new(window: &Window, scion_renderer: Box<dyn ScionRenderer>) -> Self {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
@@ -27,7 +27,7 @@ impl RendererState {
             .await
             .unwrap();
 
-        let (device, mut queue) = adapter
+        let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
                     features: wgpu::Features::empty(),
@@ -66,19 +66,20 @@ impl RendererState {
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
     }
 
-    pub(crate) fn input(&mut self, _event: &WindowEvent) -> bool {
+    pub(crate) fn _input(&mut self, _event: &WindowEvent) -> bool {
         //todo!()
         false
     }
 
-    pub(crate) fn update(&mut self) {
-        //todo!()
+    pub(crate) fn update(&mut self, world: &mut World) {
+        self.scion_renderer
+            .update(world, &self.device, &self.sc_desc, &mut self.queue);
     }
 
     pub(crate) fn render(
         &mut self,
         world: &mut World,
-        resources: &mut Resources,
+        _resources: &mut Resources,
     ) -> Result<(), wgpu::SwapChainError> {
         let frame = self.swap_chain.get_current_frame()?.output;
         let mut encoder = self
@@ -87,8 +88,7 @@ impl RendererState {
                 label: Some("Render Encoder"),
             });
 
-        self.scion_renderer
-            .render(world, resources, &frame, &mut encoder, &self.device, &self.sc_desc, &mut self.queue);
+        self.scion_renderer.render(world, &frame, &mut encoder);
         self.queue.submit(std::iter::once(encoder.finish()));
 
         Ok(())

@@ -1,24 +1,22 @@
 pub mod bidimensional;
 pub mod color;
 pub mod renderer_state;
-use legion::{Resources, World};
+use legion::World;
 
 use crate::renderer::bidimensional::scion2d::Scion2D;
 
-use wgpu::{CommandEncoder, Device, SwapChainDescriptor, SwapChainTexture, Queue};
+use wgpu::{CommandEncoder, Device, Queue, SwapChainDescriptor, SwapChainTexture};
 
 /// Trait to implement in order to create a renderer to use in a `Scion` application
 pub trait ScionRenderer {
-    fn render(
+    fn update(
         &mut self,
-        _world: &mut World,
-        _resources: &mut Resources,
-        frame: &SwapChainTexture,
-        encoder: &mut CommandEncoder,
+        world: &mut World,
         device: &Device,
         sc_desc: &SwapChainDescriptor,
-        queue: &mut Queue
+        queue: &mut Queue,
     );
+    fn render(&mut self, world: &mut World, frame: &SwapChainTexture, encoder: &mut CommandEncoder);
 }
 
 /// Type of renderer to use to render the game.

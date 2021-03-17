@@ -20,7 +20,10 @@ impl Texture2D {
         if let Ok(bytes) = read_file(&file_path) {
             let converted_image = image::load_from_memory_with_format(&bytes, ImageFormat::Png);
             if let Ok(image) = converted_image {
-                return Texture2D::create_texture_from_dynamic_image(image, file_path.to_str().unwrap().to_string());
+                return Texture2D::create_texture_from_dynamic_image(
+                    image,
+                    file_path.to_str().unwrap().to_string(),
+                );
             }
         }
         log::error!("Error while loading your texture, loading fallback texture instead.");
@@ -43,7 +46,7 @@ impl Texture2D {
             bytes,
             width,
             height,
-            path
+            path,
         }
     }
 }

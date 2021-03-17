@@ -5,9 +5,9 @@ use log::info;
 use crate::config::scion_config::{ScionConfig, ScionConfigReader};
 use crate::utils::time::Time;
 
-use crate::renderer::{RendererType, ScionRenderer};
+use crate::renderer::RendererType;
 
-use crate::game_layer::{GameLayer, GameLayerType, LayerAction, SimpleGameLayer};
+use crate::game_layer::{GameLayer, GameLayerType, LayerAction};
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
@@ -16,6 +16,7 @@ use crate::renderer::renderer_state::RendererState;
 
 /// `Scion` is the entry point of any application made with Scion engine.
 pub struct Scion {
+    #[allow(dead_code)]
     config: ScionConfig,
     world: World,
     resources: Resources,
@@ -82,7 +83,7 @@ impl Scion {
                     self.renderer
                         .as_mut()
                         .expect("A renderer is mandatory to run this game !")
-                        .update();
+                        .update(&mut self.world);
                     match self
                         .renderer
                         .as_mut()
@@ -103,17 +104,17 @@ impl Scion {
         //let screen_size = context.screen_size();
         self.resources.insert(Time::default());
         // self.resources.insert(WindowDimensions::new(screen_size));
-        self.apply_layers_action(LayerAction::START);
+        self.apply_layers_action(LayerAction::Start);
     }
 
     fn next_frame(&mut self) {
-        self.apply_layers_action(LayerAction::UPDATE);
+        self.apply_layers_action(LayerAction::Update);
         self.resources
             .get_mut::<Time>()
             .expect("Time is an internal resource and can't be missing")
             .frame();
         self.schedule.execute(&mut self.world, &mut self.resources);
-        self.apply_layers_action(LayerAction::LATE_UPDATE);
+        self.apply_layers_action(LayerAction::LateUpdate);
     }
 
     fn apply_layers_action(&mut self, action: LayerAction) {
@@ -127,16 +128,16 @@ impl Scion {
                 match &mut current_layer.layer {
                     GameLayerType::Strong(simple_layer) | GameLayerType::Weak(simple_layer) => {
                         match action {
-                            LayerAction::UPDATE => {
+                            LayerAction::Update => {
                                 simple_layer.update(&mut self.world, &mut self.resources)
                             }
-                            LayerAction::START => {
+                            LayerAction::Start => {
                                 simple_layer.on_start(&mut self.world, &mut self.resources)
                             }
-                            LayerAction::STOP => {
+                            LayerAction::_STOP => {
                                 simple_layer.on_stop(&mut self.world, &mut self.resources)
                             }
-                            LayerAction::LATE_UPDATE => {
+                            LayerAction::LateUpdate => {
                                 simple_layer.late_update(&mut self.world, &mut self.resources)
                             }
                         };

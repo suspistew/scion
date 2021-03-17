@@ -9,10 +9,10 @@ pub trait SimpleGameLayer {
 }
 
 pub(crate) enum LayerAction {
-    UPDATE,
-    START,
-    STOP,
-    LATE_UPDATE,
+    Update,
+    Start,
+    _STOP,
+    LateUpdate,
 }
 
 pub struct GameLayer {

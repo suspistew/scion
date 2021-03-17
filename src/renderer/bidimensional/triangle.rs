@@ -1,6 +1,6 @@
-use wgpu::{Device, RenderPipeline, SwapChainDescriptor, BindGroupLayout};
+use wgpu::{BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor};
 
-use crate::renderer::bidimensional::gl_representations::{ColoredGlVertex, TexturedGlVertex};
+use crate::renderer::bidimensional::gl_representations::TexturedGlVertex;
 
 use crate::renderer::bidimensional::transform::Position2D;
 
@@ -9,13 +9,18 @@ pub struct Triangle {
     pub uvs: Option<[Position2D; 3]>,
 }
 
-pub(crate) fn triangle_pipeline(device: &Device, sc_desc: &SwapChainDescriptor, texture_bind_group_layout: &BindGroupLayout) -> RenderPipeline {
+pub(crate) fn triangle_pipeline(
+    device: &Device,
+    sc_desc: &SwapChainDescriptor,
+    texture_bind_group_layout: &BindGroupLayout,
+    transform_bind_group_layout: &BindGroupLayout,
+) -> RenderPipeline {
     let vs_module = device.create_shader_module(&wgpu::include_spirv!("shaders/shader.vert.spv"));
     let fs_module = device.create_shader_module(&wgpu::include_spirv!("shaders/shader.frag.spv"));
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Basic triangle pipeline layout"),
-        bind_group_layouts: &[texture_bind_group_layout],
+        bind_group_layouts: &[texture_bind_group_layout, transform_bind_group_layout],
         push_constant_ranges: &[],
     });
 

@@ -40,8 +40,8 @@ fn color(
             }
             _ => {}
         }
+        transform.append_angle(0.1);
     }
-    transform.append_angle(0.1);
 }
 
 #[derive(Default)]
@@ -52,9 +52,14 @@ impl SimpleGameLayer for Layer {
         let triangle1 = (
             triangle(),
             Material2D::Texture(Texture2D::from_png(Path::new("Yo"))),
-            Transform2D::new(Position2D { x: 0.0, y: 0.0 }, 0.5, 0.),
+            Transform2D::new(Position2D { x: -1.0, y: 0.0 }, 0.5, 0.),
         );
-        world.extend(vec![triangle1]);
+        let triangle2 = (
+            triangle(),
+            Material2D::Texture(Texture2D::from_png(Path::new("Yo"))),
+            Transform2D::new(Position2D { x: 1.0, y: 0.0 }, 0.5, 0.),
+        );
+        world.extend(vec![triangle1, triangle2]);
     }
 }
 
