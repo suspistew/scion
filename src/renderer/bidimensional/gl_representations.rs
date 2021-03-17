@@ -1,20 +1,33 @@
-use ultraviolet::{Mat4, Vec4};
 use crate::renderer::bidimensional::transform::Position2D;
+use ultraviolet::{Mat4, Vec4};
 
 #[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub(crate) struct GlVec2 {
     pub x: f32,
     pub y: f32,
 }
 
-impl From<&Position2D> for GlVec2{
+#[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+pub(crate) struct GlVec3 {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+}
+
+impl From<&Position2D> for GlVec3 {
     fn from(position: &Position2D) -> Self {
-        Self{ x: position.x, y: position.y }
+        Self {
+            x: position.x,
+            y: position.y,
+            z: 0.,
+        }
     }
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub(crate) struct GlColor {
     pub r: f32,
     pub g: f32,
@@ -23,7 +36,7 @@ pub(crate) struct GlColor {
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub(crate) struct GlVec4 {
     pub x: f32,
     pub y: f32,
@@ -43,24 +56,85 @@ impl From<Vec4> for GlVec4 {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub(crate) struct ColoredGlVertex {
-    pub pos: GlVec2,
+    pub position: GlVec3,
     pub color: GlColor,
 }
 
+impl ColoredGlVertex {
+    pub fn _desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        wgpu::VertexBufferLayout {
+            array_stride: std::mem::size_of::<ColoredGlVertex>() as wgpu::BufferAddress,
+            step_mode: wgpu::InputStepMode::Vertex,
+            attributes: &[
+                wgpu::VertexAttribute {
+                    offset: 0,
+                    shader_location: 0,
+                    format: wgpu::VertexFormat::Float3,
+                },
+                wgpu::VertexAttribute {
+                    offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    shader_location: 1,
+                    format: wgpu::VertexFormat::Float3,
+                },
+            ],
+        }
+    }
+}
+
 #[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub(crate) struct TexturedGlVertex {
-    pub pos: GlVec2,
-    pub uv: GlVec2
+    pub position: GlVec3,
+    pub tex_coords: GlVec2,
+}
+
+impl TexturedGlVertex {
+    pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        use std::mem;
+        wgpu::VertexBufferLayout {
+            array_stride: mem::size_of::<TexturedGlVertex>() as wgpu::BufferAddress,
+            step_mode: wgpu::InputStepMode::Vertex,
+            attributes: &[
+                wgpu::VertexAttribute {
+                    offset: 0,
+                    shader_location: 0,
+                    format: wgpu::VertexFormat::Float3,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    shader_location: 1,
+                    format: wgpu::VertexFormat::Float2,
+                },
+            ],
+        }
+    }
 }
 
 #[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub(crate) struct GlUniform {
-    pub offset: (f32, f32),
-    pub trans: (GlVec4, GlVec4, GlVec4, GlVec4),
-    pub scale: (GlVec4, GlVec4, GlVec4, GlVec4),
+    pub trans: [[f32; 4]; 4],
+    pub scale: [[f32; 4]; 4],
 }
 
-pub(crate) fn create_glmat4(t: &mut Mat4) -> (GlVec4, GlVec4, GlVec4, GlVec4) {
-    (GlVec4::from(t.cols[0]), GlVec4::from(t.cols[1]), GlVec4::from(t.cols[2]), GlVec4::from(t.cols[3]))
+impl GlUniform {
+    pub(crate) fn replace_with(&mut self, other: GlUniform) {
+        self.trans = other.trans;
+        self.scale = other.scale;
+    }
+}
+
+pub(crate) fn create_glmat4(t: &mut Mat4) -> [[f32; 4]; 4] {
+    [
+        create_glmat(&t.cols[0]),
+        create_glmat(&t.cols[1]),
+        create_glmat(&t.cols[2]),
+        create_glmat(&t.cols[3]),
+    ]
+}
+
+pub(crate) fn create_glmat(t: &Vec4) -> [f32; 4] {
+    [t.w, t.x, t.y, t.z]
 }

@@ -1,8 +1,8 @@
 use log::debug;
 use std::io;
 
-use fern::colors::ColoredLevelConfig;
 use crate::config::logger_config::LoggerConfig;
+use fern::colors::ColoredLevelConfig;
 
 /// Logging utility provided by Scion
 pub(crate) struct Logger;

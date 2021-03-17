@@ -3,14 +3,14 @@
 #[derive(Default, Debug)]
 pub struct WindowDimensions {
     width: f32,
-    height: f32
+    height: f32,
 }
 
 impl WindowDimensions {
-    pub fn new(screen_size: (f32, f32)) -> Self{
-        Self{
+    pub fn new(screen_size: (f32, f32)) -> Self {
+        Self {
             width: screen_size.0,
-            height: screen_size.1
+            height: screen_size.1,
         }
     }
 

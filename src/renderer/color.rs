@@ -9,13 +9,16 @@ pub struct Color {
     /// Blue value of the color
     b: u8,
     /// Alpha value of the color
-    a: f32
+    a: f32,
 }
 
 impl Color {
     pub fn new(r: u8, g: u8, b: u8, a: f32) -> Self {
-        assert!(a <= 1. && a >= 0., "Alpha value must be between 0.0 and 1.0");
-        Self { r,g,b,a }
+        assert!(
+            a <= 1. && a >= 0.,
+            "Alpha value must be between 0.0 and 1.0"
+        );
+        Self { r, g, b, a }
     }
 
     pub fn new_rgb(r: u8, g: u8, b: u8) -> Self {
@@ -46,13 +49,13 @@ impl Color {
     }
 }
 
-impl Into<GlColor> for &Color{
+impl Into<GlColor> for &Color {
     fn into(self) -> GlColor {
-        GlColor{
+        GlColor {
             r: self.r as f32 / 255.,
             g: self.g as f32 / 255.,
             b: self.b as f32 / 255.,
-            a: self.a
+            a: self.a,
         }
     }
 }

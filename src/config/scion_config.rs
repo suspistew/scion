@@ -28,28 +28,28 @@ impl Default for ScionConfig {
     }
 }
 
-pub struct ScionConfigBuilder{
-    config: ScionConfig
+pub struct ScionConfigBuilder {
+    config: ScionConfig,
 }
 
-impl ScionConfigBuilder{
-    pub fn new() -> Self{
+impl ScionConfigBuilder {
+    pub fn new() -> Self {
         Self {
-            config:Default::default()
+            config: Default::default(),
         }
     }
 
-    pub fn with_app_name(mut self, app_name: String )-> Self{
+    pub fn with_app_name(mut self, app_name: String) -> Self {
         self.config.app_name = app_name;
         self
     }
 
-    pub fn with_logger_config(mut self, logger_config: LoggerConfig)-> Self{
+    pub fn with_logger_config(mut self, logger_config: LoggerConfig) -> Self {
         self.config.logger_config = Some(logger_config);
         self
     }
 
-    pub fn with_window_config(mut self, window_config: WindowConfig)-> Self{
+    pub fn with_window_config(mut self, window_config: WindowConfig) -> Self {
         self.config.window_config = Some(window_config);
         self
     }
