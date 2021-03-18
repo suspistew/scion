@@ -9,13 +9,7 @@ use wgpu::{CommandEncoder, Device, Queue, SwapChainDescriptor, SwapChainTexture}
 
 /// Trait to implement in order to create a renderer to use in a `Scion` application
 pub trait ScionRenderer {
-    fn update(
-        &mut self,
-        world: &mut World,
-        device: &Device,
-        sc_desc: &SwapChainDescriptor,
-        queue: &mut Queue,
-    );
+    fn update(&mut self, world: &mut World, device: &Device, sc_desc: &SwapChainDescriptor, queue: &mut Queue);
     fn render(&mut self, world: &mut World, frame: &SwapChainTexture, encoder: &mut CommandEncoder);
 }
 

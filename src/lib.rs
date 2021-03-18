@@ -8,3 +8,4 @@ pub mod config;
 pub mod game_layer;
 pub mod rendering;
 pub mod utils;
+pub mod inputs;
