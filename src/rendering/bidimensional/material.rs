@@ -1,4 +1,4 @@
-use crate::renderer::color::Color;
+use crate::rendering::color::Color;
 use crate::utils::file::read_file;
 use image::{DynamicImage, ImageFormat};
 use std::path::Path;

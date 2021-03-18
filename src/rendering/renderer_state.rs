@@ -1,7 +1,7 @@
 use winit::event::WindowEvent;
 use winit::window::Window;
 
-use crate::renderer::ScionRenderer;
+use crate::rendering::ScionRenderer;
 use legion::{Resources, World};
 
 pub struct RendererState {

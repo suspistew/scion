@@ -3,7 +3,7 @@ pub mod color;
 pub mod renderer_state;
 use legion::World;
 
-use crate::renderer::bidimensional::scion2d::Scion2D;
+use crate::rendering::bidimensional::scion2d::Scion2D;
 
 use wgpu::{CommandEncoder, Device, Queue, SwapChainDescriptor, SwapChainTexture};
 

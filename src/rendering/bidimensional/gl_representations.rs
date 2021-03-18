@@ -1,4 +1,4 @@
-use crate::renderer::bidimensional::transform::Position2D;
+use crate::rendering::bidimensional::transform::Position2D;
 use ultraviolet::{Mat4, Vec4};
 
 #[repr(C)]
@@ -108,6 +108,19 @@ impl TexturedGlVertex {
                     format: wgpu::VertexFormat::Float2,
                 },
             ],
+        }
+    }
+}
+
+impl From<(&Position2D, &Position2D)> for TexturedGlVertex{
+    fn from(positions: (&Position2D, &Position2D)) -> Self {
+        TexturedGlVertex {
+            position: GlVec3 {
+                x: positions.0.x,
+                y: positions.0.y,
+                z: 0.0,
+            },
+            tex_coords: GlVec2 { x: positions.1.x, y: positions.1.y },
         }
     }
 }

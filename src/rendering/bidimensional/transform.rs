@@ -1,4 +1,4 @@
-use crate::renderer::bidimensional::gl_representations::{create_glmat4, GlUniform};
+use crate::rendering::bidimensional::gl_representations::{create_glmat4, GlUniform};
 use ultraviolet::{Isometry3, Rotor3, Similarity3, Vec3};
 
 #[derive(Default, Debug, Copy, Clone)]

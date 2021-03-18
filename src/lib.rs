@@ -6,5 +6,5 @@ pub use ultraviolet;
 pub mod application;
 pub mod config;
 pub mod game_layer;
-pub mod renderer;
+pub mod rendering;
 pub mod utils;

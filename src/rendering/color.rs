@@ -1,4 +1,4 @@
-use crate::renderer::bidimensional::gl_representations::GlColor;
+use crate::rendering::bidimensional::gl_representations::GlColor;
 
 /// A struct that represents colors for rendering.
 pub struct Color {

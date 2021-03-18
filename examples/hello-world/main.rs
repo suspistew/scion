@@ -1,22 +1,27 @@
-use scion::application::Scion;
-use scion::game_layer::{GameLayer, SimpleGameLayer};
-use scion::legion::{system, Resources, World};
-use scion::renderer::bidimensional::material::{Material2D, Texture2D};
-use scion::renderer::bidimensional::transform::{Position2D, Transform2D};
-use scion::renderer::bidimensional::triangle::Triangle;
-use scion::renderer::color::Color;
-use scion::utils::time::Time;
 use std::path::Path;
 
+use scion::application::Scion;
+use scion::game_layer::{GameLayer, SimpleGameLayer};
+use scion::legion::{Resources, system, World};
+use scion::rendering::bidimensional::components::triangle::Triangle;
+use scion::rendering::bidimensional::material::{Material2D, Texture2D};
+use scion::rendering::bidimensional::transform::{Position2D, Transform2D};
+use scion::rendering::color::Color;
+use scion::utils::time::Time;
+
 fn triangle() -> Triangle {
-    Triangle {
-        vertices: [
+    Triangle::new(
+        [
             Position2D { x: -0.5, y: -0.5 },
             Position2D { x: 0.5, y: -0.5 },
             Position2D { x: 0., y: 0.5 },
         ],
-        uvs: None,
-    }
+        Some([
+            Position2D { x: 0., y: 1. },
+            Position2D { x: 1., y: 1. },
+            Position2D { x: 0.5, y: 0. }
+        ]),
+    )
 }
 
 #[system(for_each)]

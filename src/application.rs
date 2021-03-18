@@ -5,14 +5,14 @@ use log::info;
 use crate::config::scion_config::{ScionConfig, ScionConfigReader};
 use crate::utils::time::Time;
 
-use crate::renderer::RendererType;
+use crate::rendering::RendererType;
 
 use crate::game_layer::{GameLayer, GameLayerType, LayerAction};
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
 
-use crate::renderer::renderer_state::RendererState;
+use crate::rendering::renderer_state::RendererState;
 
 /// `Scion` is the entry point of any application made with Scion engine.
 pub struct Scion {
@@ -208,7 +208,7 @@ impl ScionBuilder {
         let window = window_builder.build(&event_loop).expect("");
         let renderer = self.renderer.into_boxed_renderer();
         let renderer_state = futures::executor::block_on(
-            crate::renderer::renderer_state::RendererState::new(&window, renderer),
+            crate::rendering::renderer_state::RendererState::new(&window, renderer),
         );
         let mut scion = Scion {
             config: self.config,
