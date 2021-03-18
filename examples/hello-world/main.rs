@@ -9,7 +9,6 @@ use scion::rendering::bidimensional::transform::{Position2D, Transform2D};
 use scion::rendering::color::Color;
 use scion::utils::time::Time;
 use scion::rendering::bidimensional::components::square::Square;
-use scion::inputs::Inputs;
 
 fn triangle() -> Triangle {
     Triangle::new(

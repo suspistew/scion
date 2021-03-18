@@ -14,6 +14,7 @@ use winit::window::{Window, WindowBuilder};
 
 use crate::rendering::renderer_state::RendererState;
 use crate::inputs::Inputs;
+use crate::utils::window::WindowDimensions;
 
 /// `Scion` is the entry point of any application made with Scion engine.
 pub struct Scion {
@@ -47,8 +48,9 @@ impl Scion {
     }
 
     fn setup(&mut self) {
-        //let screen_size = context.screen_size();
-        // self.resources.insert(WindowDimensions::new(screen_size));
+        let inner_size = self.window.as_ref().expect("No window found during setup").inner_size();
+        self.resources.insert(WindowDimensions::new((inner_size.width, inner_size.height)));
+
         self.resources.insert(Time::default());
         self.resources.insert(Inputs::default());
         self.apply_layers_action(LayerAction::Start);
@@ -71,6 +73,9 @@ impl Scion {
                         match event {
                             WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                             WindowEvent::Resized(physical_size) => {
+                                self.resources.get_mut::<WindowDimensions>()
+                                    .expect("Missing mandatory ressource : WindowDimension")
+                                    .set(physical_size.width, physical_size.height);
                                 self.renderer
                                     .as_mut()
                                     .expect("A renderer is mandatory to run this game !")
