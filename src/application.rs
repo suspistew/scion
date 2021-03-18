@@ -13,6 +13,7 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
 
 use crate::rendering::renderer_state::RendererState;
+use crate::inputs::Inputs;
 
 /// `Scion` is the entry point of any application made with Scion engine.
 pub struct Scion {
@@ -45,6 +46,14 @@ impl Scion {
         ScionBuilder::new(app_config)
     }
 
+    fn setup(&mut self) {
+        //let screen_size = context.screen_size();
+        // self.resources.insert(WindowDimensions::new(screen_size));
+        self.resources.insert(Time::default());
+        self.resources.insert(Inputs::default());
+        self.apply_layers_action(LayerAction::Start);
+    }
+
     pub fn run(mut self, event_loop: EventLoop<()>) {
         event_loop.run(move |event, _, control_flow| {
             *control_flow = ControlFlow::Poll;
@@ -54,28 +63,33 @@ impl Scion {
                     window_id,
                 } if window_id
                     == self
-                        .window
-                        .as_ref()
-                        .expect("A window is mandatory to run this game !")
-                        .id() =>
-                {
-                    match event {
-                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Resized(physical_size) => {
-                            self.renderer
-                                .as_mut()
-                                .expect("A renderer is mandatory to run this game !")
-                                .resize(*physical_size);
+                    .window
+                    .as_ref()
+                    .expect("A window is mandatory to run this game !")
+                    .id() =>
+                    {
+                        match event {
+                            WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                            WindowEvent::Resized(physical_size) => {
+                                self.renderer
+                                    .as_mut()
+                                    .expect("A renderer is mandatory to run this game !")
+                                    .resize(*physical_size);
+                            }
+                            WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                                self.renderer
+                                    .as_mut()
+                                    .expect("A renderer is mandatory to run this game !")
+                                    .resize(**new_inner_size);
+                            }
+                            WindowEvent::CursorMoved { device_id, position, .. } => {
+                                self.resources.get_mut::<Inputs>()
+                                    .expect("Missing mandatory ressource : Inputs")
+                                    .mouse_mut().set_position(position.x, position.y);
+                            }
+                            _ => {}
                         }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            self.renderer
-                                .as_mut()
-                                .expect("A renderer is mandatory to run this game !")
-                                .resize(**new_inner_size);
-                        }
-                        _ => {}
                     }
-                }
                 Event::MainEventsCleared => {
                     self.window.as_ref().unwrap().request_redraw();
                 }
@@ -100,13 +114,6 @@ impl Scion {
         });
     }
 
-    fn setup(&mut self) {
-        //let screen_size = context.screen_size();
-        self.resources.insert(Time::default());
-        // self.resources.insert(WindowDimensions::new(screen_size));
-        self.apply_layers_action(LayerAction::Start);
-    }
-
     fn next_frame(&mut self) {
         self.apply_layers_action(LayerAction::Update);
         self.resources
@@ -128,18 +135,11 @@ impl Scion {
                 match &mut current_layer.layer {
                     GameLayerType::Strong(simple_layer) | GameLayerType::Weak(simple_layer) => {
                         match action {
-                            LayerAction::Update => {
-                                simple_layer.update(&mut self.world, &mut self.resources)
-                            }
-                            LayerAction::Start => {
-                                simple_layer.on_start(&mut self.world, &mut self.resources)
-                            }
-                            LayerAction::_STOP => {
-                                simple_layer.on_stop(&mut self.world, &mut self.resources)
-                            }
-                            LayerAction::LateUpdate => {
-                                simple_layer.late_update(&mut self.world, &mut self.resources)
-                            }
+                            LayerAction::Update => simple_layer.update(&mut self.world, &mut self.resources),
+                            LayerAction::Start => simple_layer.on_start(&mut self.world, &mut self.resources),
+
+                            LayerAction::_STOP => simple_layer.on_stop(&mut self.world, &mut self.resources),
+                            LayerAction::LateUpdate => simple_layer.late_update(&mut self.world, &mut self.resources),
                         };
                     }
                 }
