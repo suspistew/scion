@@ -8,6 +8,7 @@ use scion::rendering::bidimensional::material::{Material2D, Texture2D};
 use scion::rendering::bidimensional::transform::{Position2D, Transform2D};
 use scion::rendering::color::Color;
 use scion::utils::time::Time;
+use scion::rendering::bidimensional::components::square::Square;
 
 fn triangle() -> Triangle {
     Triangle::new(
@@ -20,6 +21,17 @@ fn triangle() -> Triangle {
             Position2D { x: 0., y: 1. },
             Position2D { x: 1., y: 1. },
             Position2D { x: 0.5, y: 0. }
+        ]),
+    )
+}
+
+fn square() -> Square {
+    Square::new(Position2D { x: -0.5, y: -0.5 },1.,
+        Some([
+            Position2D { x: 0., y: 0. },
+            Position2D { x: 0., y: 1. },
+            Position2D { x: 1., y: 1. },
+            Position2D { x: 1., y: 0. }
         ]),
     )
 }
@@ -54,17 +66,18 @@ struct Layer;
 
 impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, _resource: &mut Resources) {
-        let triangle1 = (
+        let triangle = (
             triangle(),
             Material2D::Texture(Texture2D::from_png(Path::new("Yo"))),
             Transform2D::new(Position2D { x: -1.0, y: 0.0 }, 0.5, 0.),
         );
-        let triangle2 = (
-            triangle(),
+        let square = (
+            square(),
             Material2D::Texture(Texture2D::from_png(Path::new("Yo"))),
             Transform2D::new(Position2D { x: 1.0, y: 0.0 }, 0.5, 0.),
         );
-        world.extend(vec![triangle1, triangle2]);
+        world.push(triangle);
+        world.push(square);
     }
 }
 

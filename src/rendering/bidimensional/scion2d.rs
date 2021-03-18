@@ -14,9 +14,11 @@ use crate::rendering::bidimensional::transform::Transform2D;
 use crate::rendering::ScionRenderer;
 use crate::rendering::bidimensional::components::triangle::Triangle;
 use std::ops::Range;
+use crate::rendering::bidimensional::components::square::Square;
 
 pub trait Renderable2D {
-    fn buffer_descriptor(&self) -> BufferInitDescriptor;
+    fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor;
+    fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor;
     fn pipeline(
         &self,
         device: &Device,
@@ -30,6 +32,7 @@ pub trait Renderable2D {
 #[derive(Default)]
 pub struct Scion2D {
     vertex_buffers: HashMap<Entity, wgpu::Buffer>,
+    index_buffers: HashMap<Entity, wgpu::Buffer>,
     render_pipelines: HashMap<String, RenderPipeline>,
     diffuse_bind_groups: HashMap<String, (BindGroupLayout, BindGroup)>,
     transform_uniform_bind_groups: HashMap<Entity, (GlUniform, Buffer, BindGroupLayout, BindGroup)>,
@@ -46,7 +49,8 @@ impl ScionRenderer for Scion2D {
     {
         self.update_diffuse_bind_groups(world, device, queue);
         self.update_transforms(world, &device, queue);
-        self.upsert_component_pipeline::<Triangle>(world, &device, &sc_desc)
+        self.upsert_component_pipeline::<Triangle>(world, &device, &sc_desc);
+        self.upsert_component_pipeline::<Square>(world, &device, &sc_desc);
     }
 
     fn render(
@@ -55,7 +59,16 @@ impl ScionRenderer for Scion2D {
         frame: &SwapChainTexture,
         encoder: &mut CommandEncoder,
     ) {
-        self.render_component::<Triangle>(world, &frame, encoder)
+        {
+            encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Scion 2D Render Pass"),
+                color_attachments: &[get_default_color_attachment(frame)],
+                depth_stencil_attachment: None,
+            });
+        }
+
+        self.render_component::<Triangle>(world, &frame, encoder);
+        self.render_component::<Square>(world, &frame, encoder);
     }
 }
 
@@ -207,14 +220,30 @@ fn get_default_color_attachment(frame: &SwapChainTexture) -> RenderPassColorAtta
     }
 }
 
+fn get_no_color_attachment(frame: &SwapChainTexture) -> RenderPassColorAttachmentDescriptor {
+    wgpu::RenderPassColorAttachmentDescriptor {
+        attachment: &frame.view,
+        resolve_target: None,
+        ops: wgpu::Operations {
+            load: wgpu::LoadOp::Load,
+            store: true,
+        },
+    }
+}
+
 impl Scion2D {
     fn upsert_component_pipeline<T: Component + Renderable2D>(&mut self, world: &mut World, device: &&Device, sc_desc: &&SwapChainDescriptor) {
         for (entity, component, material, _) in
         <(Entity, &mut T, &Material2D, &Transform2D)>::query().iter_mut(world)
         {
             if !self.vertex_buffers.contains_key(entity) {
-                let vertex_buffer = device.create_buffer_init(&component.buffer_descriptor());
+                let vertex_buffer = device.create_buffer_init(&component.vertex_buffer_descriptor());
                 self.vertex_buffers.insert(*entity, vertex_buffer);
+            }
+
+            if !self.index_buffers.contains_key(entity) {
+                let index_buffer = device.create_buffer_init(&component.indexes_buffer_descriptor());
+                self.index_buffers.insert(*entity, index_buffer);
             }
 
             match material {
@@ -239,7 +268,7 @@ impl Scion2D {
     fn render_component<T: Component + Renderable2D>(&mut self, world: &mut World, frame: &&SwapChainTexture, encoder: &mut CommandEncoder) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Scion 2D Render Pass"),
-            color_attachments: &[get_default_color_attachment(frame)],
+            color_attachments: &[get_no_color_attachment(frame)],
             depth_stencil_attachment: None,
         });
 
@@ -250,8 +279,8 @@ impl Scion2D {
                 &self.transform_uniform_bind_groups.get(entity).unwrap().3,
                 &[],
             );
-            render_pass.set_vertex_buffer(0, self.vertex_buffers.get(entity).as_ref().unwrap().slice(..),
-            );
+            render_pass.set_vertex_buffer(0, self.vertex_buffers.get(entity).as_ref().unwrap().slice(..));
+            render_pass.set_index_buffer(self.index_buffers.get(entity).as_ref().unwrap().slice(..), wgpu::IndexFormat::Uint16);
             match material {
                 Material2D::Color(_) => {}
                 Material2D::Texture(texture) => {
@@ -263,7 +292,7 @@ impl Scion2D {
                     );
                 }
             };
-            render_pass.draw(component.range(), 0..1);
+            render_pass.draw_indexed(component.range(), 0,0..1);
         }
     }
 
