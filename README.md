@@ -1,20 +1,29 @@
 <img src="repo/banner.png" alt="Scion" />
 
-Scion is a 2D game library made in rust.
+Scion is a 2D game library made in rust. 
 
 ## Why this project ? 
 
-Well, firstly because it was a good way to learn. 
-Then because a lot of projects these days focus on adding a lot of feature pretexting feature parity with big editors. 
-Here we focus on the features that we really need for our projects. We won't add things just because they are cool, but because we need them in 
+Well, firstly because it' a good way to learn.
+
+Then because a lot of projects these days focus on adding a lot of feature pretexting feature parity with big editors or game engines. 
+Here I focus on the features that I really need for my projects. I won't add things just because they are cool, but because I need them in 
 a game project
 
+Scion relies on a short list of principles that also serves as a guideline.
 
-Scion relies on a short list of principles that also serves as a guideline: 
+### Goals
 
 - Strong focus on **2D** only.
 - **Easy** and **Fun** to use.
 - Clean and readable source code.
+
+### Maybe one day goals
+
+### Non goals
+
+- Ultra/over optimized code and performances. For this, please try other engines or build your own !
+
 
 ### Notable dependencies
 

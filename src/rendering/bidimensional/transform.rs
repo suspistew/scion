@@ -41,11 +41,20 @@ impl Transform2D {
     pub fn append_angle(&mut self, angle: f32) {
         self.angle += angle;
     }
+
+    pub fn position(&self) -> &Position2D{
+        &self.position
+    }
+
+    pub fn set_scale(&mut self, scale: f32){
+        self.scale = scale
+    }
 }
 
 impl From<&Transform2D> for GlUniform {
     fn from(transform: &Transform2D) -> Self {
-        let mut transform_rotate = Isometry3::identity();
+        let mut transform_rotate = Similarity3::identity();
+        transform_rotate.prepend_scaling(transform.scale);
         transform_rotate.append_translation(Vec3 {
             x: transform.position.x,
             y: transform.position.y,
@@ -54,7 +63,6 @@ impl From<&Transform2D> for GlUniform {
         transform_rotate.prepend_rotation(Rotor3::from_rotation_xy(transform.angle).normalized());
 
         let mut scale = Similarity3::identity();
-        scale.append_scaling(transform.scale);
 
         let mut transform_rotate = transform_rotate.into_homogeneous_matrix();
         let mut scale = scale.into_homogeneous_matrix();

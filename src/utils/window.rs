@@ -1,6 +1,6 @@
 /// `WindowDimensions` is a Resource dedicated to always have an access to the current screen dimension.
 /// It's immediatly updated when the window resize event happens.
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Copy, Clone)]
 pub struct WindowDimensions {
     width: u32,
     height: u32,

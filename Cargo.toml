@@ -16,7 +16,7 @@ wgpu = "0.7.0"
 futures = "0.3"
 
 # maths
-ultraviolet = "0.7"
+ultraviolet = "0.8"
 
 # serialization
 serde = { version = "1.0.124", features = ["derive"] }
