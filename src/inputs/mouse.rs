@@ -2,7 +2,7 @@
 pub struct Mouse {
     x: f64,
     y: f64,
-    click_event : bool
+    click_event: bool,
 }
 
 impl Mouse {
