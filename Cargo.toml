@@ -3,6 +3,11 @@ name = "scion"
 version = "0.1.0"
 authors = ["grzi <jeremy.thulliez@gmail.com>"]
 edition = "2018"
+description = "Game making library on top of wgpu, winit, legion"
+documentation = "https://docs.rs/scion"
+keywords = ["game", "library", "engine"]
+repository = "https://github.com/grzi/scion/"
+license = "MIT OR Apache-2.0"
 
 [features]
 parallel = ["legion/parallel"]
