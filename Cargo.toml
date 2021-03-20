@@ -28,6 +28,16 @@ image = {version = "0.23", default-features = false, features = ["png"]}
 log = { version = "0.4.14", features = ["serde"] }
 fern = { version = "0.6.0", features = ["colored"] }
 
+[profile.dev.package]
+image = {opt-level = 3}
+png = {opt-level = 3}
+bitflags = {opt-level = 3}
+bytemuck = {opt-level = 3}
+byteorder = {opt-level = 3}
+miniz_oxide = {opt-level = 3}
+adler32 = {opt-level = 3}
+deflate = {opt-level = 3}
+
 [build-dependencies]
 anyhow = "1.0"
 fs_extra = "1.1"

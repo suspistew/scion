@@ -8,7 +8,7 @@ use crate::utils::time::Time;
 use crate::rendering::RendererType;
 
 use crate::game_layer::{GameLayer, GameLayerType, LayerAction};
-use winit::event::{Event, WindowEvent, ElementState};
+use winit::event::{ElementState, Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
 
@@ -76,7 +76,6 @@ impl Scion {
                         .expect("A window is mandatory to run this game !")
                         .id() =>
                 {
-
                     match event {
                         WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                         WindowEvent::Resized(physical_size) => {
@@ -100,22 +99,28 @@ impl Scion {
                             position,
                             ..
                         } => {
-                            let dpi_factor = self.window.as_ref().expect("Missing the window")
-                                .current_monitor().expect("Missing the monitor").scale_factor();
+                            let dpi_factor = self
+                                .window
+                                .as_ref()
+                                .expect("Missing the window")
+                                .current_monitor()
+                                .expect("Missing the monitor")
+                                .scale_factor();
                             self.resources
                                 .get_mut::<Inputs>()
                                 .expect("Missing mandatory ressource : Inputs")
                                 .mouse_mut()
-                                .set_position(position.x / dpi_factor,  position.y / dpi_factor);
+                                .set_position(position.x / dpi_factor, position.y / dpi_factor);
                         }
-                        WindowEvent::MouseInput { state, button, .. } => {
-                            match state{
+                        WindowEvent::MouseInput {
+                            state, button: _, ..
+                        } => {
+                            match state {
                                 ElementState::Pressed => {
                                     click_event = true; // WIP while we don't use events internally
                                 }
                                 ElementState::Released => {}
                             }
-
                         }
                         _ => {}
                     }
@@ -140,8 +145,11 @@ impl Scion {
                 }
                 _ => (),
             }
-            self.resources.get_mut::<Inputs>()
-                .expect("Missing mandatory ressource : Inputs").mouse_mut().set_click_event(click_event);
+            self.resources
+                .get_mut::<Inputs>()
+                .expect("Missing mandatory ressource : Inputs")
+                .mouse_mut()
+                .set_click_event(click_event);
             self.next_frame();
         });
     }

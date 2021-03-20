@@ -12,10 +12,11 @@ use crate::rendering::bidimensional::components::camera::Camera2D;
 use crate::rendering::bidimensional::components::square::Square;
 use crate::rendering::bidimensional::components::triangle::Triangle;
 use crate::rendering::bidimensional::gl_representations::GlUniform;
-use crate::rendering::bidimensional::material::{Material2D, Texture2D};
+use crate::rendering::bidimensional::material::{Material2D, Texture};
 use crate::rendering::bidimensional::transform::Transform2D;
 use crate::rendering::ScionRenderer;
 use std::ops::Range;
+use std::path::Path;
 
 pub trait Renderable2D {
     fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor;
@@ -79,7 +80,7 @@ impl ScionRenderer for Scion2D {
 }
 
 fn load_texture_to_queue(
-    texture: &Texture2D,
+    texture: &Texture,
     queue: &mut Queue,
     device: &Device,
 ) -> (BindGroupLayout, BindGroup) {
@@ -216,8 +217,8 @@ fn get_default_color_attachment(frame: &SwapChainTexture) -> RenderPassColorAtta
         ops: wgpu::Operations {
             load: wgpu::LoadOp::Clear(wgpu::Color {
                 r: 0.,
-                g: 0.2,
-                b: 0.7,
+                g: 0.,
+                b: 0.,
                 a: 1.0,
             }),
             store: true,
@@ -260,14 +261,14 @@ impl Scion2D {
 
             match material {
                 Material2D::Color(_) => {}
-                Material2D::Texture(texture) => {
-                    if !self.render_pipelines.contains_key(&texture.path) {
+                Material2D::Texture(path) => {
+                    if !self.render_pipelines.contains_key(path.as_str()) {
                         self.render_pipelines.insert(
-                            texture.path.clone(),
+                            path.clone(),
                             component.pipeline(
                                 &device,
                                 &sc_desc,
-                                &self.diffuse_bind_groups.get(&texture.path).unwrap().0,
+                                &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
                                 &self.transform_uniform_bind_groups.get(entity).unwrap().2,
                             ),
                         );
@@ -307,12 +308,12 @@ impl Scion2D {
             );
             match material {
                 Material2D::Color(_) => {}
-                Material2D::Texture(texture) => {
+                Material2D::Texture(path) => {
                     render_pass
-                        .set_pipeline(self.render_pipelines.get(&texture.path).as_ref().unwrap());
+                        .set_pipeline(self.render_pipelines.get(path.as_str()).as_ref().unwrap());
                     render_pass.set_bind_group(
                         0,
-                        &self.diffuse_bind_groups.get(&texture.path).unwrap().1,
+                        &self.diffuse_bind_groups.get(path.as_str()).unwrap().1,
                         &[],
                     );
                 }
@@ -357,11 +358,12 @@ impl Scion2D {
         queue: &mut Queue,
     ) {
         <(Entity, &Material2D)>::query().for_each(world, |(_entity, material)| match material {
-            Material2D::Texture(texture) => {
-                if !self.diffuse_bind_groups.contains_key(&texture.path) {
+            Material2D::Texture(path) => {
+                if !self.diffuse_bind_groups.contains_key(path.as_str()) {
+                    let loaded_texture = Texture::from_png(Path::new(path.as_str()));
                     self.diffuse_bind_groups.insert(
-                        texture.path.clone(),
-                        load_texture_to_queue(&texture, queue, device),
+                        path.clone(),
+                        load_texture_to_queue(&loaded_texture, queue, device),
                     );
                 }
             }

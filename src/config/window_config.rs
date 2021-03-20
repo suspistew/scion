@@ -51,6 +51,27 @@ impl Default for WindowConfig {
     }
 }
 
+pub struct WindowConfigBuilder {
+    config: WindowConfig,
+}
+
+impl WindowConfigBuilder {
+    pub fn new() -> Self {
+        Self {
+            config: Default::default(),
+        }
+    }
+
+    pub fn with_dimensions(mut self, dimensions: (u32, u32)) -> Self {
+        self.config.dimensions = Some(dimensions);
+        self
+    }
+
+    pub fn get(self) -> WindowConfig {
+        self.config
+    }
+}
+
 impl Into<WindowBuilder> for WindowConfig {
     fn into(self) -> WindowBuilder {
         let mut builder = WindowBuilder::new();
