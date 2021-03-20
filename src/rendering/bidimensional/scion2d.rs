@@ -1,20 +1,21 @@
 use std::collections::HashMap;
 
-use legion::{Entity, IntoQuery, World};
 use legion::storage::Component;
+use legion::{Entity, IntoQuery, Resources, World};
+use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use wgpu::{
     BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue,
     RenderPassColorAttachmentDescriptor, RenderPipeline, SwapChainDescriptor, SwapChainTexture,
 };
-use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
+use crate::rendering::bidimensional::components::camera::Camera2D;
+use crate::rendering::bidimensional::components::square::Square;
+use crate::rendering::bidimensional::components::triangle::Triangle;
 use crate::rendering::bidimensional::gl_representations::GlUniform;
 use crate::rendering::bidimensional::material::{Material2D, Texture2D};
 use crate::rendering::bidimensional::transform::Transform2D;
 use crate::rendering::ScionRenderer;
-use crate::rendering::bidimensional::components::triangle::Triangle;
 use std::ops::Range;
-use crate::rendering::bidimensional::components::square::Square;
 
 pub trait Renderable2D {
     fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor;
@@ -42,20 +43,23 @@ impl ScionRenderer for Scion2D {
     fn update(
         &mut self,
         world: &mut World,
+        resources: &mut Resources,
         device: &Device,
         sc_desc: &SwapChainDescriptor,
         queue: &mut Queue,
-    )
-    {
-        self.update_diffuse_bind_groups(world, device, queue);
-        self.update_transforms(world, &device, queue);
-        self.upsert_component_pipeline::<Triangle>(world, &device, &sc_desc);
-        self.upsert_component_pipeline::<Square>(world, &device, &sc_desc);
+    ) {
+        if resources.contains::<Camera2D>() {
+            self.update_diffuse_bind_groups(world, device, queue);
+            self.update_transforms(world, resources, &device, queue);
+            self.upsert_component_pipeline::<Triangle>(world, &device, &sc_desc);
+            self.upsert_component_pipeline::<Square>(world, &device, &sc_desc);
+        }
     }
 
     fn render(
         &mut self,
         world: &mut World,
+        resource: &mut Resources,
         frame: &SwapChainTexture,
         encoder: &mut CommandEncoder,
     ) {
@@ -67,8 +71,10 @@ impl ScionRenderer for Scion2D {
             });
         }
 
-        self.render_component::<Triangle>(world, &frame, encoder);
-        self.render_component::<Square>(world, &frame, encoder);
+        if resource.contains::<Camera2D>() {
+            self.render_component::<Triangle>(world, &frame, encoder);
+            self.render_component::<Square>(world, &frame, encoder);
+        }
     }
 }
 
@@ -76,8 +82,7 @@ fn load_texture_to_queue(
     texture: &Texture2D,
     queue: &mut Queue,
     device: &Device,
-) -> (BindGroupLayout, BindGroup)
-{
+) -> (BindGroupLayout, BindGroup) {
     let texture_size = wgpu::Extent3d {
         width: texture.width as u32,
         height: texture.height as u32,
@@ -163,9 +168,9 @@ fn load_texture_to_queue(
 fn create_transform_uniform_bind_group(
     device: &Device,
     transform: &Transform2D,
-) -> (GlUniform, Buffer, BindGroupLayout, BindGroup)
-{
-    let uniform = GlUniform::from(transform);
+    camera: &Camera2D,
+) -> (GlUniform, Buffer, BindGroupLayout, BindGroup) {
+    let uniform = GlUniform::from((transform, camera));
     let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Uniform Buffer"),
         contents: bytemuck::cast_slice(&[uniform]),
@@ -232,17 +237,24 @@ fn get_no_color_attachment(frame: &SwapChainTexture) -> RenderPassColorAttachmen
 }
 
 impl Scion2D {
-    fn upsert_component_pipeline<T: Component + Renderable2D>(&mut self, world: &mut World, device: &&Device, sc_desc: &&SwapChainDescriptor) {
+    fn upsert_component_pipeline<T: Component + Renderable2D>(
+        &mut self,
+        world: &mut World,
+        device: &&Device,
+        sc_desc: &&SwapChainDescriptor,
+    ) {
         for (entity, component, material, _) in
-        <(Entity, &mut T, &Material2D, &Transform2D)>::query().iter_mut(world)
+            <(Entity, &mut T, &Material2D, &Transform2D)>::query().iter_mut(world)
         {
             if !self.vertex_buffers.contains_key(entity) {
-                let vertex_buffer = device.create_buffer_init(&component.vertex_buffer_descriptor());
+                let vertex_buffer =
+                    device.create_buffer_init(&component.vertex_buffer_descriptor());
                 self.vertex_buffers.insert(*entity, vertex_buffer);
             }
 
             if !self.index_buffers.contains_key(entity) {
-                let index_buffer = device.create_buffer_init(&component.indexes_buffer_descriptor());
+                let index_buffer =
+                    device.create_buffer_init(&component.indexes_buffer_descriptor());
                 self.index_buffers.insert(*entity, index_buffer);
             }
 
@@ -265,26 +277,39 @@ impl Scion2D {
         }
     }
 
-    fn render_component<T: Component + Renderable2D>(&mut self, world: &mut World, frame: &&SwapChainTexture, encoder: &mut CommandEncoder) {
+    fn render_component<T: Component + Renderable2D>(
+        &mut self,
+        world: &mut World,
+        frame: &&SwapChainTexture,
+        encoder: &mut CommandEncoder,
+    ) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Scion 2D Render Pass"),
             color_attachments: &[get_no_color_attachment(frame)],
             depth_stencil_attachment: None,
         });
 
-
-        for (entity, component, material, _transform) in <(Entity, &mut T, &Material2D, &Transform2D)>::query().iter_mut(world) {
+        for (entity, component, material, _transform) in
+            <(Entity, &mut T, &Material2D, &Transform2D)>::query().iter_mut(world)
+        {
             render_pass.set_bind_group(
                 1,
                 &self.transform_uniform_bind_groups.get(entity).unwrap().3,
                 &[],
             );
-            render_pass.set_vertex_buffer(0, self.vertex_buffers.get(entity).as_ref().unwrap().slice(..));
-            render_pass.set_index_buffer(self.index_buffers.get(entity).as_ref().unwrap().slice(..), wgpu::IndexFormat::Uint16);
+            render_pass.set_vertex_buffer(
+                0,
+                self.vertex_buffers.get(entity).as_ref().unwrap().slice(..),
+            );
+            render_pass.set_index_buffer(
+                self.index_buffers.get(entity).as_ref().unwrap().slice(..),
+                wgpu::IndexFormat::Uint16,
+            );
             match material {
                 Material2D::Color(_) => {}
                 Material2D::Texture(texture) => {
-                    render_pass.set_pipeline(self.render_pipelines.get(&texture.path).as_ref().unwrap());
+                    render_pass
+                        .set_pipeline(self.render_pipelines.get(&texture.path).as_ref().unwrap());
                     render_pass.set_bind_group(
                         0,
                         &self.diffuse_bind_groups.get(&texture.path).unwrap().1,
@@ -292,15 +317,24 @@ impl Scion2D {
                     );
                 }
             };
-            render_pass.draw_indexed(component.range(), 0,0..1);
+            render_pass.draw_indexed(component.range(), 0, 0..1);
         }
     }
 
-    fn update_transforms(&mut self, world: &mut World, device: &&Device, queue: &mut Queue) {
+    fn update_transforms(
+        &mut self,
+        world: &mut World,
+        resources: &mut Resources,
+        device: &&Device,
+        queue: &mut Queue,
+    ) {
+        let camera = resources
+            .get::<Camera2D>()
+            .expect("Missing Camera2D component, can't update transform without the camera view");
         for (entity, transform) in <(Entity, &Transform2D)>::query().iter_mut(world) {
             if !self.transform_uniform_bind_groups.contains_key(entity) {
                 let (uniform, uniform_buffer, glayout, group) =
-                    create_transform_uniform_bind_group(&device, transform);
+                    create_transform_uniform_bind_group(&device, transform, &*camera);
                 queue.write_buffer(&uniform_buffer, 0, bytemuck::cast_slice(&[uniform]));
                 self.transform_uniform_bind_groups
                     .insert(*entity, (uniform, uniform_buffer, glayout, group));
@@ -309,14 +343,19 @@ impl Scion2D {
                     .transform_uniform_bind_groups
                     .get_mut(entity)
                     .expect("Fatal error, a transform has been marked as found but doesn't exist");
-                uniform.replace_with(GlUniform::from(transform));
+                uniform.replace_with(GlUniform::from((transform, &*camera)));
                 queue.write_buffer(uniform_buffer, 0, bytemuck::cast_slice(&[*uniform]));
             }
         }
     }
 
     /// Loads in the queue materials that are not yet loaded.
-    fn update_diffuse_bind_groups(&mut self, world: &mut World, device: &Device, queue: &mut Queue) {
+    fn update_diffuse_bind_groups(
+        &mut self,
+        world: &mut World,
+        device: &Device,
+        queue: &mut Queue,
+    ) {
         <(Entity, &Material2D)>::query().for_each(world, |(_entity, material)| match material {
             Material2D::Texture(texture) => {
                 if !self.diffuse_bind_groups.contains_key(&texture.path) {

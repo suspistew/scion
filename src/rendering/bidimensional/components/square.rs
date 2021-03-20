@@ -1,16 +1,13 @@
-use crate::rendering::bidimensional::transform::Position2D;
 use crate::rendering::bidimensional::gl_representations::TexturedGlVertex;
 use crate::rendering::bidimensional::scion2d::Renderable2D;
-use wgpu::util::BufferInitDescriptor;
-use wgpu::{Device, SwapChainDescriptor, BindGroupLayout, RenderPipeline};
+use crate::rendering::bidimensional::transform::Position2D;
 use std::ops::Range;
+use wgpu::util::BufferInitDescriptor;
+use wgpu::{BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor};
 
-const INDICES: &[u16] = &[
-    1, 0, 2,
-    2, 0, 3
-];
+const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
-pub struct Square{
+pub struct Square {
     pub vertices: [Position2D; 4],
     pub uvs: Option<[Position2D; 4]>,
     contents: [TexturedGlVertex; 4],
@@ -19,18 +16,29 @@ pub struct Square{
 impl Square {
     pub fn new(origin: Position2D, length: f32, uvs: Option<[Position2D; 4]>) -> Self {
         let a = origin;
-        let b = Position2D{ x: a.x, y: a.y + length };
-        let c = Position2D{ x: a.x + length, y: a.y + length };
-        let d = Position2D{ x: a.x + length, y: a.y };
-        let uvs_ref = uvs.as_ref().expect("Uvs are currently mandatory, this need to be fixed");
+        let b = Position2D {
+            x: a.x,
+            y: a.y + length,
+        };
+        let c = Position2D {
+            x: a.x + length,
+            y: a.y + length,
+        };
+        let d = Position2D {
+            x: a.x + length,
+            y: a.y,
+        };
+        let uvs_ref = uvs
+            .as_ref()
+            .expect("Uvs are currently mandatory, this need to be fixed");
         let contents = [
             TexturedGlVertex::from((&a, &uvs_ref[0])),
             TexturedGlVertex::from((&b, &uvs_ref[1])),
             TexturedGlVertex::from((&c, &uvs_ref[2])),
-            TexturedGlVertex::from((&d, &uvs_ref[3]))
+            TexturedGlVertex::from((&d, &uvs_ref[3])),
         ];
         Self {
-            vertices: [a,b,c,d],
+            vertices: [a, b, c, d],
             uvs,
             contents,
         }
@@ -54,15 +62,24 @@ impl Renderable2D for Square {
         }
     }
 
-    fn pipeline(&self, device: &Device, sc_desc: &SwapChainDescriptor, texture_bind_group_layout: &BindGroupLayout, transform_bind_group_layout: &BindGroupLayout) -> RenderPipeline {
-        let vs_module = device.create_shader_module(&wgpu::include_spirv!("shaders/shader.vert.spv"));
-        let fs_module = device.create_shader_module(&wgpu::include_spirv!("shaders/shader.frag.spv"));
+    fn pipeline(
+        &self,
+        device: &Device,
+        sc_desc: &SwapChainDescriptor,
+        texture_bind_group_layout: &BindGroupLayout,
+        transform_bind_group_layout: &BindGroupLayout,
+    ) -> RenderPipeline {
+        let vs_module =
+            device.create_shader_module(&wgpu::include_spirv!("shaders/shader.vert.spv"));
+        let fs_module =
+            device.create_shader_module(&wgpu::include_spirv!("shaders/shader.frag.spv"));
 
-        let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("Basic square pipeline layout"),
-            bind_group_layouts: &[texture_bind_group_layout, transform_bind_group_layout],
-            push_constant_ranges: &[],
-        });
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Basic square pipeline layout"),
+                bind_group_layouts: &[texture_bind_group_layout, transform_bind_group_layout],
+                push_constant_ranges: &[],
+            });
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Square render pipeline"),

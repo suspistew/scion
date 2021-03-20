@@ -1,2 +1,3 @@
-pub mod triangle;
+pub mod camera;
 pub mod square;
+pub mod triangle;

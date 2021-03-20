@@ -41,7 +41,7 @@ impl Texture2D {
         let image = dynamic_image.to_rgba8();
         let width = image.width() as u16;
         let height = image.height() as u16;
-        let bytes = image.into_raw();
+        let bytes = image::imageops::flip_vertical(&image).into_raw();
         Texture2D {
             bytes,
             width,
