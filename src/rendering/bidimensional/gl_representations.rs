@@ -150,7 +150,6 @@ pub(crate) fn create_glmat4(t: &mut Mat4) -> [[f32; 4]; 4] {
         create_glmat(&t.cols[2]),
         create_glmat(&t.cols[3]),
     ];
-    println!("{:?}", result);
     result
 }
 
