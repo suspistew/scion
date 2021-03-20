@@ -1,12 +1,12 @@
-use wgpu::{BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor};
 use wgpu::util::BufferInitDescriptor;
+use wgpu::{BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor};
 
 use crate::rendering::bidimensional::gl_representations::TexturedGlVertex;
 use crate::rendering::bidimensional::scion2d::Renderable2D;
 use crate::rendering::bidimensional::transform::Position2D;
 use std::ops::Range;
 
-const INDICES: &[u16] = &[0, 1, 2];
+const INDICES: &[u16] = &[1, 0, 2];
 
 pub struct Triangle {
     pub vertices: [Position2D; 3],
@@ -16,11 +16,13 @@ pub struct Triangle {
 
 impl Triangle {
     pub fn new(vertices: [Position2D; 3], uvs: Option<[Position2D; 3]>) -> Self {
-        let uvs_ref = uvs.as_ref().expect("Uvs are currently mandatory, this need to be fixed");
+        let uvs_ref = uvs
+            .as_ref()
+            .expect("Uvs are currently mandatory, this need to be fixed");
         let contents = [
             TexturedGlVertex::from((&vertices[0], &uvs_ref[0])),
             TexturedGlVertex::from((&vertices[1], &uvs_ref[1])),
-            TexturedGlVertex::from((&vertices[2], &uvs_ref[2]))
+            TexturedGlVertex::from((&vertices[2], &uvs_ref[2])),
         ];
         Self {
             vertices,
@@ -47,15 +49,24 @@ impl Renderable2D for Triangle {
         }
     }
 
-    fn pipeline(&self, device: &Device, sc_desc: &SwapChainDescriptor, texture_bind_group_layout: &BindGroupLayout, transform_bind_group_layout: &BindGroupLayout) -> RenderPipeline {
-        let vs_module = device.create_shader_module(&wgpu::include_spirv!("shaders/shader.vert.spv"));
-        let fs_module = device.create_shader_module(&wgpu::include_spirv!("shaders/shader.frag.spv"));
+    fn pipeline(
+        &self,
+        device: &Device,
+        sc_desc: &SwapChainDescriptor,
+        texture_bind_group_layout: &BindGroupLayout,
+        transform_bind_group_layout: &BindGroupLayout,
+    ) -> RenderPipeline {
+        let vs_module =
+            device.create_shader_module(&wgpu::include_spirv!("shaders/shader.vert.spv"));
+        let fs_module =
+            device.create_shader_module(&wgpu::include_spirv!("shaders/shader.frag.spv"));
 
-        let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("Basic triangle pipeline layout"),
-            bind_group_layouts: &[texture_bind_group_layout, transform_bind_group_layout],
-            push_constant_ranges: &[],
-        });
+        let render_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("Basic triangle pipeline layout"),
+                bind_group_layouts: &[texture_bind_group_layout, transform_bind_group_layout],
+                push_constant_ranges: &[],
+            });
 
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Triangle render pipeline"),

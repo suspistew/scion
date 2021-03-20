@@ -71,15 +71,20 @@ impl RendererState {
         false
     }
 
-    pub(crate) fn update(&mut self, world: &mut World) {
-        self.scion_renderer
-            .update(world, &self.device, &self.sc_desc, &mut self.queue);
+    pub(crate) fn update(&mut self, world: &mut World, resources: &mut Resources) {
+        self.scion_renderer.update(
+            world,
+            resources,
+            &self.device,
+            &self.sc_desc,
+            &mut self.queue,
+        );
     }
 
     pub(crate) fn render(
         &mut self,
         world: &mut World,
-        _resources: &mut Resources,
+        resources: &mut Resources,
     ) -> Result<(), wgpu::SwapChainError> {
         let frame = self.swap_chain.get_current_frame()?.output;
         let mut encoder = self
@@ -88,7 +93,8 @@ impl RendererState {
                 label: Some("Render Encoder"),
             });
 
-        self.scion_renderer.render(world, &frame, &mut encoder);
+        self.scion_renderer
+            .render(world, resources, &frame, &mut encoder);
         self.queue.submit(std::iter::once(encoder.finish()));
 
         Ok(())
