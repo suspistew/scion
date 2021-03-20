@@ -1,10 +1,9 @@
-use winit::event::WindowEvent;
-use winit::window::Window;
+use legion::{Resources, World};
+use winit::{event::WindowEvent, window::Window};
 
 use crate::rendering::ScionRenderer;
-use legion::{Resources, World};
 
-pub struct RendererState {
+pub(crate) struct RendererState {
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,

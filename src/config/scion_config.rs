@@ -1,13 +1,15 @@
-use std::fs::File;
-use std::io::{Error, Read, Write};
-use std::path::Path;
+use std::{
+    fs::File,
+    io::{Error, Read, Write},
+    path::Path,
+};
 
 use serde::{Deserialize, Serialize};
 
-use crate::config::logger_config::LoggerConfig;
-use crate::config::window_config::WindowConfig;
+use crate::config::{logger_config::LoggerConfig, window_config::WindowConfig};
 
 /// Main configuration used by `crate::Scion` to configure the game.
+/// Please use [`ScionConfigBuilder`] if you want to build if from code.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ScionConfig {
     /// Name of the application

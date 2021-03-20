@@ -13,6 +13,7 @@ pub struct Color {
 }
 
 impl Color {
+    /// Creates a new color using RGBA values
     pub fn new(r: u8, g: u8, b: u8, a: f32) -> Self {
         assert!(
             a <= 1. && a >= 0.,
@@ -21,6 +22,7 @@ impl Color {
         Self { r, g, b, a }
     }
 
+    /// Create a new color using RGB. Will create an RGBA with Alpha = 1.0
     pub fn new_rgb(r: u8, g: u8, b: u8) -> Self {
         Color::new(r, g, b, 1.0)
     }

@@ -1,3 +1,7 @@
-pub mod camera;
-pub mod square;
-pub mod triangle;
+//! 2D Components and Resources
+
+pub use square::Square;
+pub use triangle::Triangle;
+
+mod square;
+mod triangle;

@@ -1,14 +1,15 @@
+//! Everything that is relative to rendering to the window (Like renderable components, camera, transforms..)
 pub mod bidimensional;
 pub mod color;
-pub mod renderer_state;
+pub(crate) mod renderer_state;
 use legion::{Resources, World};
+use wgpu::{CommandEncoder, Device, Queue, SwapChainDescriptor, SwapChainTexture};
 
 use crate::rendering::bidimensional::scion2d::Scion2D;
 
-use wgpu::{CommandEncoder, Device, Queue, SwapChainDescriptor, SwapChainTexture};
-
 /// Trait to implement in order to create a renderer to use in a `Scion` application
 pub trait ScionRenderer {
+    /// Will be called first, before render, each time the window request redraw.
     fn update(
         &mut self,
         world: &mut World,
@@ -17,6 +18,8 @@ pub trait ScionRenderer {
         sc_desc: &SwapChainDescriptor,
         queue: &mut Queue,
     );
+
+    /// Will be called after render, each time the window request redraw.
     fn render(
         &mut self,
         world: &mut World,
@@ -28,7 +31,9 @@ pub trait ScionRenderer {
 
 /// Type of renderer to use to render the game.
 pub enum RendererType {
+    /// Internal 2D Renderer. Will render everything that is in [`bidimensional`]
     Scion2D,
+    /// Provide your own renderer
     Custom(Box<dyn ScionRenderer>),
 }
 

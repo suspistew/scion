@@ -1,12 +1,16 @@
-use crate::rendering::bidimensional::gl_representations::TexturedGlVertex;
-use crate::rendering::bidimensional::scion2d::Renderable2D;
-use crate::rendering::bidimensional::transform::Position2D;
 use std::ops::Range;
-use wgpu::util::BufferInitDescriptor;
-use wgpu::{BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor};
+
+use wgpu::{
+    util::BufferInitDescriptor, BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor,
+};
+
+use crate::rendering::bidimensional::{
+    gl_representations::TexturedGlVertex, scion2d::Renderable2D, transform::Position2D,
+};
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
+/// Renderable 2D Square.
 pub struct Square {
     pub vertices: [Position2D; 4],
     pub uvs: Option<[Position2D; 4]>,

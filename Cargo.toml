@@ -8,7 +8,7 @@ edition = "2018"
 parallel = ["legion/parallel"]
 
 [dependencies]
-legion = { git = "https://github.com/grzi/legion", branch = "feat/uuid_as_optional", default-features = false, features = ["codegen"]}
+legion = { version = "0.4", default-features = false, features = ["codegen"]}
 
 # window & rendering
 winit = "0.24.0"

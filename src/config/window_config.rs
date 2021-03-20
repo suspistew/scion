@@ -1,9 +1,13 @@
-use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use winit::dpi::Size;
-use winit::window::{WindowAttributes, WindowBuilder};
+
+use serde::{Deserialize, Serialize};
+use winit::{
+    dpi::Size,
+    window::{WindowAttributes, WindowBuilder},
+};
 
 /// Main configuration for the game window
+/// Please use [`WindowConfigBuilder`] if you want to build if from code.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WindowConfig {
     /// Window title

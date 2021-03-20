@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-/// Resource dedicated to compute the time durations between frames and keep a track of
+/// ['Time'] is a resource dedicated to compute the time durations between frames and keep a track of
 /// frame numbers
 pub struct Time {
     delta_duration: Duration,

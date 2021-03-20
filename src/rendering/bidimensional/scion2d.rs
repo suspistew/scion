@@ -1,24 +1,24 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Range, path::Path};
 
-use legion::storage::Component;
-use legion::{Entity, IntoQuery, Resources, World};
-use wgpu::util::{BufferInitDescriptor, DeviceExt};
+use legion::{storage::Component, Entity, IntoQuery, Resources, World};
 use wgpu::{
+    util::{BufferInitDescriptor, DeviceExt},
     BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue,
     RenderPassColorAttachmentDescriptor, RenderPipeline, SwapChainDescriptor, SwapChainTexture,
 };
 
-use crate::rendering::bidimensional::components::camera::Camera2D;
-use crate::rendering::bidimensional::components::square::Square;
-use crate::rendering::bidimensional::components::triangle::Triangle;
-use crate::rendering::bidimensional::gl_representations::GlUniform;
-use crate::rendering::bidimensional::material::{Material2D, Texture};
-use crate::rendering::bidimensional::transform::Transform2D;
-use crate::rendering::ScionRenderer;
-use std::ops::Range;
-use std::path::Path;
+use crate::rendering::{
+    bidimensional::{
+        components::{Square, Triangle},
+        gl_representations::GlUniform,
+        material::{Material2D, Texture},
+        transform::Transform2D,
+        Camera2D,
+    },
+    ScionRenderer,
+};
 
-pub trait Renderable2D {
+pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor;
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor;
     fn pipeline(
@@ -32,7 +32,7 @@ pub trait Renderable2D {
 }
 
 #[derive(Default)]
-pub struct Scion2D {
+pub(crate) struct Scion2D {
     vertex_buffers: HashMap<Entity, wgpu::Buffer>,
     index_buffers: HashMap<Entity, wgpu::Buffer>,
     render_pipelines: HashMap<String, RenderPipeline>,
@@ -357,17 +357,19 @@ impl Scion2D {
         device: &Device,
         queue: &mut Queue,
     ) {
-        <(Entity, &Material2D)>::query().for_each(world, |(_entity, material)| match material {
-            Material2D::Texture(path) => {
-                if !self.diffuse_bind_groups.contains_key(path.as_str()) {
-                    let loaded_texture = Texture::from_png(Path::new(path.as_str()));
-                    self.diffuse_bind_groups.insert(
-                        path.clone(),
-                        load_texture_to_queue(&loaded_texture, queue, device),
-                    );
+        <(Entity, &Material2D)>::query().for_each(world, |(_entity, material)| {
+            match material {
+                Material2D::Texture(path) => {
+                    if !self.diffuse_bind_groups.contains_key(path.as_str()) {
+                        let loaded_texture = Texture::from_png(Path::new(path.as_str()));
+                        self.diffuse_bind_groups.insert(
+                            path.clone(),
+                            load_texture_to_queue(&loaded_texture, queue, device),
+                        );
+                    }
                 }
+                _ => {}
             }
-            _ => {}
         });
     }
 }

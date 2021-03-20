@@ -1,3 +1,4 @@
+/// Mandatory resource to add to the Resources to have anything rendered.
 pub struct Camera2D {
     pub(crate) left: f32,
     pub(crate) right: f32,
@@ -8,6 +9,7 @@ pub struct Camera2D {
 }
 
 impl Camera2D {
+    /// Creates a camera with a viewport of size (width;height;depth). In general the same width and height of the window.
     pub fn new(width: f32, height: f32, depth: f32) -> Self {
         Self {
             left: 0.,

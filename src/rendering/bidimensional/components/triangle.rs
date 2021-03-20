@@ -1,13 +1,16 @@
-use wgpu::util::BufferInitDescriptor;
-use wgpu::{BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor};
-
-use crate::rendering::bidimensional::gl_representations::TexturedGlVertex;
-use crate::rendering::bidimensional::scion2d::Renderable2D;
-use crate::rendering::bidimensional::transform::Position2D;
 use std::ops::Range;
+
+use wgpu::{
+    util::BufferInitDescriptor, BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor,
+};
+
+use crate::rendering::bidimensional::{
+    gl_representations::TexturedGlVertex, scion2d::Renderable2D, transform::Position2D,
+};
 
 const INDICES: &[u16] = &[1, 0, 2];
 
+/// Renderable 2D Triangle.
 pub struct Triangle {
     pub vertices: [Position2D; 3],
     pub uvs: Option<[Position2D; 3]>,

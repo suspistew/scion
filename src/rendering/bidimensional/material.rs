@@ -1,14 +1,18 @@
-use crate::rendering::color::Color;
-use crate::utils::file::read_file;
-use image::{DynamicImage, ImageFormat};
 use std::path::Path;
 
+use image::{DynamicImage, ImageFormat};
+
+use crate::{rendering::color::Color, utils::file::read_file};
+
+/// Component used by the 2D Renderer to know which material to use when rendering a renderable object.
 pub enum Material2D {
+    /// Fill with a color
     Color(Color),
+    /// Use a texture. Note that this means the target object will need to have uv maps.
     Texture(String),
 }
 
-pub struct Texture {
+pub(crate) struct Texture {
     pub(crate) bytes: Vec<u8>,
     pub(crate) width: u16,
     pub(crate) height: u16,
@@ -19,9 +23,7 @@ impl Texture {
         if let Ok(bytes) = read_file(&file_path) {
             let converted_image = image::load_from_memory_with_format(&bytes, ImageFormat::Png);
             if let Ok(image) = converted_image {
-                return Texture::create_texture_from_dynamic_image(
-                    image,
-                );
+                return Texture::create_texture_from_dynamic_image(image);
             }
         }
         log::error!("Error while loading your texture, loading fallback texture instead.");

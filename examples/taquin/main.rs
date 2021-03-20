@@ -1,15 +1,14 @@
 use scion::{
-    application::Scion,
-    config::scion_config::ScionConfigBuilder,
-    config::window_config::WindowConfigBuilder,
+    Scion,
+    config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     game_layer::{GameLayer, SimpleGameLayer},
     inputs::Inputs,
     legion::{system, Resources, World},
     rendering::bidimensional::{
-        components::camera::Camera2D,
-        components::square::Square,
-        material::Material2D,
-        transform::{Position2D, Transform2D},
+        Camera2D,
+        components::Square,
+        Material2D,
+        Position2D, Transform2D,
     },
     utils::file::app_base_path,
 };
@@ -133,7 +132,7 @@ struct Layer;
 impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, resource: &mut Resources) {
         let p = app_base_path().expect("A base path is mandatory");
-        let p = p.join("assets/test.png");
+        let p = p.join("assets/taquin.png");
         for x in 0..4 {
             for y in 0..4 {
                 if !(x == 3 && y == 3) {
