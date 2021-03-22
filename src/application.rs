@@ -19,6 +19,7 @@ use crate::{
 use crate::state::GameState;
 use crate::utils::legion_ext::PausableSystem;
 use legion::systems::ResourceTypeId;
+use std::path::Path;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -34,11 +35,20 @@ pub struct Scion {
 
 impl Scion {
     /// Creates a new `Scion` application.
-    /// The application will check for a Scion.toml file at the root to find its configurations.
+    /// The application will check for a scion.json file at the root to find its configurations.
     /// If this file does not exist, it will create one with default values
     pub fn app() -> ScionBuilder {
-        let app_config = ScionConfigReader::read_or_create_scion_toml().expect(
-            "Fatal error when trying to retrieve and deserialize `Scion.toml` configuration file.",
+        let app_config = ScionConfigReader::read_or_create_default_scion_json().expect(
+            "Fatal error when trying to retrieve and deserialize `scion.json` configuration file.",
+        );
+        Scion::app_with_config(app_config)
+    }
+
+    /// Creates a new `Scion` application.
+    /// The application will try to read a json file using the provided path.
+    pub fn app_with_config_path(config_path: &Path) -> ScionBuilder {
+        let app_config = ScionConfigReader::read_scion_json(config_path).expect(
+            "Fatal error when trying to retrieve and deserialize `scion.json` configuration file.",
         );
         Scion::app_with_config(app_config)
     }

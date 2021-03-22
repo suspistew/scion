@@ -4,7 +4,7 @@
 //!
 //! # Building a `scion` app
 //!
-//! To create a  [`Scion`] application, you either need to call the [`Scion::app()`] or the [`Scion::app_with_config()`] function.
+//! To create a  [`Scion`] application, you either need to call the [`Scion::app()`], [`Scion::app_with_config()`] or [`Scion::app_with_config_path()`] function.
 //! This will give you access to the [`ScionBuilder`] where you can add [legion](https://docs.rs/legion/0.4.0/legion/) systems, [`rendering::RendererType`], [`game_layer::GameLayer`].
 //!
 //! # Example

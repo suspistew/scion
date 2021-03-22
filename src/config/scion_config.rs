@@ -7,6 +7,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use crate::config::{logger_config::LoggerConfig, window_config::WindowConfig};
+use std::io::ErrorKind;
 
 /// Main configuration used by `crate::Scion` to configure the game.
 /// Please use [`ScionConfigBuilder`] if you want to build if from code.
@@ -64,23 +65,35 @@ impl ScionConfigBuilder {
 pub(crate) struct ScionConfigReader;
 
 impl ScionConfigReader {
-    pub(crate) fn read_or_create_scion_toml() -> Result<ScionConfig, Error> {
-        let path = Path::new("Scion.toml");
+    pub(crate) fn read_or_create_default_scion_json() -> Result<ScionConfig, Error> {
+        let path = Path::new("scion.json");
         let path_exists = path.exists();
 
-        Ok(if !path_exists {
-            println!("Couldn't find `Scion.toml` configuration file. Generating a new one");
+        if !path_exists {
+            println!("Couldn't find `scion.json` configuration file. Generating a new one");
             let config = ScionConfig::default();
             let mut file = File::create(path)?;
-            file.write_all(toml::to_vec(&config).unwrap().as_slice())?;
-            config
+            file.write_all(serde_json::to_vec(&config).unwrap().as_slice())?;
+            Ok(config)
         } else {
-            let mut scion_config = File::open(path)?;
-            let mut bytes = Vec::new();
-            scion_config.read_to_end(&mut bytes)?;
-            let config = toml::from_slice(bytes.as_slice())?;
-            config
-        })
+            ScionConfigReader::read_scion_config(path)
+        }
+    }
+
+    pub(crate) fn read_scion_json(path: &Path) -> Result<ScionConfig, Error> {
+        let path_exists = path.exists();
+        if !path_exists {
+            return Err(Error::new(ErrorKind::NotFound, "File not found"));
+        }
+        ScionConfigReader::read_scion_config(path)
+    }
+
+    fn read_scion_config(path: &Path)-> Result<ScionConfig, Error> {
+        let mut scion_config = File::open(path)?;
+        let mut bytes = Vec::new();
+        scion_config.read_to_end(&mut bytes)?;
+        let config = serde_json::from_slice(bytes.as_slice())?;
+        Ok(config)
     }
 }
 
@@ -89,12 +102,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_scion_toml() {
-        // Delete scion.toml before the test
-        let path = Path::new("Scion.toml");
+    fn test_read_scion_json() {
+        // Delete scion.json before the test
+        let path = Path::new("scion.json");
         let _r = std::fs::remove_file(path);
 
-        let config = ScionConfigReader::read_or_create_scion_toml();
+        let config = ScionConfigReader::read_or_create_default_scion_json();
         assert!(config.is_ok());
     }
 }

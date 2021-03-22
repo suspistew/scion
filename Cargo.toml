@@ -25,7 +25,7 @@ ultraviolet = "0.8"
 
 # serialization
 serde = { version = "1.0.124", features = ["derive"] }
-toml = "0.5.8"
+serde_json = "1.0.64"
 bytemuck = { version = "1.4", features = [ "derive" ] }
 image = {version = "0.23", default-features = false, features = ["png"]}
 
