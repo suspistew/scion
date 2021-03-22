@@ -14,7 +14,7 @@
 //!
 //! #[system]
 //! fn hello() {
-//!     println!("Heullo world from a system");
+//!     println!("Hello world from a system");
 //! }
 //!
 //! fn main() {
@@ -35,3 +35,4 @@ pub mod game_layer;
 pub mod inputs;
 pub mod rendering;
 pub mod utils;
+pub mod state;

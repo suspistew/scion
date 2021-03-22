@@ -3,3 +3,4 @@ pub mod file;
 pub mod logger;
 pub mod time;
 pub mod window;
+pub(crate) mod legion_ext;

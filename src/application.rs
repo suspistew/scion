@@ -16,6 +16,9 @@ use crate::{
     rendering::{renderer_state::RendererState, RendererType},
     utils::{time::Time, window::WindowDimensions},
 };
+use crate::state::GameState;
+use crate::utils::legion_ext::PausableSystem;
+use legion::systems::ResourceTypeId;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -62,6 +65,7 @@ impl Scion {
 
         self.resources.insert(Time::default());
         self.resources.insert(Inputs::default());
+        self.resources.insert(GameState::default());
         self.apply_layers_action(LayerAction::Start);
     }
 
@@ -240,6 +244,23 @@ impl ScionBuilder {
     /// for more precisions.
     pub fn with_system<S: ParallelRunnable + 'static>(mut self, system: S) -> Self {
         self.schedule_builder.add_system(system);
+        self
+    }
+
+    pub fn with_pausable_system<S: ParallelRunnable + 'static>(mut self, system: S, condition: fn(GameState) -> bool) -> Self {
+        let (resource_reads, _) = system.reads();
+        let resource_reads = resource_reads
+            .iter()
+            .copied()
+            .chain(std::iter::once(ResourceTypeId::of::<GameState>()))
+            .collect::<Vec<_>>();
+        let boxed_condition  =  Box::new(condition);
+        let pausable_system = PausableSystem{
+            system,
+            decider: boxed_condition,
+            resource_reads
+        };
+        self.schedule_builder.add_system(pausable_system);
         self
     }
 
