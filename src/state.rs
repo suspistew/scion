@@ -2,9 +2,9 @@
 /// diverse thing internally. It's also the resource used to create
 /// pausable systems.
 #[derive(Debug, Copy, Clone, Default)]
-pub struct GameState {}
+pub struct GameState { }
 
-impl GameState{
+impl GameState {
     pub fn test(&self)-> bool{
         true
     }

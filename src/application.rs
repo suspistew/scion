@@ -11,7 +11,7 @@ use winit::{
 
 use crate::{
     config::scion_config::{ScionConfig, ScionConfigReader},
-    game_layer::{GameLayer, GameLayerType, LayerAction},
+    game_layer::{GameLayer, LayerAction},
     inputs::Inputs,
     rendering::{renderer_state::RendererState, RendererType},
     utils::{time::Time, window::WindowDimensions},
@@ -20,6 +20,7 @@ use crate::state::GameState;
 use crate::utils::legion_ext::PausableSystem;
 use legion::systems::ResourceTypeId;
 use std::path::Path;
+use crate::game_layer::{GameLayerMachine, GameLayerController};
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -28,7 +29,7 @@ pub struct Scion {
     world: World,
     resources: Resources,
     schedule: Schedule,
-    game_layers: Vec<Box<GameLayer>>,
+    layer_machine: GameLayerMachine,
     window: Option<Window>,
     renderer: Option<RendererState>,
 }
@@ -76,7 +77,8 @@ impl Scion {
         self.resources.insert(Time::default());
         self.resources.insert(Inputs::default());
         self.resources.insert(GameState::default());
-        self.apply_layers_action(LayerAction::Start);
+        self.resources.insert(GameLayerController::default());
+        self.layer_machine.apply_layers_action(LayerAction::Start, &mut self.world, &mut self.resources);
     }
 
     fn run(mut self, event_loop: EventLoop<()>) {
@@ -89,60 +91,60 @@ impl Scion {
                     window_id,
                 } if window_id
                     == self
-                        .window
-                        .as_ref()
-                        .expect("A window is mandatory to run this game !")
-                        .id() =>
-                {
-                    match event {
-                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Resized(physical_size) => {
-                            self.resources
-                                .get_mut::<WindowDimensions>()
-                                .expect("Missing mandatory ressource : WindowDimension")
-                                .set(physical_size.width, physical_size.height);
-                            self.renderer
-                                .as_mut()
-                                .expect("A renderer is mandatory to run this game !")
-                                .resize(*physical_size);
-                        }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            self.renderer
-                                .as_mut()
-                                .expect("A renderer is mandatory to run this game !")
-                                .resize(**new_inner_size);
-                        }
-                        WindowEvent::CursorMoved {
-                            device_id: _,
-                            position,
-                            ..
-                        } => {
-                            let dpi_factor = self
-                                .window
-                                .as_ref()
-                                .expect("Missing the window")
-                                .current_monitor()
-                                .expect("Missing the monitor")
-                                .scale_factor();
-                            self.resources
-                                .get_mut::<Inputs>()
-                                .expect("Missing mandatory ressource : Inputs")
-                                .mouse_mut()
-                                .set_position(position.x / dpi_factor, position.y / dpi_factor);
-                        }
-                        WindowEvent::MouseInput {
-                            state, button: _, ..
-                        } => {
-                            match state {
-                                ElementState::Pressed => {
-                                    click_event = true; // WIP while we don't use events internally
-                                }
-                                ElementState::Released => {}
+                    .window
+                    .as_ref()
+                    .expect("A window is mandatory to run this game !")
+                    .id() =>
+                    {
+                        match event {
+                            WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                            WindowEvent::Resized(physical_size) => {
+                                self.resources
+                                    .get_mut::<WindowDimensions>()
+                                    .expect("Missing mandatory ressource : WindowDimension")
+                                    .set(physical_size.width, physical_size.height);
+                                self.renderer
+                                    .as_mut()
+                                    .expect("A renderer is mandatory to run this game !")
+                                    .resize(*physical_size);
                             }
+                            WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                                self.renderer
+                                    .as_mut()
+                                    .expect("A renderer is mandatory to run this game !")
+                                    .resize(**new_inner_size);
+                            }
+                            WindowEvent::CursorMoved {
+                                device_id: _,
+                                position,
+                                ..
+                            } => {
+                                let dpi_factor = self
+                                    .window
+                                    .as_ref()
+                                    .expect("Missing the window")
+                                    .current_monitor()
+                                    .expect("Missing the monitor")
+                                    .scale_factor();
+                                self.resources
+                                    .get_mut::<Inputs>()
+                                    .expect("Missing mandatory ressource : Inputs")
+                                    .mouse_mut()
+                                    .set_position(position.x / dpi_factor, position.y / dpi_factor);
+                            }
+                            WindowEvent::MouseInput {
+                                state, button: _, ..
+                            } => {
+                                match state {
+                                    ElementState::Pressed => {
+                                        click_event = true; // WIP while we don't use events internally
+                                    }
+                                    ElementState::Released => {}
+                                }
+                            }
+                            _ => {}
                         }
-                        _ => {}
                     }
-                }
                 Event::MainEventsCleared => {
                     self.window.as_ref().unwrap().request_redraw();
                 }
@@ -169,51 +171,18 @@ impl Scion {
                 .mouse_mut()
                 .set_click_event(click_event);
             self.next_frame();
+            self.layer_machine.apply_layers_action(LayerAction::EndFrame, &mut self.world, &mut self.resources);
         });
     }
 
     fn next_frame(&mut self) {
-        self.apply_layers_action(LayerAction::Update);
+        self.layer_machine.apply_layers_action(LayerAction::Update, &mut self.world, &mut self.resources);
         self.resources
             .get_mut::<Time>()
             .expect("Time is an internal resource and can't be missing")
             .frame();
         self.schedule.execute(&mut self.world, &mut self.resources);
-        self.apply_layers_action(LayerAction::LateUpdate);
-    }
-
-    fn apply_layers_action(&mut self, action: LayerAction) {
-        let layers_len = self.game_layers.len();
-        if layers_len > 0 {
-            for layer_index in (0..layers_len).rev() {
-                let current_layer = self
-                    .game_layers
-                    .get_mut(layer_index)
-                    .expect("We just checked the len");
-                match &mut current_layer.layer {
-                    GameLayerType::Strong(simple_layer) | GameLayerType::Weak(simple_layer) => {
-                        match action {
-                            LayerAction::Update => {
-                                simple_layer.update(&mut self.world, &mut self.resources)
-                            }
-                            LayerAction::Start => {
-                                simple_layer.on_start(&mut self.world, &mut self.resources)
-                            }
-
-                            LayerAction::_STOP => {
-                                simple_layer.on_stop(&mut self.world, &mut self.resources)
-                            }
-                            LayerAction::LateUpdate => {
-                                simple_layer.late_update(&mut self.world, &mut self.resources)
-                            }
-                        };
-                    }
-                }
-                if let GameLayerType::Strong(_) = current_layer.layer {
-                    break;
-                }
-            }
-        }
+        self.layer_machine.apply_layers_action(LayerAction::LateUpdate, &mut self.world, &mut self.resources);
     }
 }
 
@@ -264,11 +233,11 @@ impl ScionBuilder {
             .copied()
             .chain(std::iter::once(ResourceTypeId::of::<GameState>()))
             .collect::<Vec<_>>();
-        let boxed_condition  =  Box::new(condition);
-        let pausable_system = PausableSystem{
+        let boxed_condition = Box::new(condition);
+        let pausable_system = PausableSystem {
             system,
             decider: boxed_condition,
-            resource_reads
+            resource_reads,
         };
         self.schedule_builder.add_system(pausable_system);
         self
@@ -305,7 +274,7 @@ impl ScionBuilder {
             world: Default::default(),
             resources: Default::default(),
             schedule: self.schedule_builder.build(),
-            game_layers: self.game_layers,
+            layer_machine: GameLayerMachine { game_layers: self.game_layers },
             window: Some(window),
             renderer: Some(renderer_state),
         };
