@@ -1,34 +1,20 @@
+use scion::game_layer::{GameLayer, GameLayerController, SimpleGameLayer};
+use scion::legion::{Resources, system, World};
+use scion::rendering::bidimensional::{Camera2D, Material2D, Position2D, Transform2D};
+use scion::rendering::bidimensional::components::Square;
 use scion::Scion;
-use scion::legion::{system, World, Resources};
-use scion::game_layer::{SimpleGameLayer, GameLayer, GameLayerController};
 
 #[system]
-fn test(){
+fn test() {
     log::info!("Hello all");
 }
 
 #[derive(Default)]
-struct LayerA{
-    tmp: usize
-}
+struct LayerA;
 
-impl SimpleGameLayer for LayerA{
-    fn update(&mut self, _world: &mut World, resource: &mut Resources) {
-        log::info!("HeullohA...{}", self.tmp);
-        self.tmp += 1;
-        if self.tmp >= 301 {
-            resource.get_mut::<GameLayerController>().unwrap().pop_layer();
-            resource.get_mut::<GameLayerController>().unwrap().push_layer(GameLayer::strong::<LayerB>());
-        }
-    }
-}
+impl SimpleGameLayer for LayerA {
+    fn on_start(&mut self, world: &mut World, resource: &mut Resources) {
 
-#[derive(Default)]
-struct LayerB;
-
-impl SimpleGameLayer for LayerB{
-    fn update(&mut self, _world: &mut World, _resource: &mut Resources) {
-        log::info!("HeullohB...");
     }
 }
 

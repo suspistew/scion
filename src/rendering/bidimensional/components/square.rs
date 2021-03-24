@@ -1,8 +1,6 @@
 use std::ops::Range;
 
-use wgpu::{
-    util::BufferInitDescriptor, BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor,
-};
+use wgpu::{util::BufferInitDescriptor, BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor, BlendFactor, BlendOperation};
 
 use crate::rendering::bidimensional::{
     gl_representations::TexturedGlVertex, scion2d::Renderable2D, transform::Position2D,
@@ -98,8 +96,16 @@ impl Renderable2D for Square {
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
                     format: sc_desc.format,
-                    alpha_blend: wgpu::BlendState::REPLACE,
-                    color_blend: wgpu::BlendState::REPLACE,
+                    alpha_blend: wgpu::BlendState {
+                        src_factor: BlendFactor::One,
+                        dst_factor: BlendFactor::One,
+                        operation: BlendOperation::Add,
+                    },
+                    color_blend: wgpu::BlendState {
+                        src_factor: BlendFactor::SrcAlpha,
+                        dst_factor: BlendFactor::OneMinusSrcAlpha,
+                        operation: BlendOperation::Add,
+                    },
                     write_mask: wgpu::ColorWrite::ALL,
                 }],
             }),

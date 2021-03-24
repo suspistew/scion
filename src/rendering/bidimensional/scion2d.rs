@@ -216,7 +216,7 @@ fn get_default_color_attachment(frame: &SwapChainTexture) -> RenderPassColorAtta
         resolve_target: None,
         ops: wgpu::Operations {
             load: wgpu::LoadOp::Clear(wgpu::Color {
-                r: 0.,
+                r: 1.,
                 g: 0.,
                 b: 0.,
                 a: 1.0,
