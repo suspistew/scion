@@ -5,32 +5,39 @@ use wgpu::{util::BufferInitDescriptor, BindGroupLayout, Device, RenderPipeline, 
 use crate::rendering::bidimensional::{
     gl_representations::TexturedGlVertex, scion2d::Renderable2D, transform::Coordinates,
 };
-
-const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
+use crate::rendering::bidimensional::scion2d::RenderableUi;
 
 /// Renderable 2D Square.
-pub struct Square {
-    pub vertices: [Coordinates; 4],
-    pub uvs: Option<[Coordinates; 4]>,
+pub struct UiImage {
+    image_path: String,
+    vertices: [Coordinates; 4],
+    uvs: [Coordinates; 4],
     contents: [TexturedGlVertex; 4],
 }
 
-impl Square {
-    pub fn new(origin: Coordinates, length: f32, uvs: Option<[Coordinates; 4]>) -> Self {
-        let a = origin;
-        let b = Coordinates::new (a.x(), a.y() + length);
-        let c = Coordinates::new ( a.x() + length, a.y() + length);
-        let d = Coordinates::new (a.x() + length, a.y());
-        let uvs_ref = uvs
-            .as_ref()
-            .expect("Uvs are currently mandatory, this need to be fixed");
+const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
+
+impl UiImage {
+    pub fn new(width: f32, height:f32, image_path: String) -> Self {
+        let a = Coordinates::new(0., 0.);
+        let b = Coordinates::new (a.x(), a.y() + height);
+        let c = Coordinates::new ( a.x() + width, a.y() + height);
+        let d = Coordinates::new (a.x() + width, a.y());
+
+        let uvs = [
+            Coordinates::new(0., 0.),
+            Coordinates::new(0., 1.),
+            Coordinates::new(1., 1.),
+            Coordinates::new(1., 0.),
+        ];
         let contents = [
-            TexturedGlVertex::from((&a, &uvs_ref[0])),
-            TexturedGlVertex::from((&b, &uvs_ref[1])),
-            TexturedGlVertex::from((&c, &uvs_ref[2])),
-            TexturedGlVertex::from((&d, &uvs_ref[3])),
+            TexturedGlVertex::from((&a, &uvs[0])),
+            TexturedGlVertex::from((&b, &uvs[1])),
+            TexturedGlVertex::from((&c, &uvs[2])),
+            TexturedGlVertex::from((&d, &uvs[3])),
         ];
         Self {
+            image_path,
             vertices: [a, b, c, d],
             uvs,
             contents,
@@ -38,7 +45,7 @@ impl Square {
     }
 }
 
-impl Renderable2D for Square {
+impl Renderable2D for UiImage {
     fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor {
         wgpu::util::BufferInitDescriptor {
             label: Some("Square Vertex Buffer"),
@@ -63,9 +70,9 @@ impl Renderable2D for Square {
         transform_bind_group_layout: &BindGroupLayout,
     ) -> RenderPipeline {
         let vs_module =
-            device.create_shader_module(&wgpu::include_spirv!("shaders/shader.vert.spv"));
+            device.create_shader_module(&wgpu::include_spirv!("../shaders/shader.vert.spv"));
         let fs_module =
-            device.create_shader_module(&wgpu::include_spirv!("shaders/shader.frag.spv"));
+            device.create_shader_module(&wgpu::include_spirv!("../shaders/shader.frag.spv"));
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -120,4 +127,8 @@ impl Renderable2D for Square {
     fn range(&self) -> Range<u32> {
         0..INDICES.len() as u32
     }
+}
+
+impl RenderableUi for UiImage {
+    fn get_texture_path(&self) -> Option<String>{Some(self.image_path.clone())}
 }

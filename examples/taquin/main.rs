@@ -8,13 +8,13 @@ use scion::{
         Camera2D,
         components::Square,
         Material2D,
-        Position2D, Transform2D,
+        Coordinates, Transform2D,
     },
     utils::file::app_base_path,
 };
 
 #[derive(Debug)]
-struct Case(Position2D);
+struct Case(Coordinates);
 
 enum MoveDirection {
     Left,
@@ -65,25 +65,13 @@ fn square(x: usize, y: usize) -> Square {
     let x_offset = x as f32 * 0.25;
     let y_offset = y as f32 * 0.25;
     Square::new(
-        Position2D { x: 0., y: 0. },
+        Coordinates::new(0., 0.),
         192.,
         Some([
-            Position2D {
-                x: x_offset,
-                y: y_offset,
-            },
-            Position2D {
-                x: x_offset,
-                y: 0.25 + y_offset,
-            },
-            Position2D {
-                x: 0.25 + x_offset,
-                y: 0.25 + y_offset,
-            },
-            Position2D {
-                x: 0.25 + x_offset,
-                y: y_offset,
-            },
+            Coordinates::new(x_offset, y_offset),
+            Coordinates::new(x_offset, 0.25 + y_offset),
+            Coordinates::new(0.25 + x_offset, 0.25 + y_offset),
+            Coordinates::new(0.25 + x_offset, y_offset),
         ]),
     )
 }
@@ -98,26 +86,26 @@ fn taquin(
     if inputs.mouse().click_event() {
         let mouse_x = inputs.mouse().x();
         let mouse_y = inputs.mouse().y();
-        if mouse_x > (case.0.x * 192.) as f64
-            && mouse_y > (case.0.y * 192.) as f64
-            && mouse_x < (case.0.x * 192. + 192.) as f64
-            && mouse_y < (case.0.y * 192. + 192.) as f64
+        if mouse_x > (case.0.x() * 192.) as f64
+            && mouse_y > (case.0.y() * 192.) as f64
+            && mouse_x < (case.0.x() * 192. + 192.) as f64
+            && mouse_y < (case.0.y() * 192. + 192.) as f64
         {
-            match taquin.try_move(case.0.x as usize, case.0.y as usize) {
+            match taquin.try_move(case.0.x() as usize, case.0.y() as usize) {
                 MoveDirection::Left => {
-                    case.0.x -= 1.;
+                    case.0.set_x(case.0.x() -1.);
                     transform.append_translation(-192., 0.);
                 }
                 MoveDirection::Top => {
-                    case.0.y -= 1.;
+                    case.0.set_y(case.0.y() -1.);
                     transform.append_translation(0., -192.);
                 }
                 MoveDirection::Right => {
-                    case.0.x += 1.;
+                    case.0.set_x(case.0.x() + 1.);
                     transform.append_translation(192., 0.);
                 }
                 MoveDirection::Bottom => {
-                    case.0.y += 1.;
+                    case.0.set_y(case.0.y() + 1.);
                     transform.append_translation(0., 192.);
                 }
                 MoveDirection::None => {}
@@ -137,17 +125,11 @@ impl SimpleGameLayer for Layer {
             for y in 0..4 {
                 if !(x == 3 && y == 3) {
                     let square = (
-                        Case(Position2D {
-                            x: x as f32,
-                            y: y as f32,
-                        }),
+                        Case(Coordinates::new(x as f32, y as f32)),
                         square(x, y),
                         Material2D::Texture(p.as_path().to_str().unwrap().to_string()),
                         Transform2D::new(
-                            Position2D {
-                                x: x as f32 * 192.,
-                                y: y as f32 * 192.,
-                            },
+                            Coordinates::new(x as f32 * 192., y as f32 * 192.),
                             1.,
                             0.,
                         ),
@@ -167,7 +149,7 @@ fn main() {
             .with_window_config(WindowConfigBuilder::new().with_dimensions((768, 768)).get())
             .get(),
     )
-    .with_system(taquin_system())
-    .with_game_layer(GameLayer::weak::<Layer>())
-    .run();
+        .with_system(taquin_system())
+        .with_game_layer(GameLayer::weak::<Layer>())
+        .run();
 }

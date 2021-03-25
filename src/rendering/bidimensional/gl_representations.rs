@@ -1,6 +1,6 @@
 use ultraviolet::{Mat4, Rotor3, Similarity3, Vec3, Vec4};
 
-use crate::rendering::bidimensional::{Camera2D, Position2D, Transform2D};
+use crate::rendering::bidimensional::{Camera2D, Coordinates, Transform2D};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -17,11 +17,11 @@ pub(crate) struct GlVec3 {
     pub z: f32,
 }
 
-impl From<&Position2D> for GlVec3 {
-    fn from(position: &Position2D) -> Self {
+impl From<&Coordinates> for GlVec3 {
+    fn from(position: &Coordinates) -> Self {
         Self {
-            x: position.x,
-            y: position.y,
+            x: position.x(),
+            y: position.y(),
             z: 0.,
         }
     }
@@ -113,17 +113,17 @@ impl TexturedGlVertex {
     }
 }
 
-impl From<(&Position2D, &Position2D)> for TexturedGlVertex {
-    fn from(positions: (&Position2D, &Position2D)) -> Self {
+impl From<(&Coordinates, &Coordinates)> for TexturedGlVertex {
+    fn from(positions: (&Coordinates, &Coordinates)) -> Self {
         TexturedGlVertex {
             position: GlVec3 {
-                x: positions.0.x,
-                y: positions.0.y,
+                x: positions.0.x(),
+                y: positions.0.y(),
                 z: 0.0,
             },
             tex_coords: GlVec2 {
-                x: positions.1.x,
-                y: positions.1.y,
+                x: positions.1.x(),
+                y: positions.1.y(),
             },
         }
     }
@@ -162,15 +162,11 @@ impl From<(&Transform2D, &Camera2D)> for GlUniform {
         let mut model_trans = Similarity3::identity();
         model_trans.prepend_scaling(transform.scale);
         model_trans.append_translation(Vec3 {
-            x: transform.position.x,
-            y: transform.position.y,
-            z: 1.0,
+            x: transform.coords.x(),
+            y: transform.coords.y(),
+            z: transform.coords.layer() as f32,
         });
         model_trans.prepend_rotation(Rotor3::from_rotation_xy(transform.angle).normalized());
-
-        let mut test = Similarity3::identity();
-        test.append_translation(Vec3::new(-384., 384., 0.));
-
         let mut model_trans = model_trans.into_homogeneous_matrix();
         let mut camera_view = ultraviolet::projection::lh_ydown::orthographic_wgpu_dx(
             camera.left,
