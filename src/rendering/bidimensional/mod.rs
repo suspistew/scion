@@ -2,7 +2,7 @@
 
 pub use camera::Camera2D;
 pub use material::Material2D;
-pub use transform::{Position2D, Transform2D};
+pub use transform::{Coordinates, Transform2D};
 
 mod camera;
 pub mod components;

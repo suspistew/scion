@@ -3,20 +3,20 @@ use std::ops::Range;
 use wgpu::{util::BufferInitDescriptor, BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor, BlendFactor, BlendOperation};
 
 use crate::rendering::bidimensional::{
-    gl_representations::TexturedGlVertex, scion2d::Renderable2D, transform::Position2D,
+    gl_representations::TexturedGlVertex, scion2d::Renderable2D, transform::Coordinates,
 };
 
 const INDICES: &[u16] = &[1, 0, 2];
 
 /// Renderable 2D Triangle.
 pub struct Triangle {
-    pub vertices: [Position2D; 3],
-    pub uvs: Option<[Position2D; 3]>,
+    pub vertices: [Coordinates; 3],
+    pub uvs: Option<[Coordinates; 3]>,
     contents: [TexturedGlVertex; 3],
 }
 
 impl Triangle {
-    pub fn new(vertices: [Position2D; 3], uvs: Option<[Position2D; 3]>) -> Self {
+    pub fn new(vertices: [Coordinates; 3], uvs: Option<[Coordinates; 3]>) -> Self {
         let uvs_ref = uvs
             .as_ref()
             .expect("Uvs are currently mandatory, this need to be fixed");
