@@ -21,6 +21,7 @@ use crate::utils::legion_ext::PausableSystem;
 use legion::systems::ResourceTypeId;
 use std::path::Path;
 use crate::game_layer::{GameLayerMachine, GameLayerController};
+use crate::utils::time::{Timer, Timers};
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -75,6 +76,7 @@ impl Scion {
             .insert(WindowDimensions::new((inner_size.width, inner_size.height)));
 
         self.resources.insert(Time::default());
+        self.resources.insert(Timers::default());
         self.resources.insert(Inputs::default());
         self.resources.insert(GameState::default());
         self.resources.insert(GameLayerController::default());
@@ -176,11 +178,13 @@ impl Scion {
     }
 
     fn next_frame(&mut self) {
-        self.layer_machine.apply_layers_action(LayerAction::Update, &mut self.world, &mut self.resources);
-        self.resources
-            .get_mut::<Time>()
+        let frame_duration = self.resources.get_mut::<Time>()
             .expect("Time is an internal resource and can't be missing")
             .frame();
+        self.resources.get_mut::<Timers>()
+            .expect("Missing mandatory ressource : Timers")
+            .add_delta_duration(frame_duration);
+        self.layer_machine.apply_layers_action(LayerAction::Update, &mut self.world, &mut self.resources);
         self.schedule.execute(&mut self.world, &mut self.resources);
         self.layer_machine.apply_layers_action(LayerAction::LateUpdate, &mut self.world, &mut self.resources);
     }

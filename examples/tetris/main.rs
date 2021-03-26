@@ -5,10 +5,16 @@ use scion::rendering::bidimensional::components::Square;
 use scion::Scion;
 use scion::utils::file::app_base_path;
 use scion::rendering::bidimensional::components::ui::ui_image::UiImage;
+use scion::utils::time::{Timers, TimerType};
 
 #[system]
-fn test() {
-    log::info!("Hello all");
+fn test(#[resource] timers: &mut Timers) {
+    if !timers.exists("test") {
+        timers.add_timer("test", TimerType::Manual, 5.);
+    }
+
+    let test = timers.get_timer("test").unwrap();
+    log::info!("test elapsed {:?}, ended {:?}", test.elapsed(), test.ended());
 }
 
 #[derive(Default)]
@@ -39,5 +45,6 @@ fn main() {
         .with_game_layer(
             GameLayer::weak::<LayerA>()
         )
+        .with_system(test_system())
         .run();
 }
