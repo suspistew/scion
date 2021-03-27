@@ -31,8 +31,6 @@ pub use ultraviolet;
 // internal export
 mod application;
 pub mod config;
-pub mod game_layer;
-pub mod inputs;
+pub mod core;
 pub mod rendering;
 pub mod utils;
-pub mod state;

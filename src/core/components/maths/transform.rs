@@ -8,19 +8,11 @@ pub struct Coordinates {
 
 impl Coordinates {
     pub fn new(x: f32, y: f32) -> Self {
-        Self {
-            x,
-            y,
-            layer: 0,
-        }
+        Self { x, y, layer: 0 }
     }
 
     pub fn new_with_layer(x: f32, y: f32, layer: usize) -> Self {
-        Self {
-            x,
-            y,
-            layer,
-        }
+        Self { x, y, layer }
     }
 
     pub fn x(&self) -> f32 {
@@ -43,10 +35,9 @@ impl Coordinates {
         self.y = y;
     }
 
-    pub fn set_layer(&mut self, layer: usize)  {
+    pub fn set_layer(&mut self, layer: usize) {
         self.layer = layer;
     }
-
 }
 
 /// Component used by the renderer to know where and how to represent an object.

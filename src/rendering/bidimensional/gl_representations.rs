@@ -1,6 +1,9 @@
 use ultraviolet::{Mat4, Rotor3, Similarity3, Vec3, Vec4};
 
-use crate::rendering::bidimensional::{Camera2D, Coordinates, Transform2D};
+use crate::core::components::maths::{
+    camera::Camera2D,
+    transform::{Coordinates, Transform2D},
+};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]

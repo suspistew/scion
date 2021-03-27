@@ -1,6 +1,7 @@
 //! Everything that is linked to the running of game layers.
-use legion::{Resources, World};
 use std::collections::VecDeque;
+
+use legion::{Resources, World};
 
 /// Trait to implement in order to define a `GameLayer`.
 pub trait SimpleGameLayer {
@@ -51,7 +52,6 @@ pub(crate) enum GameLayerType {
     Weak(Box<dyn SimpleGameLayer>),
 }
 
-
 /// `GameLayerMachine` is the Resource used to control the game layers.
 #[derive(Default)]
 pub(crate) struct GameLayerMachine {
@@ -59,7 +59,12 @@ pub(crate) struct GameLayerMachine {
 }
 
 impl GameLayerMachine {
-    pub(crate) fn apply_layers_action(&mut self, action: LayerAction, world: &mut World, resources: &mut Resources) {
+    pub(crate) fn apply_layers_action(
+        &mut self,
+        action: LayerAction,
+        world: &mut World,
+        resources: &mut Resources,
+    ) {
         let layers_len = self.game_layers.len();
         if layers_len > 0 {
             for layer_index in (0..layers_len).rev() {
@@ -70,18 +75,12 @@ impl GameLayerMachine {
                 match &mut current_layer.layer {
                     GameLayerType::Strong(simple_layer) | GameLayerType::Weak(simple_layer) => {
                         match action {
-                            LayerAction::Update => {
-                                simple_layer.update(world, resources)
-                            }
-                            LayerAction::Start => {
-                                simple_layer.on_start(world, resources)
-                            }
+                            LayerAction::Update => simple_layer.update(world, resources),
+                            LayerAction::Start => simple_layer.on_start(world, resources),
                             LayerAction::EndFrame => {
                                 // Stop will only be called on dirty layers
                             }
-                            LayerAction::LateUpdate => {
-                                simple_layer.late_update(world, resources)
-                            }
+                            LayerAction::LateUpdate => simple_layer.late_update(world, resources),
                         };
                     }
                 }
@@ -93,17 +92,20 @@ impl GameLayerMachine {
 
         match action {
             LayerAction::EndFrame => {
-                let mut game_layer_controller_actions : VecDeque<GameLayerTrans> =
-                    resources.get_mut::<GameLayerController>()
-                        .expect("Missing mandatory ressource : GameLayerController")
-                        .actions.drain(0..).collect();
+                let mut game_layer_controller_actions: VecDeque<GameLayerTrans> = resources
+                    .get_mut::<GameLayerController>()
+                    .expect("Missing mandatory ressource : GameLayerController")
+                    .actions
+                    .drain(0..)
+                    .collect();
                 while let Some(layer_action) = game_layer_controller_actions.pop_front() {
                     match layer_action {
                         GameLayerTrans::Pop => {
                             let layer = self.game_layers.pop();
-                            if let Some(layer) = layer{
+                            if let Some(layer) = layer {
                                 match layer.layer {
-                                    GameLayerType::Strong(mut simple_layer) | GameLayerType::Weak(mut simple_layer) => {
+                                    GameLayerType::Strong(mut simple_layer)
+                                    | GameLayerType::Weak(mut simple_layer) => {
                                         simple_layer.on_stop(world, resources);
                                     }
                                 }
@@ -120,9 +122,9 @@ impl GameLayerMachine {
     }
 }
 
-pub(crate) enum GameLayerTrans{
+pub(crate) enum GameLayerTrans {
     Pop,
-    Push(Box<GameLayer>)
+    Push(Box<GameLayer>),
 }
 
 /// `GameLayerController` is the Resource used to control the game layers.
@@ -132,7 +134,7 @@ pub struct GameLayerController {
     pub(crate) actions: Vec<GameLayerTrans>,
 }
 
-impl GameLayerController{
+impl GameLayerController {
     /// Push `game_layer` to the top of the pile, note that it will happen in
     /// the end of the frame
     pub fn push_layer(&mut self, game_layer: Box<GameLayer>) {
@@ -147,5 +149,5 @@ impl GameLayerController{
 }
 
 pub enum Error {
-    EmptyLayersError
+    EmptyLayersError,
 }

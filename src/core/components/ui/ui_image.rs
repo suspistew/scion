@@ -1,28 +1,32 @@
 use std::ops::Range;
 
-use wgpu::{util::BufferInitDescriptor, BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor, BlendFactor, BlendOperation};
-
-use crate::rendering::bidimensional::{
-    gl_representations::TexturedGlVertex, scion2d::Renderable2D, transform::Coordinates,
+use wgpu::{
+    util::BufferInitDescriptor, BindGroupLayout, BlendFactor, BlendOperation, Device,
+    RenderPipeline, SwapChainDescriptor,
 };
-use crate::rendering::bidimensional::scion2d::RenderableUi;
+
+use crate::{
+    core::components::maths::transform::Coordinates,
+    rendering::bidimensional::{
+        gl_representations::TexturedGlVertex,
+        scion2d::{Renderable2D, RenderableUi},
+    },
+};
 
 /// Renderable 2D Square.
 pub struct UiImage {
     image_path: String,
-    vertices: [Coordinates; 4],
-    uvs: [Coordinates; 4],
     contents: [TexturedGlVertex; 4],
 }
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
 impl UiImage {
-    pub fn new(width: f32, height:f32, image_path: String) -> Self {
+    pub fn new(width: f32, height: f32, image_path: String) -> Self {
         let a = Coordinates::new(0., 0.);
-        let b = Coordinates::new (a.x(), a.y() + height);
-        let c = Coordinates::new ( a.x() + width, a.y() + height);
-        let d = Coordinates::new (a.x() + width, a.y());
+        let b = Coordinates::new(a.x(), a.y() + height);
+        let c = Coordinates::new(a.x() + width, a.y() + height);
+        let d = Coordinates::new(a.x() + width, a.y());
 
         let uvs = [
             Coordinates::new(0., 0.),
@@ -38,8 +42,6 @@ impl UiImage {
         ];
         Self {
             image_path,
-            vertices: [a, b, c, d],
-            uvs,
             contents,
         }
     }
@@ -69,10 +71,12 @@ impl Renderable2D for UiImage {
         texture_bind_group_layout: &BindGroupLayout,
         transform_bind_group_layout: &BindGroupLayout,
     ) -> RenderPipeline {
-        let vs_module =
-            device.create_shader_module(&wgpu::include_spirv!("../shaders/shader.vert.spv"));
-        let fs_module =
-            device.create_shader_module(&wgpu::include_spirv!("../shaders/shader.frag.spv"));
+        let vs_module = device.create_shader_module(&wgpu::include_spirv!(
+            "../../../rendering/shaders/shader.vert.spv"
+        ));
+        let fs_module = device.create_shader_module(&wgpu::include_spirv!(
+            "../../../rendering/shaders/shader.frag.spv"
+        ));
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -130,5 +134,7 @@ impl Renderable2D for UiImage {
 }
 
 impl RenderableUi for UiImage {
-    fn get_texture_path(&self) -> Option<String>{Some(self.image_path.clone())}
+    fn get_texture_path(&self) -> Option<String> {
+        Some(self.image_path.clone())
+    }
 }

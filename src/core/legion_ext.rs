@@ -1,8 +1,11 @@
-use legion::systems::{Runnable, ResourceTypeId, SystemId, UnsafeResources, ResourceSet, CommandBuffer};
-use legion::storage::ComponentTypeId;
-use legion::{World, Read};
-use legion::world::{ArchetypeAccess, WorldId};
-use crate::state::GameState;
+use legion::{
+    storage::ComponentTypeId,
+    systems::{CommandBuffer, ResourceSet, ResourceTypeId, Runnable, SystemId, UnsafeResources},
+    world::{ArchetypeAccess, WorldId},
+    Read, World,
+};
+
+use crate::core::state::GameState;
 
 pub(crate) struct PausableSystem<S> {
     pub(crate) system: S,
@@ -11,8 +14,8 @@ pub(crate) struct PausableSystem<S> {
 }
 
 impl<S> Runnable for PausableSystem<S>
-    where
-        S: Runnable
+where
+    S: Runnable,
 {
     fn name(&self) -> Option<&SystemId> {
         self.system.name()
@@ -41,7 +44,8 @@ impl<S> Runnable for PausableSystem<S>
 
         if (self.decider)(*resource_to_check) {
             return;
-        } else {}
+        } else {
+        }
 
         self.system.run_unsafe(world, resources);
     }

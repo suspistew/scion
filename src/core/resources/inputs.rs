@@ -1,9 +1,7 @@
-//! Everything that is relatives to the inputs.
-use crate::inputs::mouse::Mouse;
+//! Everything that is relatives to the core.inputs.
+use crate::core::resources::mouse::Mouse;
 
-pub mod mouse;
-
-/// A resource updated by `Scion` to keep track of the inputs
+/// A resource updated by `Scion` to keep track of the core.inputs
 /// Can be used in any system.
 #[derive(Default)]
 pub struct Inputs {

@@ -1,11 +1,11 @@
 //! Everything that is relative to rendering to the window (Like renderable components, camera, transforms..)
-pub mod bidimensional;
-pub mod color;
-pub(crate) mod renderer_state;
 use legion::{Resources, World};
 use wgpu::{CommandEncoder, Device, Queue, SwapChainDescriptor, SwapChainTexture};
 
 use crate::rendering::bidimensional::scion2d::Scion2D;
+
+pub mod bidimensional;
+pub(crate) mod renderer_state;
 
 /// Trait to implement in order to create a renderer to use in a `Scion` application
 pub trait ScionRenderer {

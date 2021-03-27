@@ -1,16 +1,20 @@
 use scion::{
-    Scion,
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
-    game_layer::{GameLayer, SimpleGameLayer},
-    inputs::Inputs,
-    legion::{system, Resources, World},
-    rendering::bidimensional::{
-        Camera2D,
-        components::Square,
-        Material2D,
-        Coordinates, Transform2D,
+    core::{
+        components::{
+            material::Material2D,
+            maths::{
+                camera::Camera2D,
+                transform::{Coordinates, Transform2D},
+            },
+            Square,
+        },
+        game_layer::{GameLayer, SimpleGameLayer},
+        resources::inputs::Inputs,
     },
+    legion::{system, Resources, World},
     utils::file::app_base_path,
+    Scion,
 };
 
 #[derive(Debug)]
@@ -93,11 +97,11 @@ fn taquin(
         {
             match taquin.try_move(case.0.x() as usize, case.0.y() as usize) {
                 MoveDirection::Left => {
-                    case.0.set_x(case.0.x() -1.);
+                    case.0.set_x(case.0.x() - 1.);
                     transform.append_translation(-192., 0.);
                 }
                 MoveDirection::Top => {
-                    case.0.set_y(case.0.y() -1.);
+                    case.0.set_y(case.0.y() - 1.);
                     transform.append_translation(0., -192.);
                 }
                 MoveDirection::Right => {
@@ -149,7 +153,7 @@ fn main() {
             .with_window_config(WindowConfigBuilder::new().with_dimensions((768, 768)).get())
             .get(),
     )
-        .with_system(taquin_system())
-        .with_game_layer(GameLayer::weak::<Layer>())
-        .run();
+    .with_system(taquin_system())
+    .with_game_layer(GameLayer::weak::<Layer>())
+    .run();
 }
