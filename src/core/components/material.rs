@@ -2,7 +2,7 @@ use std::path::Path;
 
 use image::{DynamicImage, ImageFormat};
 
-use crate::{rendering::color::Color, utils::file::read_file};
+use crate::{core::components::color::Color, utils::file::read_file};
 
 /// Component used by the 2D Renderer to know which material to use when rendering a renderable object.
 pub enum Material2D {

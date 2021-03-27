@@ -1,24 +1,21 @@
 use std::{collections::HashMap, ops::Range, path::Path};
-use std::collections::VecDeque;
 
-use legion::{Entity, IntoQuery, Resources, storage::Component, World};
+use legion::{storage::Component, Entity, IntoQuery, Resources, World};
 use wgpu::{
-    BindGroup,
-    BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachmentDescriptor,
-    RenderPipeline, SwapChainDescriptor, SwapChainTexture, util::{BufferInitDescriptor, DeviceExt},
+    util::{BufferInitDescriptor, DeviceExt},
+    BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue,
+    RenderPassColorAttachmentDescriptor, RenderPipeline, SwapChainDescriptor, SwapChainTexture,
 };
 
-use crate::rendering::{
-    bidimensional::{
-        Camera2D,
-        components::{Square, Triangle},
-        gl_representations::GlUniform,
+use crate::{
+    core::components::{
         material::{Material2D, Texture},
-        transform::Transform2D,
+        maths::{camera::Camera2D, transform::Transform2D},
+        shapes::{square::Square, triangle::Triangle},
+        ui::ui_image::UiImage,
     },
-    ScionRenderer,
+    rendering::{bidimensional::gl_representations::GlUniform, ScionRenderer},
 };
-use crate::rendering::bidimensional::components::ui::ui_image::UiImage;
 
 pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor;
@@ -34,7 +31,9 @@ pub(crate) trait Renderable2D {
 }
 
 pub(crate) trait RenderableUi: Renderable2D {
-    fn get_texture_path(&self) -> Option<String> { None }
+    fn get_texture_path(&self) -> Option<String> {
+        None
+    }
 }
 
 #[derive(Default)]
@@ -46,11 +45,11 @@ pub(crate) struct Scion2D {
     transform_uniform_bind_groups: HashMap<Entity, (GlUniform, Buffer, BindGroupLayout, BindGroup)>,
 }
 
-struct RenderingInfos{
+struct RenderingInfos {
     layer: usize,
     range: Range<u32>,
     entity: Entity,
-    texture_path: Option<String>
+    texture_path: Option<String>,
 }
 
 impl ScionRenderer for Scion2D {
@@ -92,7 +91,7 @@ impl ScionRenderer for Scion2D {
             rendering_infos.append(&mut self.pre_render_component::<Square>(world));
             rendering_infos.append(&mut self.pre_render_ui_component::<UiImage>(world));
 
-            rendering_infos.sort_by(|a,b| b.layer.cmp(&a.layer));
+            rendering_infos.sort_by(|a, b| b.layer.cmp(&a.layer));
             while let Some(info) = rendering_infos.pop() {
                 self.render_component(&frame, encoder, info);
             }
@@ -266,7 +265,7 @@ impl Scion2D {
         sc_desc: &&SwapChainDescriptor,
     ) {
         for (entity, component, material, _) in
-        <(Entity, &mut T, &Material2D, &Transform2D)>::query().iter_mut(world)
+            <(Entity, &mut T, &Material2D, &Transform2D)>::query().iter_mut(world)
         {
             if !self.vertex_buffers.contains_key(entity) {
                 let vertex_buffer =
@@ -306,9 +305,7 @@ impl Scion2D {
         sc_desc: &&SwapChainDescriptor,
         queue: &mut Queue,
     ) {
-        for (entity, component, _) in
-        <(Entity, &mut T, &Transform2D)>::query().iter_mut(world)
-        {
+        for (entity, component, _) in <(Entity, &mut T, &Transform2D)>::query().iter_mut(world) {
             if !self.vertex_buffers.contains_key(entity) {
                 let vertex_buffer =
                     device.create_buffer_init(&component.vertex_buffer_descriptor());
@@ -344,10 +341,12 @@ impl Scion2D {
         }
     }
 
-    fn render_component(&mut self,
-                        frame: &&SwapChainTexture,
-                        encoder: &mut CommandEncoder,
-                        rendering_infos: RenderingInfos) {
+    fn render_component(
+        &mut self,
+        frame: &&SwapChainTexture,
+        encoder: &mut CommandEncoder,
+        rendering_infos: RenderingInfos,
+    ) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Scion 2D Render Pass"),
             color_attachments: &[get_no_color_attachment(frame)],
@@ -356,21 +355,32 @@ impl Scion2D {
 
         render_pass.set_bind_group(
             1,
-            &self.transform_uniform_bind_groups.get(&rendering_infos.entity).unwrap().3,
+            &self
+                .transform_uniform_bind_groups
+                .get(&rendering_infos.entity)
+                .unwrap()
+                .3,
             &[],
         );
         render_pass.set_vertex_buffer(
             0,
-            self.vertex_buffers.get(&rendering_infos.entity).as_ref().unwrap().slice(..),
+            self.vertex_buffers
+                .get(&rendering_infos.entity)
+                .as_ref()
+                .unwrap()
+                .slice(..),
         );
         render_pass.set_index_buffer(
-            self.index_buffers.get(&rendering_infos.entity).as_ref().unwrap().slice(..),
+            self.index_buffers
+                .get(&rendering_infos.entity)
+                .as_ref()
+                .unwrap()
+                .slice(..),
             wgpu::IndexFormat::Uint16,
         );
 
         if let Some(path) = rendering_infos.texture_path {
-            render_pass
-                .set_pipeline(self.render_pipelines.get(path.as_str()).as_ref().unwrap());
+            render_pass.set_pipeline(self.render_pipelines.get(path.as_str()).as_ref().unwrap());
             render_pass.set_bind_group(
                 0,
                 &self.diffuse_bind_groups.get(path.as_str()).unwrap().1,
@@ -382,11 +392,11 @@ impl Scion2D {
 
     fn pre_render_component<T: Component + Renderable2D>(
         &mut self,
-        world: &mut World
+        world: &mut World,
     ) -> Vec<RenderingInfos> {
         let mut render_infos = Vec::new();
         for (entity, component, material, transform) in
-        <(Entity, &mut T, &Material2D, &Transform2D)>::query().iter_mut(world)
+            <(Entity, &mut T, &Material2D, &Transform2D)>::query().iter_mut(world)
         {
             let mut path = None;
             match material {
@@ -395,11 +405,11 @@ impl Scion2D {
                     path = Some(p.clone());
                 }
             };
-            render_infos.push(RenderingInfos{
+            render_infos.push(RenderingInfos {
                 layer: transform.coords().layer(),
                 range: component.range(),
                 entity: *entity,
-                texture_path: path
+                texture_path: path,
             });
         }
         render_infos
@@ -411,13 +421,13 @@ impl Scion2D {
     ) -> Vec<RenderingInfos> {
         let mut render_infos = Vec::new();
         for (entity, component, transform) in
-        <(Entity, &mut T, &Transform2D)>::query().iter_mut(world) {
-
-            render_infos.push(RenderingInfos{
+            <(Entity, &mut T, &Transform2D)>::query().iter_mut(world)
+        {
+            render_infos.push(RenderingInfos {
                 layer: transform.coords().layer(),
                 range: component.range(),
                 entity: *entity,
-                texture_path: component.get_texture_path()
+                texture_path: component.get_texture_path(),
             });
         }
         render_infos

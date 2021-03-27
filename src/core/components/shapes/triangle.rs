@@ -1,9 +1,13 @@
 use std::ops::Range;
 
-use wgpu::{util::BufferInitDescriptor, BindGroupLayout, Device, RenderPipeline, SwapChainDescriptor, BlendFactor, BlendOperation};
+use wgpu::{
+    util::BufferInitDescriptor, BindGroupLayout, BlendFactor, BlendOperation, Device,
+    RenderPipeline, SwapChainDescriptor,
+};
 
-use crate::rendering::bidimensional::{
-    gl_representations::TexturedGlVertex, scion2d::Renderable2D, transform::Coordinates,
+use crate::{
+    core::components::maths::transform::Coordinates,
+    rendering::bidimensional::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
 };
 
 const INDICES: &[u16] = &[1, 0, 2];
@@ -57,10 +61,12 @@ impl Renderable2D for Triangle {
         texture_bind_group_layout: &BindGroupLayout,
         transform_bind_group_layout: &BindGroupLayout,
     ) -> RenderPipeline {
-        let vs_module =
-            device.create_shader_module(&wgpu::include_spirv!("shaders/shader.vert.spv"));
-        let fs_module =
-            device.create_shader_module(&wgpu::include_spirv!("shaders/shader.frag.spv"));
+        let vs_module = device.create_shader_module(&wgpu::include_spirv!(
+            "../../../rendering/shaders/shader.vert.spv"
+        ));
+        let fs_module = device.create_shader_module(&wgpu::include_spirv!(
+            "../../../rendering/shaders/shader.frag.spv"
+        ));
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

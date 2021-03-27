@@ -1,5 +1,7 @@
+use std::path::Path;
+
 use legion::{
-    systems::{Builder, ParallelRunnable},
+    systems::{Builder, ParallelRunnable, ResourceTypeId},
     Resources, Schedule, World,
 };
 use log::info;
@@ -11,17 +13,18 @@ use winit::{
 
 use crate::{
     config::scion_config::{ScionConfig, ScionConfigReader},
-    game_layer::{GameLayer, LayerAction},
-    inputs::Inputs,
+    core::{
+        game_layer::{GameLayer, GameLayerController, GameLayerMachine, LayerAction},
+        legion_ext::PausableSystem,
+        resources::{
+            inputs::Inputs,
+            time::{Time, Timers},
+            window::WindowDimensions,
+        },
+        state::GameState,
+    },
     rendering::{renderer_state::RendererState, RendererType},
-    utils::{time::Time, window::WindowDimensions},
 };
-use crate::state::GameState;
-use crate::utils::legion_ext::PausableSystem;
-use legion::systems::ResourceTypeId;
-use std::path::Path;
-use crate::game_layer::{GameLayerMachine, GameLayerController};
-use crate::utils::time::{Timer, Timers};
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -80,7 +83,11 @@ impl Scion {
         self.resources.insert(Inputs::default());
         self.resources.insert(GameState::default());
         self.resources.insert(GameLayerController::default());
-        self.layer_machine.apply_layers_action(LayerAction::Start, &mut self.world, &mut self.resources);
+        self.layer_machine.apply_layers_action(
+            LayerAction::Start,
+            &mut self.world,
+            &mut self.resources,
+        );
     }
 
     fn run(mut self, event_loop: EventLoop<()>) {
@@ -93,60 +100,60 @@ impl Scion {
                     window_id,
                 } if window_id
                     == self
-                    .window
-                    .as_ref()
-                    .expect("A window is mandatory to run this game !")
-                    .id() =>
-                    {
-                        match event {
-                            WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                            WindowEvent::Resized(physical_size) => {
-                                self.resources
-                                    .get_mut::<WindowDimensions>()
-                                    .expect("Missing mandatory ressource : WindowDimension")
-                                    .set(physical_size.width, physical_size.height);
-                                self.renderer
-                                    .as_mut()
-                                    .expect("A renderer is mandatory to run this game !")
-                                    .resize(*physical_size);
-                            }
-                            WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                                self.renderer
-                                    .as_mut()
-                                    .expect("A renderer is mandatory to run this game !")
-                                    .resize(**new_inner_size);
-                            }
-                            WindowEvent::CursorMoved {
-                                device_id: _,
-                                position,
-                                ..
-                            } => {
-                                let dpi_factor = self
-                                    .window
-                                    .as_ref()
-                                    .expect("Missing the window")
-                                    .current_monitor()
-                                    .expect("Missing the monitor")
-                                    .scale_factor();
-                                self.resources
-                                    .get_mut::<Inputs>()
-                                    .expect("Missing mandatory ressource : Inputs")
-                                    .mouse_mut()
-                                    .set_position(position.x / dpi_factor, position.y / dpi_factor);
-                            }
-                            WindowEvent::MouseInput {
-                                state, button: _, ..
-                            } => {
-                                match state {
-                                    ElementState::Pressed => {
-                                        click_event = true; // WIP while we don't use events internally
-                                    }
-                                    ElementState::Released => {}
-                                }
-                            }
-                            _ => {}
+                        .window
+                        .as_ref()
+                        .expect("A window is mandatory to run this game !")
+                        .id() =>
+                {
+                    match event {
+                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                        WindowEvent::Resized(physical_size) => {
+                            self.resources
+                                .get_mut::<WindowDimensions>()
+                                .expect("Missing mandatory ressource : WindowDimension")
+                                .set(physical_size.width, physical_size.height);
+                            self.renderer
+                                .as_mut()
+                                .expect("A renderer is mandatory to run this game !")
+                                .resize(*physical_size);
                         }
+                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                            self.renderer
+                                .as_mut()
+                                .expect("A renderer is mandatory to run this game !")
+                                .resize(**new_inner_size);
+                        }
+                        WindowEvent::CursorMoved {
+                            device_id: _,
+                            position,
+                            ..
+                        } => {
+                            let dpi_factor = self
+                                .window
+                                .as_ref()
+                                .expect("Missing the window")
+                                .current_monitor()
+                                .expect("Missing the monitor")
+                                .scale_factor();
+                            self.resources
+                                .get_mut::<Inputs>()
+                                .expect("Missing mandatory ressource : Inputs")
+                                .mouse_mut()
+                                .set_position(position.x / dpi_factor, position.y / dpi_factor);
+                        }
+                        WindowEvent::MouseInput {
+                            state, button: _, ..
+                        } => {
+                            match state {
+                                ElementState::Pressed => {
+                                    click_event = true; // WIP while we don't use events internally
+                                }
+                                ElementState::Released => {}
+                            }
+                        }
+                        _ => {}
                     }
+                }
                 Event::MainEventsCleared => {
                     self.window.as_ref().unwrap().request_redraw();
                 }
@@ -173,20 +180,35 @@ impl Scion {
                 .mouse_mut()
                 .set_click_event(click_event);
             self.next_frame();
-            self.layer_machine.apply_layers_action(LayerAction::EndFrame, &mut self.world, &mut self.resources);
+            self.layer_machine.apply_layers_action(
+                LayerAction::EndFrame,
+                &mut self.world,
+                &mut self.resources,
+            );
         });
     }
 
     fn next_frame(&mut self) {
-        let frame_duration = self.resources.get_mut::<Time>()
+        let frame_duration = self
+            .resources
+            .get_mut::<Time>()
             .expect("Time is an internal resource and can't be missing")
             .frame();
-        self.resources.get_mut::<Timers>()
+        self.resources
+            .get_mut::<Timers>()
             .expect("Missing mandatory ressource : Timers")
             .add_delta_duration(frame_duration);
-        self.layer_machine.apply_layers_action(LayerAction::Update, &mut self.world, &mut self.resources);
+        self.layer_machine.apply_layers_action(
+            LayerAction::Update,
+            &mut self.world,
+            &mut self.resources,
+        );
         self.schedule.execute(&mut self.world, &mut self.resources);
-        self.layer_machine.apply_layers_action(LayerAction::LateUpdate, &mut self.world, &mut self.resources);
+        self.layer_machine.apply_layers_action(
+            LayerAction::LateUpdate,
+            &mut self.world,
+            &mut self.resources,
+        );
     }
 }
 
@@ -230,7 +252,11 @@ impl ScionBuilder {
         self
     }
 
-    pub fn with_pausable_system<S: ParallelRunnable + 'static>(mut self, system: S, condition: fn(GameState) -> bool) -> Self {
+    pub fn with_pausable_system<S: ParallelRunnable + 'static>(
+        mut self,
+        system: S,
+        condition: fn(GameState) -> bool,
+    ) -> Self {
         let (resource_reads, _) = system.reads();
         let resource_reads = resource_reads
             .iter()
@@ -278,7 +304,9 @@ impl ScionBuilder {
             world: Default::default(),
             resources: Default::default(),
             schedule: self.schedule_builder.build(),
-            layer_machine: GameLayerMachine { game_layers: self.game_layers },
+            layer_machine: GameLayerMachine {
+                game_layers: self.game_layers,
+            },
             window: Some(window),
             renderer: Some(renderer_state),
         };

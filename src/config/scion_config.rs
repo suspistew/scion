@@ -1,13 +1,12 @@
 use std::{
     fs::File,
-    io::{Error, Read, Write},
+    io::{Error, ErrorKind, Read, Write},
     path::Path,
 };
 
 use serde::{Deserialize, Serialize};
 
 use crate::config::{logger_config::LoggerConfig, window_config::WindowConfig};
-use std::io::ErrorKind;
 
 /// Main configuration used by `crate::Scion` to configure the game.
 /// Please use [`ScionConfigBuilder`] if you want to build if from code.
@@ -88,7 +87,7 @@ impl ScionConfigReader {
         ScionConfigReader::read_scion_config(path)
     }
 
-    fn read_scion_config(path: &Path)-> Result<ScionConfig, Error> {
+    fn read_scion_config(path: &Path) -> Result<ScionConfig, Error> {
         let mut scion_config = File::open(path)?;
         let mut bytes = Vec::new();
         scion_config.read_to_end(&mut bytes)?;

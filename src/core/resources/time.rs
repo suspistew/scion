@@ -45,9 +45,9 @@ mod time {
 }
 
 mod timer {
-    use std::collections::HashMap;
-    use crate::utils::time::Error;
-    use std::time::Duration;
+    use std::{collections::HashMap, time::Duration};
+
+    use crate::core::resources::time::Error;
 
     /// Different types of timer that car be used
     pub enum TimerType {
@@ -107,7 +107,9 @@ mod timer {
         }
 
         // returns the elapsed time of the current timer's run
-        pub fn elapsed(&self) -> f32 { self.current_duration }
+        pub fn elapsed(&self) -> f32 {
+            self.current_duration
+        }
 
         /// returns whether or not the timer has ended
         pub fn ended(&self) -> bool {
@@ -124,17 +126,26 @@ mod timer {
     /// in order to help users to create timers in their systems/layers
     #[derive(Default)]
     pub struct Timers {
-        timers: HashMap<String, Timer>
+        timers: HashMap<String, Timer>,
     }
 
     impl Timers {
         /// Create and adds a timer to the list of known timers
-        pub fn add_timer(&mut self, name: &str, timer_type: TimerType, duration_in_second: f32) -> Result<&mut Timer, Error> {
+        pub fn add_timer(
+            &mut self,
+            name: &str,
+            timer_type: TimerType,
+            duration_in_second: f32,
+        ) -> Result<&mut Timer, Error> {
             if self.timers.contains_key(name) {
                 return Err(Error::TimerAlreadyExists);
             }
-            self.timers.insert(name.to_string(), Timer::new(duration_in_second, timer_type));
-            Ok(self.timers.get_mut(name).expect("Missing the timer we just inserted..."))
+            self.timers
+                .insert(name.to_string(), Timer::new(duration_in_second, timer_type));
+            Ok(self
+                .timers
+                .get_mut(name)
+                .expect("Missing the timer we just inserted..."))
         }
 
         /// Returns whether or not a timer with the `name` identifier exists
@@ -148,14 +159,16 @@ mod timer {
         }
 
         pub(crate) fn add_delta_duration(&mut self, delta_duration: Duration) {
-            self.timers.values_mut().for_each(|timer| { timer.add_delta_duration(delta_duration.as_secs_f32()); })
+            self.timers.values_mut().for_each(|timer| {
+                timer.add_delta_duration(delta_duration.as_secs_f32());
+            })
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::time::{Timers, TimerType};
+    use crate::core::resources::time::{TimerType, Timers};
 
     #[test]
     fn add_timer_test() {
@@ -168,7 +181,7 @@ mod tests {
         // Test manual timer
         let timer = timers.get_timer("test_timer");
         assert_eq!(true, timer.is_ok());
-        let mut timer = timer.expect("");
+        let timer = timer.expect("");
         assert_eq!(false, timer.add_delta_duration(0.5));
         assert_eq!(true, timer.add_delta_duration(0.5));
         assert_eq!(true, timer.ended());
@@ -176,7 +189,7 @@ mod tests {
         // Test cyclic timer
         let timer = timers.add_timer("test_timer2", TimerType::Cyclic, 1.0);
         assert_eq!(true, timer.is_ok());
-        let mut timer = timer.expect("");
+        let timer = timer.expect("");
         assert_eq!(false, timer.add_delta_duration(0.5));
         assert_eq!(true, timer.add_delta_duration(0.5));
         assert_eq!(true, timer.cycle());
