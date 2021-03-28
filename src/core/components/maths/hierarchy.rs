@@ -1,0 +1,9 @@
+use legion::Entity;
+
+/// A component creating a parent link to the wrapped entity
+pub struct Parent(pub Entity);
+
+/// A component creating a link to the wrapped entities
+/// This component will be automatically added to an entity by Scion
+/// if a component references this entity with a [`Parent`] component
+pub struct Children(pub Vec<Entity>);

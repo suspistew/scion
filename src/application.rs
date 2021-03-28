@@ -22,6 +22,7 @@ use crate::{
             window::WindowDimensions,
         },
         state::GameState,
+        systems::hierarchy_system::children_manager_system,
     },
     rendering::{renderer_state::RendererState, RendererType},
 };
@@ -83,6 +84,7 @@ impl Scion {
         self.resources.insert(Inputs::default());
         self.resources.insert(GameState::default());
         self.resources.insert(GameLayerController::default());
+
         self.layer_machine.apply_layers_action(
             LayerAction::Start,
             &mut self.world,
@@ -299,6 +301,9 @@ impl ScionBuilder {
         let renderer_state = futures::executor::block_on(
             crate::rendering::renderer_state::RendererState::new(&window, renderer),
         );
+
+        self.schedule_builder.add_system(children_manager_system());
+
         let mut scion = Scion {
             config: self.config,
             world: Default::default(),
