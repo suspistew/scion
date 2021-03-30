@@ -11,20 +11,9 @@ use scion::{
     utils::file::app_base_path,
     Scion,
 };
+use scion::core::components::ui::font::Font;
+use scion::core::components::ui::ui_text::UiText;
 
-#[system]
-fn test(#[resource] timers: &mut Timers) {
-    if !timers.exists("test") {
-        timers.add_timer("test", TimerType::Manual, 5.);
-    }
-
-    let test = timers.get_timer("test").unwrap();
-    log::info!(
-        "test elapsed {:?}, ended {:?}",
-        test.elapsed(),
-        test.ended()
-    );
-}
 
 #[derive(Default)]
 struct LayerA;
@@ -46,24 +35,31 @@ impl SimpleGameLayer for LayerA {
         world.push((image, t));
         resource.insert(Camera2D::new(544., 704., 10.));
 
-        let path = app_base_path()
-            .expect("")
-            .join("assets")
-            .join("taquin.png")
-            .to_str()
-            .expect("")
-            .to_string();
-        let mut t = Transform2D::default();
-        t.set_layer(1);
-        let image = UiImage::new(300., 300., path);
+        // First we add an UiText to the world
+        let font = Font::Bitmap {
+            texture_path: app_base_path()
+                .expect("")
+                .join("assets")
+                .join("tetris")
+                .join("font.png").to_str().expect("").to_string(),
+            chars: "0123456789ACEOPRSULI".to_string(),
+            texture_columns: 20.,
+            texture_lines: 1.,
+            width: 21.,
+            height: 27.,
+        };
 
-        world.push((image, t));
+        let txt = UiText::new("009287".to_string(), font);
+        let mut transform = Transform2D::default();
+        transform.append_translation(382., 250.);
+        transform.set_layer(2);
+
+        world.push((txt, transform));
     }
 }
 
 fn main() {
     Scion::app()
         .with_game_layer(GameLayer::weak::<LayerA>())
-        .with_system(test_system())
         .run();
 }

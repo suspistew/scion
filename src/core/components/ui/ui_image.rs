@@ -14,6 +14,7 @@ use crate::{
 };
 
 /// Renderable 2D Square.
+#[derive(Debug)]
 pub struct UiImage {
     image_path: String,
     contents: [TexturedGlVertex; 4],
@@ -23,17 +24,21 @@ const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
 impl UiImage {
     pub fn new(width: f32, height: f32, image_path: String) -> Self {
-        let a = Coordinates::new(0., 0.);
-        let b = Coordinates::new(a.x(), a.y() + height);
-        let c = Coordinates::new(a.x() + width, a.y() + height);
-        let d = Coordinates::new(a.x() + width, a.y());
-
         let uvs = [
             Coordinates::new(0., 0.),
             Coordinates::new(0., 1.),
             Coordinates::new(1., 1.),
             Coordinates::new(1., 0.),
         ];
+       UiImage::new_with_uv_map(width, height, image_path,uvs)
+    }
+
+    pub fn new_with_uv_map(width: f32, height: f32, image_path: String, uvs: [Coordinates;4]) -> Self {
+        let a = Coordinates::new(0., 0.);
+        let b = Coordinates::new(a.x(), a.y() + height);
+        let c = Coordinates::new(a.x() + width, a.y() + height);
+        let d = Coordinates::new(a.x() + width, a.y());
+
         let contents = [
             TexturedGlVertex::from((&a, &uvs[0])),
             TexturedGlVertex::from((&b, &uvs[1])),

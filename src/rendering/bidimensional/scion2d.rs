@@ -16,6 +16,7 @@ use crate::{
     },
     rendering::{bidimensional::gl_representations::GlUniform, ScionRenderer},
 };
+use crate::core::components::ui::ui_text::UiTextImage;
 
 pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor;
@@ -67,6 +68,7 @@ impl ScionRenderer for Scion2D {
             self.upsert_component_pipeline::<Triangle>(world, &device, &sc_desc);
             self.upsert_component_pipeline::<Square>(world, &device, &sc_desc);
             self.upsert_ui_component_pipeline::<UiImage>(world, &device, &sc_desc, queue);
+            self.upsert_ui_component_pipeline::<UiTextImage>(world, &device, &sc_desc, queue);
         }
     }
 
@@ -90,6 +92,7 @@ impl ScionRenderer for Scion2D {
             rendering_infos.append(&mut self.pre_render_component::<Triangle>(world));
             rendering_infos.append(&mut self.pre_render_component::<Square>(world));
             rendering_infos.append(&mut self.pre_render_ui_component::<UiImage>(world));
+            rendering_infos.append(&mut self.pre_render_ui_component::<UiTextImage>(world));
 
             rendering_infos.sort_by(|a, b| b.layer.cmp(&a.layer));
             while let Some(info) = rendering_infos.pop() {
@@ -135,12 +138,12 @@ fn load_texture_to_queue(
     );
     let diffuse_texture_view = diffuse_texture.create_view(&wgpu::TextureViewDescriptor::default());
     let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-        address_mode_u: wgpu::AddressMode::Repeat,
-        address_mode_v: wgpu::AddressMode::Repeat,
-        address_mode_w: wgpu::AddressMode::Repeat,
-        mag_filter: wgpu::FilterMode::Linear,
-        min_filter: wgpu::FilterMode::Linear,
-        mipmap_filter: wgpu::FilterMode::Linear,
+        address_mode_u: wgpu::AddressMode::ClampToEdge,
+        address_mode_v: wgpu::AddressMode::ClampToEdge,
+        address_mode_w: wgpu::AddressMode::ClampToEdge,
+        mag_filter: wgpu::FilterMode::Nearest,
+        min_filter: wgpu::FilterMode::Nearest,
+        mipmap_filter: wgpu::FilterMode::Nearest,
         ..Default::default()
     });
     let texture_bind_group_layout =

@@ -1,6 +1,7 @@
 use legion::Entity;
 
 /// A component creating a parent link to the wrapped entity
+#[derive(Debug)]
 pub struct Parent(pub Entity);
 
 /// A component creating a link to the wrapped entities
