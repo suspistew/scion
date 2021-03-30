@@ -22,7 +22,7 @@ use crate::{
             window::WindowDimensions,
         },
         state::GameState,
-        systems::hierarchy_system::children_manager_system,
+        systems::{hierarchy_system::children_manager_system, ui_text_system::ui_text_bitmap_update_system},
     },
     rendering::{renderer_state::RendererState, RendererType},
 };
@@ -303,6 +303,7 @@ impl ScionBuilder {
         );
 
         self.schedule_builder.add_system(children_manager_system());
+        self.schedule_builder.add_system(ui_text_bitmap_update_system());
 
         let mut scion = Scion {
             config: self.config,

@@ -27,7 +27,7 @@ pub(crate) fn children_manager(
                     cmd.add_component(parent.0, Children(vec![*entity]))
                 }
                 EntityAccessError::EntityNotFound => {
-                    cmd.remove_component::<Parent>(*entity);
+                    cmd.remove(*entity);
                 }
             };
         }
@@ -50,9 +50,8 @@ mod tests {
             .build();
 
         let parent = world.push((1,));
-        world.push((Parent(parent),));
+        let child = world.push((Parent(parent),));
         let mut query = <(Entity, &Children)>::query();
-        let mut query2 = <(Entity, &Parent)>::query();
 
         // First we test that the parent has no Children component
         assert_eq!(true, query.get(&world, parent).is_err());
@@ -61,9 +60,9 @@ mod tests {
         schedule.execute(&mut world, &mut resources);
         assert_eq!(true, query.get(&mut world, parent).is_ok());
 
-        // Finally we delete the parent entity and check that after a schedule, the Parent component is also deleted
+        // Finally we delete the parent entity and check that after a schedule, the child entity is also deleted
         world.remove(parent);
         schedule.execute(&mut world, &mut resources);
-        assert_eq!(true, query2.get(&world, parent).is_err());
+        assert_eq!(true, world.entry(child).is_none());
     }
 }
