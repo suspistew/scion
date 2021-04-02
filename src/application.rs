@@ -23,6 +23,7 @@ use crate::{
         },
         state::GameState,
         systems::{hierarchy_system::children_manager_system, ui_text_system::ui_text_bitmap_update_system},
+        inputs::keycode::KeyCode
     },
     rendering::{renderer_state::RendererState, RendererType},
 };
@@ -153,6 +154,28 @@ impl Scion {
                                 ElementState::Released => {}
                             }
                         }
+                        WindowEvent::KeyboardInput {
+                            input, ..
+                        } => {
+                            if let Some(keycode)= input.virtual_keycode {
+                                match input.state {
+                                    ElementState::Pressed => {
+                                        self.resources
+                                            .get_mut::<Inputs>()
+                                            .expect("Missing mandatory ressource : Inputs")
+                                            .keyboard_mut()
+                                            .press(KeyCode::from(keycode));
+                                    }
+                                    ElementState::Released => {
+                                        self.resources
+                                            .get_mut::<Inputs>()
+                                            .expect("Missing mandatory ressource : Inputs")
+                                            .keyboard_mut()
+                                            .release(KeyCode::from(keycode));
+                                    }
+                                }
+                            }
+                        }
                         _ => {}
                     }
                 }
@@ -211,6 +234,11 @@ impl Scion {
             &mut self.world,
             &mut self.resources,
         );
+        self.resources
+            .get_mut::<Inputs>()
+            .expect("Missing mandatory ressource : Inputs")
+            .keyboard_mut()
+            .clear_events();
     }
 }
 

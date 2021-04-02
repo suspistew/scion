@@ -13,7 +13,15 @@ use scion::{
 };
 use scion::core::components::ui::font::Font;
 use scion::core::components::ui::ui_text::UiText;
+use scion::core::resources::inputs::Inputs;
+use scion::core::inputs::keycode::KeyCode;
 
+#[system]
+fn test(#[resource] inputs: &Inputs){
+    if inputs.keyboard().key_event(&KeyCode::Right) {
+        log::info!("right events pressed");
+    }
+}
 
 #[derive(Default)]
 struct LayerA;
@@ -61,5 +69,6 @@ impl SimpleGameLayer for LayerA {
 fn main() {
     Scion::app()
         .with_game_layer(GameLayer::weak::<LayerA>())
+        .with_system(test_system())
         .run();
 }
