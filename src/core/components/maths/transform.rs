@@ -75,6 +75,11 @@ impl Transform2D {
         self.coords.y += y;
     }
 
+    /// Move this transform down
+    pub fn move_down(&mut self, y: f32){
+        self.coords.y += y;
+    }
+
     /// Append an angle to this transform's angle
     pub fn append_angle(&mut self, angle: f32) {
         self.angle += angle;

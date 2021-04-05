@@ -26,6 +26,11 @@ impl UiText{
         &self.text
     }
 
+    pub fn set_text(&mut self, text: String){
+        self.text = text;
+        self.dirty = true;
+    }
+
     pub fn font(&self)-> &Font{
         &self.font
     }

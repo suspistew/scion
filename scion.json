@@ -1,0 +1,1 @@
+{"app_name":"Scion game","logger_config":{"level_filter":"INFO"},"window_config":{"title":"Default Scion game","fullscreen":false,"dimensions":[1024,768],"min_dimensions":[640,480],"max_dimensions":null,"visibility":true,"icon":null,"always_on_top":false,"decorations":true,"maximized":false,"resizable":true,"transparent":false}}

@@ -1,74 +1,52 @@
 use scion::{
     core::{
-        components::{
-            maths::{camera::Camera2D, transform::Transform2D},
-            ui::ui_image::UiImage,
-        },
-        game_layer::{GameLayer, SimpleGameLayer},
-        resources::time::{TimerType, Timers},
+        game_layer::GameLayer,
     },
-    legion::{system, Resources, World},
     utils::file::app_base_path,
     Scion,
 };
-use scion::core::components::ui::font::Font;
-use scion::core::components::ui::ui_text::UiText;
-use scion::core::resources::inputs::Inputs;
-use scion::core::inputs::keycode::KeyCode;
 
-#[system]
-fn test(#[resource] inputs: &Inputs){
-    if inputs.keyboard().key_event(&KeyCode::Right) {
-        log::info!("right events pressed");
-    }
-}
 
-#[derive(Default)]
-struct LayerA;
 
-impl SimpleGameLayer for LayerA {
-    fn on_start(&mut self, world: &mut World, resource: &mut Resources) {
-        let path = app_base_path()
-            .expect("")
-            .join("assets")
-            .join("tetris")
-            .join("ui.png")
-            .to_str()
-            .expect("")
-            .to_string();
-        let mut t = Transform2D::default();
-        t.set_layer(0);
-        let image = UiImage::new(544., 704., path);
 
-        world.push((image, t));
-        resource.insert(Camera2D::new(544., 704., 10.));
+use scion::config::scion_config::{ScionConfig, ScionConfigBuilder};
+use scion::config::window_config::WindowConfigBuilder;
+use crate::layer::TetrisLayer;
+use std::path::PathBuf;
+use crate::systems::piece_system::piece_update_system;
+use crate::systems::move_system::move_piece_system;
+use crate::systems::rotation_system::piece_rotation_system;
+use crate::systems::score_system::score_system;
 
-        // First we add an UiText to the world
-        let font = Font::Bitmap {
-            texture_path: app_base_path()
-                .expect("")
-                .join("assets")
-                .join("tetris")
-                .join("font.png").to_str().expect("").to_string(),
-            chars: "0123456789ACEOPRSULI".to_string(),
-            texture_columns: 20.,
-            texture_lines: 1.,
-            width: 21.,
-            height: 27.,
-        };
-
-        let txt = UiText::new("009287".to_string(), font);
-        let mut transform = Transform2D::default();
-        transform.append_translation(382., 250.);
-        transform.set_layer(2);
-
-        world.push((txt, transform));
-    }
-}
+mod layer;
+mod components;
+mod systems;
+pub mod resources;
 
 fn main() {
-    Scion::app()
-        .with_game_layer(GameLayer::weak::<LayerA>())
-        .with_system(test_system())
+    Scion::app_with_config(app_config())
+        .with_game_layer(GameLayer::weak::<TetrisLayer>())
+        .with_system(piece_update_system())
+        .with_system(move_piece_system())
+        .with_system(piece_rotation_system())
+        .with_system(score_system())
         .run();
+}
+
+fn app_config() -> ScionConfig {
+    ScionConfigBuilder::new()
+        .with_app_name("Tetris".to_string())
+        .with_window_config(
+            WindowConfigBuilder::new()
+                .with_dimensions((544, 704))
+                .with_resizable(true)
+                .get()
+        )
+        .get()
+}
+
+pub fn asset_path() -> PathBuf {
+    app_base_path()
+        .expect("base_path is mandatory to run the game")
+        .join("assets").join("tetris")
 }

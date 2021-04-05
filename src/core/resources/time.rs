@@ -116,6 +116,18 @@ mod timer {
             !self.running
         }
 
+        /// reset the timer end start it
+        pub fn reset(&mut self) {
+            self.running = true;
+            self.current_duration = 0.;
+            self.dirty = false;
+        }
+
+        /// changes the total duration of this timer
+        pub fn change_cycle(&mut self, new_cycle: f32){
+            self.total_duration = new_cycle;
+        }
+
         /// Returns whether or not the timer has finished a cycle in the current frame
         pub fn cycle(&self) -> bool {
             self.dirty

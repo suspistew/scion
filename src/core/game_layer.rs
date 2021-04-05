@@ -6,13 +6,13 @@ use legion::{Resources, World};
 /// Trait to implement in order to define a `GameLayer`.
 pub trait SimpleGameLayer {
     /// Will be called once before the new game loop iteration. Useful to initialize resources and add everything you need in the world.
-    fn on_start(&mut self, _world: &mut World, _resource: &mut Resources) {}
+    fn on_start(&mut self, _world: &mut World, _resources: &mut Resources) {}
     /// Will be called each game loop, before the systems execution
-    fn update(&mut self, _world: &mut World, _resource: &mut Resources) {}
+    fn update(&mut self, _world: &mut World, _resources: &mut Resources) {}
     /// Will be called each game loop, after the systems execution
-    fn late_update(&mut self, _world: &mut World, _resource: &mut Resources) {}
+    fn late_update(&mut self, _world: &mut World, _resources: &mut Resources) {}
     /// Will be called for deleted layer at the end of the frame where it was deleted
-    fn on_stop(&mut self, _world: &mut World, _resource: &mut Resources) {}
+    fn on_stop(&mut self, _world: &mut World, _resources: &mut Resources) {}
 }
 
 pub(crate) enum LayerAction {

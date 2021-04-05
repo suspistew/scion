@@ -1,4 +1,5 @@
 /// [`Font`] represents the different fonts available in `Scion`
+#[derive(Clone)]
 pub enum Font{
     /// Texture based font
     Bitmap {

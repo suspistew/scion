@@ -42,7 +42,7 @@ impl Default for WindowConfig {
             title: "Default Scion game".to_string(),
             fullscreen: false,
             dimensions: Some((1024, 768)),
-            min_dimensions: Some((640, 480)),
+            min_dimensions: Some((500, 480)),
             max_dimensions: None,
             visibility: true,
             icon: None,
@@ -68,6 +68,11 @@ impl WindowConfigBuilder {
 
     pub fn with_dimensions(mut self, dimensions: (u32, u32)) -> Self {
         self.config.dimensions = Some(dimensions);
+        self
+    }
+
+    pub fn with_resizable(mut self, resizable: bool) -> Self {
+        self.config.resizable = resizable;
         self
     }
 
