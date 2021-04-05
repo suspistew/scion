@@ -68,7 +68,6 @@ fn add_score_ui(world: &mut World) -> Entity{
 
 
 fn add_main_ui_mask(world: &mut World) {
-    // TODO : optimize this because too much boilerplate
     let path = asset_path().join("ui.png")
         .to_str().expect("").to_string();
     let image = UiImage::new(544., 704., path);

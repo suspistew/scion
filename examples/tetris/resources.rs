@@ -26,7 +26,7 @@ impl Default for TetrisResource{
 impl TetrisResource {
     pub fn switch_to_next_piece(&mut self) {
         self.state = TetrisState::MOVING(4, 0);
-        self.active_piece = self.next_piece.clone(); // TODO : Is there something I can do about this ?
+        self.active_piece = self.next_piece.clone();
         self.next_piece = Piece::random_new();
     }
 }

@@ -2,7 +2,8 @@
 
 Scion is a 2D game library made in rust. 
 
-> Please note that this project is in its first milestone.
+> Please note that this project is in its first milestones and is subject to change according to convience needs and big features coming.
+> You can use Scion as you want although I just made this open source to serve the community not to be a competitor to the current Rust game engine eco-system.
 
 ## Why this project ? 
 
