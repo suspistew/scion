@@ -1,18 +1,24 @@
-use crate::resources::TetrisResource;
-use scion::legion::world::SubWorld;
-use scion::legion::{system, Query, Entity};
-use crate::components::{Bloc, BlocKind, BLOC_SIZE, BOARD_HEIGHT};
-use scion::core::components::maths::transform::Transform2D;
 use std::collections::HashMap;
-use scion::legion::systems::CommandBuffer;
+
+use scion::{
+    core::components::maths::transform::Transform2D,
+    legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query},
+};
+
+use crate::{
+    components::{Bloc, BlocKind, BLOC_SIZE, BOARD_HEIGHT},
+    resources::TetrisResource,
+};
 
 #[system]
-pub fn score(cmd: &mut CommandBuffer,
-            #[resource] tetris: &mut TetrisResource,
-             world: &mut SubWorld,
-             query: &mut Query<(Entity, &Bloc, &mut Transform2D)>){
+pub fn score(
+    cmd: &mut CommandBuffer,
+    #[resource] tetris: &mut TetrisResource,
+    world: &mut SubWorld,
+    query: &mut Query<(Entity, &Bloc, &mut Transform2D)>,
+) {
     let mut lines = HashMap::new();
-    for i in 1..=BOARD_HEIGHT{
+    for i in 1..=BOARD_HEIGHT {
         lines.insert(i as usize, 0);
     }
     for (_, bloc, transform) in query.iter_mut(world) {
@@ -21,10 +27,10 @@ pub fn score(cmd: &mut CommandBuffer,
                 let key = (transform.coords().y() / BLOC_SIZE) as usize;
                 let new_val = match lines.get(&key) {
                     Some(val) => val + 1,
-                    None => 1
+                    None => 1,
                 };
                 lines.insert(key, new_val);
-            },
+            }
             _ => {}
         }
     }
@@ -49,7 +55,7 @@ pub fn score(cmd: &mut CommandBuffer,
                     if lines2.contains(&line) {
                         cmd.remove(*entity);
                     }
-                },
+                }
                 _ => {}
             };
         }
@@ -57,10 +63,11 @@ pub fn score(cmd: &mut CommandBuffer,
             for (_, bloc, transform) in query.iter_mut(world) {
                 match bloc.kind {
                     BlocKind::Static => {
-                        if (*line - index as usize) > (transform.coords().y() / BLOC_SIZE) as usize {
+                        if (*line - index as usize) > (transform.coords().y() / BLOC_SIZE) as usize
+                        {
                             transform.move_down(BLOC_SIZE);
                         }
-                    },
+                    }
                     _ => {}
                 }
             }

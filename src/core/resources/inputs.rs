@@ -1,13 +1,12 @@
 //! Everything that is relatives to the core.inputs.
-use crate::core::resources::mouse::Mouse;
-use crate::core::resources::keyboard::Keyboard;
+use crate::core::resources::{keyboard::Keyboard, mouse::Mouse};
 
 /// A resource updated by `Scion` to keep track of the core.inputs
 /// Can be used in any system.
 #[derive(Default)]
 pub struct Inputs {
     mouse: Mouse,
-    keyboard: Keyboard
+    keyboard: Keyboard,
 }
 
 impl Inputs {

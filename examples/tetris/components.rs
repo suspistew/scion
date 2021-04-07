@@ -167,7 +167,7 @@ impl Piece {
         Piece {
             orientation: PieceOrientation::Right,
             kind: piece_kind,
-            color: thread_rng().gen_range(0..7)
+            color: thread_rng().gen_range(0..7),
         }
     }
 }

@@ -1,10 +1,16 @@
 use legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query};
-use crate::core::components::ui::ui_image::UiImage;
-use crate::core::components::maths::hierarchy::Parent;
-use crate::core::components::ui::ui_text::{UiText, UiTextImage};
-use crate::core::components::ui::font::Font;
-use crate::core::components::maths::transform::{Transform2D, Coordinates};
 
+use crate::core::components::{
+    maths::{
+        hierarchy::Parent,
+        transform::{Coordinates, Transform2D},
+    },
+    ui::{
+        font::Font,
+        ui_image::UiImage,
+        ui_text::{UiText, UiTextImage},
+    },
+};
 
 /// System responsible to create/delete/update the entities linked to any ui_text with a bitmap font
 #[system]
@@ -15,34 +21,68 @@ pub(crate) fn ui_text_bitmap_update(
     query_ui_text_images: &mut Query<(Entity, &UiTextImage, &Parent)>,
 ) {
     let (mut world_1, world_2) = world.split_for_query(query_ui_texts);
-    query_ui_texts.iter_mut(&mut world_1)
+    query_ui_texts
+        .iter_mut(&mut world_1)
         .for_each(|(entity, ui_text, transform)| {
             if ui_text.dirty {
-                if let Font::Bitmap { texture_path, chars, width, height, texture_columns, texture_lines } = ui_text.font() {
+                if let Font::Bitmap {
+                    texture_path,
+                    chars,
+                    width,
+                    height,
+                    texture_columns,
+                    texture_lines,
+                } = ui_text.font()
+                {
                     let texture_width = texture_columns * width;
                     let texture_height = texture_lines * height;
 
                     query_ui_text_images
-                        .iter(&world_2).filter(|(_, _, parent)| parent.0 == *entity)
-                        .for_each(|(e, _, _)| {
-                            cmd.remove(*e)
-                        });
+                        .iter(&world_2)
+                        .filter(|(_, _, parent)| parent.0 == *entity)
+                        .for_each(|(e, _, _)| cmd.remove(*e));
                     for (index, character) in ui_text.text().chars().enumerate() {
-                        let (line, column) = Font::find_line_and_column(&chars, *texture_columns, character);
+                        let (line, column) =
+                            Font::find_line_and_column(&chars, *texture_columns, character);
 
                         let uvs = [
-                            Coordinates::new((column * width) / texture_width, (line * height) / texture_height),
-                            Coordinates::new((column * width) / texture_width, (line * height + height) / texture_height),
-                            Coordinates::new((column * width + width) / texture_width, (line * height + height) / texture_height),
-                            Coordinates::new((column * width + width) / texture_width, (line * height) / texture_height),
+                            Coordinates::new(
+                                (column * width) / texture_width,
+                                (line * height) / texture_height,
+                            ),
+                            Coordinates::new(
+                                (column * width) / texture_width,
+                                (line * height + height) / texture_height,
+                            ),
+                            Coordinates::new(
+                                (column * width + width) / texture_width,
+                                (line * height + height) / texture_height,
+                            ),
+                            Coordinates::new(
+                                (column * width + width) / texture_width,
+                                (line * height) / texture_height,
+                            ),
                         ];
 
-                        let mut char_transform = Transform2D::new(Coordinates::new(transform.coords().x() + (index as f32 * (width + 1.)),transform.coords().y() ), 1.0, 0.);
+                        let mut char_transform = Transform2D::new(
+                            Coordinates::new(
+                                transform.coords().x() + (index as f32 * (width + 1.)),
+                                transform.coords().y(),
+                            ),
+                            1.0,
+                            0.,
+                        );
                         char_transform.set_layer(transform.coords().layer());
                         cmd.push((
-                            UiTextImage(UiImage::new_with_uv_map(*width as f32, *height as f32, texture_path.clone(), uvs)),
+                            UiTextImage(UiImage::new_with_uv_map(
+                                *width as f32,
+                                *height as f32,
+                                texture_path.clone(),
+                                uvs,
+                            )),
                             char_transform,
-                            Parent(*entity)));
+                            Parent(*entity),
+                        ));
                     }
                 }
                 ui_text.dirty = false;
@@ -52,12 +92,16 @@ pub(crate) fn ui_text_bitmap_update(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use legion::{World, Resources, Schedule, Entity, IntoQuery};
-    use crate::core::components::ui::font::Font;
-    use crate::core::components::ui::ui_text::{UiText, UiTextImage};
+    use legion::{Entity, IntoQuery, Resources, Schedule, World};
 
-    use crate::core::components::maths::transform::Transform2D;
+    use super::*;
+    use crate::core::components::{
+        maths::transform::Transform2D,
+        ui::{
+            font::Font,
+            ui_text::{UiText, UiTextImage},
+        },
+    };
 
     fn get_test_ui_text() -> UiText {
         // First we add an UiText to the world
@@ -81,9 +125,10 @@ mod tests {
             .add_system(ui_text_bitmap_update_system())
             .build();
 
-        let _entity = world.push((get_test_ui_text(), ));
+        let _entity = world.push((get_test_ui_text(),));
         schedule.execute(&mut world, &mut resources);
-        let vec: Vec<(&Entity, &UiTextImage)> = <(Entity, &UiTextImage)>::query().iter(&world).collect();
+        let vec: Vec<(&Entity, &UiTextImage)> =
+            <(Entity, &UiTextImage)>::query().iter(&world).collect();
         assert_eq!(0, vec.len());
     }
 
@@ -97,7 +142,8 @@ mod tests {
 
         let _entity = world.push((get_test_ui_text(), Transform2D::default()));
         schedule.execute(&mut world, &mut resources);
-        let vec: Vec<(&Entity, &UiTextImage)> = <(Entity, &UiTextImage)>::query().iter(&world).collect();
+        let vec: Vec<(&Entity, &UiTextImage)> =
+            <(Entity, &UiTextImage)>::query().iter(&world).collect();
         assert_eq!(3, vec.len());
     }
 }

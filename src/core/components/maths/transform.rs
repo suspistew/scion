@@ -76,7 +76,7 @@ impl Transform2D {
     }
 
     /// Move this transform down
-    pub fn move_down(&mut self, y: f32){
+    pub fn move_down(&mut self, y: f32) {
         self.coords.y += y;
     }
 

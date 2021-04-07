@@ -1,27 +1,38 @@
-use scion::core::resources::time::Timers;
-use crate::resources::{TetrisResource, TetrisState};
-use scion::core::components::maths::transform::{Transform2D, Coordinates};
-use crate::components::{BLOC_SIZE, Bloc, BlocKind, BOARD_OFFSET, BOARD_HEIGHT, NextBloc};
-use scion::legion::systems::CommandBuffer;
-use scion::core::components::Square;
-use scion::core::components::material::Material2D;
-use crate::asset_path;
-use scion::legion::{system, Query, Entity};
-use scion::legion::world::SubWorld;
+use scion::{
+    core::{
+        components::{
+            material::Material2D,
+            maths::transform::{Coordinates, Transform2D},
+            Square,
+        },
+        resources::time::Timers,
+    },
+    legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query},
+};
+
+use crate::{
+    asset_path,
+    components::{Bloc, BlocKind, NextBloc, BLOC_SIZE, BOARD_HEIGHT, BOARD_OFFSET},
+    resources::{TetrisResource, TetrisState},
+};
 
 #[system]
-pub fn piece_update(cmd: &mut CommandBuffer,
-                    #[resource] timers: &mut Timers,
-                    #[resource] tetris: &mut TetrisResource,
-                    world: &mut SubWorld,
-                    query: &mut Query<(&mut Bloc, &mut Transform2D)>,
-                    query2: &mut Query<(Entity, &NextBloc)>) {
-    let timer = timers.get_timer("piece").expect("Missing a mandatory timer in the game : piece timer");
+pub fn piece_update(
+    cmd: &mut CommandBuffer,
+    #[resource] timers: &mut Timers,
+    #[resource] tetris: &mut TetrisResource,
+    world: &mut SubWorld,
+    query: &mut Query<(&mut Bloc, &mut Transform2D)>,
+    query2: &mut Query<(Entity, &NextBloc)>,
+) {
+    let timer = timers
+        .get_timer("piece")
+        .expect("Missing a mandatory timer in the game : piece timer");
     if timer.cycle() {
         match tetris.state {
             TetrisState::WAITING => {
                 tetris.switch_to_next_piece();
-                query2.for_each(world, |(e, _)|{
+                query2.for_each(world, |(e, _)| {
                     cmd.remove(*e);
                 });
                 let offsets = tetris.next_piece.get_current_offsets();
@@ -39,8 +50,8 @@ pub fn piece_update(cmd: &mut CommandBuffer,
                 let mut piece_values: Vec<(u32, u32)> = Vec::new();
                 for (bloc, transform) in query.iter_mut(world) {
                     let t = (
-                        ((transform.coords().x() - BOARD_OFFSET.0 ) / BLOC_SIZE) as u32,
-                        ((transform.coords().y() - BOARD_OFFSET.1 ) / BLOC_SIZE) as u32,
+                        ((transform.coords().x() - BOARD_OFFSET.0) / BLOC_SIZE) as u32,
+                        ((transform.coords().y() - BOARD_OFFSET.1) / BLOC_SIZE) as u32,
                     );
                     match bloc.kind {
                         BlocKind::Moving => piece_values.push(t),
@@ -55,7 +66,7 @@ pub fn piece_update(cmd: &mut CommandBuffer,
                                 res = false;
                             }
                         }
-                        if y == &(BOARD_HEIGHT -1) {
+                        if y == &(BOARD_HEIGHT - 1) {
                             res = false;
                         }
                     }
@@ -66,14 +77,13 @@ pub fn piece_update(cmd: &mut CommandBuffer,
                         match bloc.kind {
                             BlocKind::Moving => {
                                 transform.move_down(BLOC_SIZE);
-                                tetris.state = TetrisState::MOVING(x, y+1);
+                                tetris.state = TetrisState::MOVING(x, y + 1);
                             }
                             _ => {}
                         };
                     }
                 } else {
-                    for (mut bloc, _) in query.iter_mut(world)
-                    {
+                    for (mut bloc, _) in query.iter_mut(world) {
                         match bloc.kind {
                             BlocKind::Moving => {
                                 bloc.kind = BlocKind::Static;
@@ -88,7 +98,13 @@ pub fn piece_update(cmd: &mut CommandBuffer,
     }
 }
 
-pub fn initialize_bloc(offset: &(f32, f32), cmd: &mut CommandBuffer, color: usize, coord_x: f32, coord_y: f32, ) {
+pub fn initialize_bloc(
+    offset: &(f32, f32),
+    cmd: &mut CommandBuffer,
+    color: usize,
+    coord_x: f32,
+    coord_y: f32,
+) {
     let mut bloc_transform = Transform2D::default();
     bloc_transform.append_translation(
         coord_x * BLOC_SIZE + offset.0 * BLOC_SIZE,
@@ -98,16 +114,34 @@ pub fn initialize_bloc(offset: &(f32, f32), cmd: &mut CommandBuffer, color: usiz
     cmd.push((
         Bloc::new(BlocKind::Moving),
         bloc_transform,
-        Square::new(Coordinates::new(0., 0.), 32., Some([
+        Square::new(
             Coordinates::new(0., 0.),
-            Coordinates::new(0., 1.),
-            Coordinates::new(1., 1.),
-            Coordinates::new(1., 0.),
-        ])),
-        Material2D::Texture(asset_path().join(get_color_skin(color).as_str()).as_path().to_str().unwrap().to_string())));
+            32.,
+            Some([
+                Coordinates::new(0., 0.),
+                Coordinates::new(0., 1.),
+                Coordinates::new(1., 1.),
+                Coordinates::new(1., 0.),
+            ]),
+        ),
+        Material2D::Texture(
+            asset_path()
+                .join(get_color_skin(color).as_str())
+                .as_path()
+                .to_str()
+                .unwrap()
+                .to_string(),
+        ),
+    ));
 }
 
-pub fn initialize_next_bloc(offset: &(f32, f32), cmd: &mut CommandBuffer, color: usize, coord_x: f32, coord_y: f32, ) {
+pub fn initialize_next_bloc(
+    offset: &(f32, f32),
+    cmd: &mut CommandBuffer,
+    color: usize,
+    coord_x: f32,
+    coord_y: f32,
+) {
     let mut bloc_transform = Transform2D::default();
     bloc_transform.append_translation(
         coord_x * BLOC_SIZE + offset.0 * BLOC_SIZE,
@@ -115,15 +149,27 @@ pub fn initialize_next_bloc(offset: &(f32, f32), cmd: &mut CommandBuffer, color:
     );
     bloc_transform.set_layer(1);
     cmd.push((
-                 NextBloc,
+        NextBloc,
         bloc_transform,
-        Square::new(Coordinates::new(0., 0.), 32., Some([
+        Square::new(
             Coordinates::new(0., 0.),
-            Coordinates::new(0., 1.),
-            Coordinates::new(1., 1.),
-            Coordinates::new(1., 0.),
-        ])),
-        Material2D::Texture(asset_path().join(get_color_skin(color).as_str()).as_path().to_str().unwrap().to_string())));
+            32.,
+            Some([
+                Coordinates::new(0., 0.),
+                Coordinates::new(0., 1.),
+                Coordinates::new(1., 1.),
+                Coordinates::new(1., 0.),
+            ]),
+        ),
+        Material2D::Texture(
+            asset_path()
+                .join(get_color_skin(color).as_str())
+                .as_path()
+                .to_str()
+                .unwrap()
+                .to_string(),
+        ),
+    ));
 }
 
 fn get_color_skin(color: usize) -> String {

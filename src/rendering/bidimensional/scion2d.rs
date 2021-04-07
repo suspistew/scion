@@ -12,22 +12,16 @@ use crate::{
         material::{Material2D, Texture},
         maths::{camera::Camera2D, transform::Transform2D},
         shapes::{square::Square, triangle::Triangle},
-        ui::ui_image::UiImage,
+        ui::{ui_image::UiImage, ui_text::UiTextImage},
     },
-    rendering::{bidimensional::gl_representations::GlUniform, ScionRenderer},
+    rendering::{
+        bidimensional::gl_representations::GlUniform, shaders::pipeline::pipeline, ScionRenderer,
+    },
 };
-use crate::core::components::ui::ui_text::UiTextImage;
 
 pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor;
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor;
-    fn pipeline(
-        &self,
-        device: &Device,
-        sc_desc: &SwapChainDescriptor,
-        texture_bind_group_layout: &BindGroupLayout,
-        transform_bind_group_layout: &BindGroupLayout,
-    ) -> RenderPipeline;
     fn range(&self) -> Range<u32>;
 }
 
@@ -285,17 +279,7 @@ impl Scion2D {
             match material {
                 Material2D::Color(_) => {}
                 Material2D::Texture(path) => {
-                    if !self.render_pipelines.contains_key(path.as_str()) {
-                        self.render_pipelines.insert(
-                            path.clone(),
-                            component.pipeline(
-                                &device,
-                                &sc_desc,
-                                &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
-                                &self.transform_uniform_bind_groups.get(entity).unwrap().2,
-                            ),
-                        );
-                    }
+                    self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path)
                 }
             };
         }
@@ -329,18 +313,28 @@ impl Scion2D {
                     );
                 }
 
-                if !self.render_pipelines.contains_key(path.as_str()) {
-                    self.render_pipelines.insert(
-                        path.clone(),
-                        component.pipeline(
-                            &device,
-                            &sc_desc,
-                            &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
-                            &self.transform_uniform_bind_groups.get(entity).unwrap().2,
-                        ),
-                    );
-                }
+                self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path)
             }
+        }
+    }
+
+    fn insert_pipeline_if_not_finded(
+        &mut self,
+        device: &&Device,
+        sc_desc: &&SwapChainDescriptor,
+        entity: &Entity,
+        path: &String,
+    ) {
+        if !self.render_pipelines.contains_key(path.as_str()) {
+            self.render_pipelines.insert(
+                path.clone(),
+                pipeline(
+                    device,
+                    sc_desc,
+                    &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
+                    &self.transform_uniform_bind_groups.get(entity).unwrap().2,
+                ),
+            );
         }
     }
 

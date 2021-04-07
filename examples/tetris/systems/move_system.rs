@@ -1,21 +1,29 @@
-use scion::core::resources::inputs::Inputs;
-use scion::core::inputs::keycode::KeyCode;
-use scion::core::resources::time::Timers;
-use crate::components::{BLOC_SIZE, Bloc, BlocKind, BOARD_WIDTH};
-use scion::legion::{system, Query};
-use scion::core::components::maths::transform::Transform2D;
-use scion::legion::world::SubWorld;
-use crate::resources::{TetrisState, TetrisResource};
+use scion::{
+    core::{
+        components::maths::transform::Transform2D,
+        inputs::keycode::KeyCode,
+        resources::{inputs::Inputs, time::Timers},
+    },
+    legion::{system, world::SubWorld, Query},
+};
+
+use crate::{
+    components::{Bloc, BlocKind, BLOC_SIZE, BOARD_WIDTH},
+    resources::{TetrisResource, TetrisState},
+};
 
 #[system]
-pub fn move_piece(#[resource] inputs: &Inputs,
-                  #[resource] timers: &mut Timers,
-                  #[resource] tetris: &mut TetrisResource,
-                  world: &mut SubWorld,
-                  query: &mut Query<(&mut Bloc, &mut Transform2D)>){
+pub fn move_piece(
+    #[resource] inputs: &Inputs,
+    #[resource] timers: &mut Timers,
+    #[resource] tetris: &mut TetrisResource,
+    world: &mut SubWorld,
+    query: &mut Query<(&mut Bloc, &mut Transform2D)>,
+) {
     handle_acceleration(inputs, timers);
 
-    let movement_timer = timers.get_timer("action_reset_timer")
+    let movement_timer = timers
+        .get_timer("action_reset_timer")
         .expect("Missing a mandatory timer in the game : action_reset_timer");
 
     let movement = read_movements_actions(inputs);
@@ -37,12 +45,12 @@ pub fn move_piece(#[resource] inputs: &Inputs,
 
             for (x, y) in piece_values.iter() {
                 for (xx, yy) in static_values.iter() {
-                    if y == yy && *x == (xx - movement) as i32{
+                    if y == yy && *x == (xx - movement) as i32 {
                         res = false;
                         break;
                     }
                 }
-                if x + movement == 0 || x + movement == (BOARD_WIDTH +1) as i32{
+                if x + movement == 0 || x + movement == (BOARD_WIDTH + 1) as i32 {
                     res = false;
                     break;
                 }
@@ -70,14 +78,31 @@ pub fn move_piece(#[resource] inputs: &Inputs,
 }
 
 fn handle_acceleration(input: &Inputs, timers: &mut Timers) {
-   if input.keyboard().key_pressed(&KeyCode::Down) {
-        timers.get_timer("piece").expect("Missing a mandatory timer in the game : piece").change_cycle(0.025);
-    }else{
-       timers.get_timer("piece").expect("Missing a mandatory timer in the game : piece").change_cycle(0.5);
-   }
+    if input.keyboard().key_pressed(&KeyCode::Down) {
+        timers
+            .get_timer("piece")
+            .expect("Missing a mandatory timer in the game : piece")
+            .change_cycle(0.025);
+    } else {
+        timers
+            .get_timer("piece")
+            .expect("Missing a mandatory timer in the game : piece")
+            .change_cycle(0.5);
+    }
 }
 
 fn read_movements_actions(input: &Inputs) -> i32 {
-    ({ if input.keyboard().key_pressed(&KeyCode::Left) { -1 } else { 0 } }) +
-        ({ if input.keyboard().key_pressed(&KeyCode::Right) { 1 } else { 0 } })
+    ({
+        if input.keyboard().key_pressed(&KeyCode::Left) {
+            -1
+        } else {
+            0
+        }
+    }) + ({
+        if input.keyboard().key_pressed(&KeyCode::Right) {
+            1
+        } else {
+            0
+        }
+    })
 }

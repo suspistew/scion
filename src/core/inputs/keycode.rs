@@ -7,18 +7,18 @@ pub enum KeyCode {
     Up,
     Right,
     Down,
-    Any
+    Any,
 }
 
 impl From<VirtualKeyCode> for KeyCode {
     fn from(vkc: VirtualKeyCode) -> Self {
-        match vkc{
+        match vkc {
             VirtualKeyCode::Escape => KeyCode::Escape,
             VirtualKeyCode::Left => KeyCode::Left,
             VirtualKeyCode::Up => KeyCode::Up,
             VirtualKeyCode::Right => KeyCode::Right,
             VirtualKeyCode::Down => KeyCode::Down,
-            _ => KeyCode::Any
+            _ => KeyCode::Any,
         }
     }
 }

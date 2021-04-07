@@ -124,7 +124,7 @@ mod timer {
         }
 
         /// changes the total duration of this timer
-        pub fn change_cycle(&mut self, new_cycle: f32){
+        pub fn change_cycle(&mut self, new_cycle: f32) {
             self.total_duration = new_cycle;
         }
 

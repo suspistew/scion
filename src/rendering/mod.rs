@@ -6,6 +6,7 @@ use crate::rendering::bidimensional::scion2d::Scion2D;
 
 pub mod bidimensional;
 pub(crate) mod renderer_state;
+pub(crate) mod shaders;
 
 /// Trait to implement in order to create a renderer to use in a `Scion` application
 pub trait ScionRenderer {

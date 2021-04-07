@@ -15,6 +15,7 @@ use crate::{
     config::scion_config::{ScionConfig, ScionConfigReader},
     core::{
         game_layer::{GameLayer, GameLayerController, GameLayerMachine, LayerAction},
+        inputs::keycode::KeyCode,
         legion_ext::PausableSystem,
         resources::{
             inputs::Inputs,
@@ -22,8 +23,9 @@ use crate::{
             window::WindowDimensions,
         },
         state::GameState,
-        systems::{hierarchy_system::children_manager_system, ui_text_system::ui_text_bitmap_update_system},
-        inputs::keycode::KeyCode
+        systems::{
+            hierarchy_system::children_manager_system, ui_text_system::ui_text_bitmap_update_system,
+        },
     },
     rendering::{renderer_state::RendererState, RendererType},
 };
@@ -154,10 +156,8 @@ impl Scion {
                                 ElementState::Released => {}
                             }
                         }
-                        WindowEvent::KeyboardInput {
-                            input, ..
-                        } => {
-                            if let Some(keycode)= input.virtual_keycode {
+                        WindowEvent::KeyboardInput { input, .. } => {
+                            if let Some(keycode) = input.virtual_keycode {
                                 match input.state {
                                     ElementState::Pressed => {
                                         self.resources
@@ -331,7 +331,8 @@ impl ScionBuilder {
         );
 
         self.schedule_builder.add_system(children_manager_system());
-        self.schedule_builder.add_system(ui_text_bitmap_update_system());
+        self.schedule_builder
+            .add_system(ui_text_bitmap_update_system());
 
         let mut scion = Scion {
             config: self.config,

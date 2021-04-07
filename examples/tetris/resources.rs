@@ -5,20 +5,20 @@ pub enum TetrisState {
     WAITING,
 }
 
-pub struct TetrisResource{
+pub struct TetrisResource {
     pub state: TetrisState,
     pub active_piece: Piece,
     pub next_piece: Piece,
-    pub score: usize
+    pub score: usize,
 }
 
-impl Default for TetrisResource{
+impl Default for TetrisResource {
     fn default() -> Self {
-        Self{
+        Self {
             state: TetrisState::WAITING,
             active_piece: Piece::random_new(),
             next_piece: Piece::random_new(),
-            score: 0
+            score: 0,
         }
     }
 }

@@ -1,27 +1,27 @@
+use std::path::PathBuf;
+
 use scion::{
-    core::{
-        game_layer::GameLayer,
+    config::{
+        scion_config::{ScionConfig, ScionConfigBuilder},
+        window_config::WindowConfigBuilder,
     },
+    core::game_layer::GameLayer,
     utils::file::app_base_path,
     Scion,
 };
 
+use crate::{
+    layer::TetrisLayer,
+    systems::{
+        move_system::move_piece_system, piece_system::piece_update_system,
+        rotation_system::piece_rotation_system, score_system::score_system,
+    },
+};
 
-
-
-use scion::config::scion_config::{ScionConfig, ScionConfigBuilder};
-use scion::config::window_config::WindowConfigBuilder;
-use crate::layer::TetrisLayer;
-use std::path::PathBuf;
-use crate::systems::piece_system::piece_update_system;
-use crate::systems::move_system::move_piece_system;
-use crate::systems::rotation_system::piece_rotation_system;
-use crate::systems::score_system::score_system;
-
-mod layer;
 mod components;
-mod systems;
+mod layer;
 pub mod resources;
+mod systems;
 
 fn main() {
     Scion::app_with_config(app_config())
@@ -40,7 +40,7 @@ fn app_config() -> ScionConfig {
             WindowConfigBuilder::new()
                 .with_dimensions((544, 704))
                 .with_resizable(true)
-                .get()
+                .get(),
         )
         .get()
 }
@@ -48,5 +48,6 @@ fn app_config() -> ScionConfig {
 pub fn asset_path() -> PathBuf {
     app_base_path()
         .expect("base_path is mandatory to run the game")
-        .join("assets").join("tetris")
+        .join("assets")
+        .join("tetris")
 }
