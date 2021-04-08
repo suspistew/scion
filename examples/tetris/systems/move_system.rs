@@ -1,6 +1,6 @@
 use scion::{
     core::{
-        components::maths::transform::Transform2D,
+        components::maths::transform::Transform,
         inputs::keycode::KeyCode,
         resources::{inputs::Inputs, time::Timers},
     },
@@ -18,7 +18,7 @@ pub fn move_piece(
     #[resource] timers: &mut Timers,
     #[resource] tetris: &mut TetrisResource,
     world: &mut SubWorld,
-    query: &mut Query<(&mut Bloc, &mut Transform2D)>,
+    query: &mut Query<(&mut Bloc, &mut Transform)>,
 ) {
     handle_acceleration(inputs, timers);
 
@@ -34,8 +34,8 @@ pub fn move_piece(
             let mut piece_values: Vec<(i32, i32)> = Vec::new();
             for (bloc, transform) in query.iter_mut(world) {
                 let t = (
-                    (transform.coords().x() / BLOC_SIZE) as i32,
-                    (transform.coords().y() / BLOC_SIZE) as i32,
+                    (transform.translation().x() / BLOC_SIZE) as i32,
+                    (transform.translation().y() / BLOC_SIZE) as i32,
                 );
                 match bloc.kind {
                     BlocKind::Moving => piece_values.push(t),

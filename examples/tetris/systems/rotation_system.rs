@@ -1,6 +1,6 @@
 use scion::{
     core::{
-        components::maths::transform::Transform2D,
+        components::maths::transform::Transform,
         inputs::keycode::KeyCode,
         resources::{inputs::Inputs, time::Timers},
     },
@@ -20,7 +20,7 @@ pub fn piece_rotation(
     #[resource] timers: &mut Timers,
     #[resource] tetris: &mut TetrisResource,
     world: &mut SubWorld,
-    query: &mut Query<(Entity, &mut Bloc, &mut Transform2D)>,
+    query: &mut Query<(Entity, &mut Bloc, &mut Transform)>,
 ) {
     let rotation = inputs.keyboard().key_pressed(&KeyCode::Up);
     let movement_timer = timers
@@ -45,7 +45,7 @@ pub fn piece_rotation(
                         match bloc.kind {
                             BlocKind::Moving => {}
                             _ => {
-                                let translation = transform.coords();
+                                let translation = transform.translation();
                                 if translation.x() / BLOC_SIZE == x as f32 + offset.0
                                     && translation.y() / BLOC_SIZE == y as f32 + offset.1
                                 {

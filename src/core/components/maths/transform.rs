@@ -43,27 +43,27 @@ impl Coordinates {
 /// Component used by the renderer to know where and how to represent an object.
 /// Default is position 0;0 with a scale of 1.0 and no angle.
 #[derive(Debug)]
-pub struct Transform2D {
-    pub(crate) coords: Coordinates,
+pub struct Transform {
+    pub(crate) translation: Coordinates,
     pub(crate) scale: f32,
     pub(crate) angle: f32,
 }
 
-impl Default for Transform2D {
+impl Default for Transform {
     fn default() -> Self {
         Self {
-            coords: Default::default(),
+            translation: Default::default(),
             scale: 1.0,
             angle: 0.0,
         }
     }
 }
 
-impl Transform2D {
+impl Transform {
     /// Creates a new transform using provided values.
-    pub fn new(coords: Coordinates, scale: f32, angle: f32) -> Self {
+    pub fn new(translation: Coordinates, scale: f32, angle: f32) -> Self {
         Self {
-            coords,
+            translation,
             scale,
             angle,
         }
@@ -71,13 +71,13 @@ impl Transform2D {
 
     /// Append a translation to this transform's position
     pub fn append_translation(&mut self, x: f32, y: f32) {
-        self.coords.x += x;
-        self.coords.y += y;
+        self.translation.x += x;
+        self.translation.y += y;
     }
 
     /// Move this transform down
     pub fn move_down(&mut self, y: f32) {
-        self.coords.y += y;
+        self.translation.y += y;
     }
 
     /// Append an angle to this transform's angle
@@ -86,8 +86,8 @@ impl Transform2D {
     }
 
     /// Get the transform's coordinates
-    pub fn coords(&self) -> &Coordinates {
-        &self.coords
+    pub fn translation(&self) -> &Coordinates {
+        &self.translation
     }
 
     /// Change the scale value to a new one.
@@ -97,6 +97,6 @@ impl Transform2D {
 
     /// Change the layer value in the coordinates.
     pub fn set_layer(&mut self, layer: usize) {
-        self.coords.layer = layer
+        self.translation.layer = layer
     }
 }

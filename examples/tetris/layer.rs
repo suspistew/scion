@@ -1,7 +1,7 @@
 use scion::{
     core::{
         components::{
-            maths::{camera::Camera2D, transform::Transform2D},
+            maths::{camera::Camera2D, transform::Transform},
             ui::{font::Font, ui_image::UiImage, ui_text::UiText},
         },
         game_layer::SimpleGameLayer,
@@ -66,14 +66,14 @@ fn add_score_ui(world: &mut World) -> Entity {
     };
 
     let txt = UiText::new("SCORE".to_string(), font.clone());
-    let mut transform = Transform2D::default();
+    let mut transform = Transform::default();
     transform.append_translation(394., 250.);
     transform.set_layer(2);
 
     world.push((txt, transform));
 
     let txt = UiText::new("".to_string(), font.clone());
-    let mut transform = Transform2D::default();
+    let mut transform = Transform::default();
     transform.append_translation(394., 290.);
     transform.set_layer(2);
     world.push((txt, transform))
@@ -83,7 +83,7 @@ fn add_main_ui_mask(world: &mut World) {
     let path = asset_path().join("ui.png").to_str().expect("").to_string();
     let image = UiImage::new(544., 704., path);
 
-    let mut t = Transform2D::default();
+    let mut t = Transform::default();
     t.set_layer(0);
     world.push((image, t));
 }
@@ -96,7 +96,7 @@ fn add_ui_top_overflow(world: &mut World) {
         .to_string();
     let image = UiImage::new(324., 32., path);
 
-    let mut t = Transform2D::default();
+    let mut t = Transform::default();
     t.set_layer(2);
     t.append_translation(32., 0.);
     world.push((image, t));

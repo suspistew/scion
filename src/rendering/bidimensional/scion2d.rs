@@ -10,7 +10,7 @@ use wgpu::{
 use crate::{
     core::components::{
         material::{Material2D, Texture},
-        maths::{camera::Camera2D, transform::Transform2D},
+        maths::{camera::Camera2D, transform::Transform},
         shapes::{square::Square, triangle::Triangle},
         ui::{ui_image::UiImage, ui_text::UiTextImage},
     },
@@ -185,7 +185,7 @@ fn load_texture_to_queue(
 
 fn create_transform_uniform_bind_group(
     device: &Device,
-    transform: &Transform2D,
+    transform: &Transform,
     camera: &Camera2D,
 ) -> (GlUniform, Buffer, BindGroupLayout, BindGroup) {
     let uniform = GlUniform::from((transform, camera));
@@ -262,7 +262,7 @@ impl Scion2D {
         sc_desc: &&SwapChainDescriptor,
     ) {
         for (entity, component, material, _) in
-            <(Entity, &mut T, &Material2D, &Transform2D)>::query().iter_mut(world)
+            <(Entity, &mut T, &Material2D, &Transform)>::query().iter_mut(world)
         {
             if !self.vertex_buffers.contains_key(entity) {
                 let vertex_buffer =
@@ -292,7 +292,7 @@ impl Scion2D {
         sc_desc: &&SwapChainDescriptor,
         queue: &mut Queue,
     ) {
-        for (entity, component, _) in <(Entity, &mut T, &Transform2D)>::query().iter_mut(world) {
+        for (entity, component, _) in <(Entity, &mut T, &Transform)>::query().iter_mut(world) {
             if !self.vertex_buffers.contains_key(entity) {
                 let vertex_buffer =
                     device.create_buffer_init(&component.vertex_buffer_descriptor());
@@ -393,7 +393,7 @@ impl Scion2D {
     ) -> Vec<RenderingInfos> {
         let mut render_infos = Vec::new();
         for (entity, component, material, transform) in
-            <(Entity, &mut T, &Material2D, &Transform2D)>::query().iter_mut(world)
+            <(Entity, &mut T, &Material2D, &Transform)>::query().iter_mut(world)
         {
             let mut path = None;
             match material {
@@ -403,7 +403,7 @@ impl Scion2D {
                 }
             };
             render_infos.push(RenderingInfos {
-                layer: transform.coords().layer(),
+                layer: transform.translation().layer(),
                 range: component.range(),
                 entity: *entity,
                 texture_path: path,
@@ -418,10 +418,10 @@ impl Scion2D {
     ) -> Vec<RenderingInfos> {
         let mut render_infos = Vec::new();
         for (entity, component, transform) in
-            <(Entity, &mut T, &Transform2D)>::query().iter_mut(world)
+            <(Entity, &mut T, &Transform)>::query().iter_mut(world)
         {
             render_infos.push(RenderingInfos {
-                layer: transform.coords().layer(),
+                layer: transform.translation().layer(),
                 range: component.range(),
                 entity: *entity,
                 texture_path: component.get_texture_path(),
@@ -440,7 +440,7 @@ impl Scion2D {
         let camera = resources
             .get::<Camera2D>()
             .expect("Missing Camera2D component, can't update transform without the camera view");
-        for (entity, transform) in <(Entity, &Transform2D)>::query().iter_mut(world) {
+        for (entity, transform) in <(Entity, &Transform)>::query().iter_mut(world) {
             if !self.transform_uniform_bind_groups.contains_key(entity) {
                 let (uniform, uniform_buffer, glayout, group) =
                     create_transform_uniform_bind_group(&device, transform, &*camera);

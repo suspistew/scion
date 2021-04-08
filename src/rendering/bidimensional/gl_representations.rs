@@ -2,7 +2,7 @@ use ultraviolet::{Mat4, Rotor3, Similarity3, Vec3, Vec4};
 
 use crate::core::components::maths::{
     camera::Camera2D,
-    transform::{Coordinates, Transform2D},
+    transform::{Coordinates, Transform},
 };
 
 #[repr(C)]
@@ -91,7 +91,7 @@ impl ColoredGlVertex {
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub(crate) struct TexturedGlVertex {
     pub position: GlVec3,
-    pub tex_coords: GlVec2,
+    pub tex_translation: GlVec2,
 }
 
 impl TexturedGlVertex {
@@ -124,7 +124,7 @@ impl From<(&Coordinates, &Coordinates)> for TexturedGlVertex {
                 y: positions.0.y(),
                 z: 0.0,
             },
-            tex_coords: GlVec2 {
+            tex_translation: GlVec2 {
                 x: positions.1.x(),
                 y: positions.1.y(),
             },
@@ -160,14 +160,14 @@ pub(crate) fn create_glmat(t: &Vec4) -> [f32; 4] {
     [t.x, t.y, t.z, t.w]
 }
 
-impl From<(&Transform2D, &Camera2D)> for GlUniform {
-    fn from((transform, camera): (&Transform2D, &Camera2D)) -> Self {
+impl From<(&Transform, &Camera2D)> for GlUniform {
+    fn from((transform, camera): (&Transform, &Camera2D)) -> Self {
         let mut model_trans = Similarity3::identity();
         model_trans.prepend_scaling(transform.scale);
         model_trans.append_translation(Vec3 {
-            x: transform.coords.x(),
-            y: transform.coords.y(),
-            z: transform.coords.layer() as f32,
+            x: transform.translation.x(),
+            y: transform.translation.y(),
+            z: transform.translation.layer() as f32,
         });
         model_trans.prepend_rotation(Rotor3::from_rotation_xy(transform.angle).normalized());
         let mut model_trans = model_trans.into_homogeneous_matrix();

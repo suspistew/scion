@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use scion::{
-    core::components::maths::transform::Transform2D,
+    core::components::maths::transform::Transform,
     legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query},
 };
 
@@ -15,7 +15,7 @@ pub fn score(
     cmd: &mut CommandBuffer,
     #[resource] tetris: &mut TetrisResource,
     world: &mut SubWorld,
-    query: &mut Query<(Entity, &Bloc, &mut Transform2D)>,
+    query: &mut Query<(Entity, &Bloc, &mut Transform)>,
 ) {
     let mut lines = HashMap::new();
     for i in 1..=BOARD_HEIGHT {
@@ -24,7 +24,7 @@ pub fn score(
     for (_, bloc, transform) in query.iter_mut(world) {
         match bloc.kind {
             BlocKind::Static => {
-                let key = (transform.coords().y() / BLOC_SIZE) as usize;
+                let key = (transform.translation().y() / BLOC_SIZE) as usize;
                 let new_val = match lines.get(&key) {
                     Some(val) => val + 1,
                     None => 1,
@@ -51,7 +51,7 @@ pub fn score(
         for (entity, bloc, transform) in query.iter_mut(world) {
             match bloc.kind {
                 BlocKind::Static => {
-                    let line = (transform.coords().y() / BLOC_SIZE) as usize;
+                    let line = (transform.translation().y() / BLOC_SIZE) as usize;
                     if lines2.contains(&line) {
                         cmd.remove(*entity);
                     }
@@ -63,7 +63,7 @@ pub fn score(
             for (_, bloc, transform) in query.iter_mut(world) {
                 match bloc.kind {
                     BlocKind::Static => {
-                        if (*line - index as usize) > (transform.coords().y() / BLOC_SIZE) as usize
+                        if (*line - index as usize) > (transform.translation().y() / BLOC_SIZE) as usize
                         {
                             transform.move_down(BLOC_SIZE);
                         }

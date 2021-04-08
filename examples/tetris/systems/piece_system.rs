@@ -2,7 +2,7 @@ use scion::{
     core::{
         components::{
             material::Material2D,
-            maths::transform::{Coordinates, Transform2D},
+            maths::transform::{Coordinates, Transform},
             Square,
         },
         resources::time::Timers,
@@ -22,7 +22,7 @@ pub fn piece_update(
     #[resource] timers: &mut Timers,
     #[resource] tetris: &mut TetrisResource,
     world: &mut SubWorld,
-    query: &mut Query<(&mut Bloc, &mut Transform2D)>,
+    query: &mut Query<(&mut Bloc, &mut Transform)>,
     query2: &mut Query<(Entity, &NextBloc)>,
 ) {
     let timer = timers
@@ -50,8 +50,8 @@ pub fn piece_update(
                 let mut piece_values: Vec<(u32, u32)> = Vec::new();
                 for (bloc, transform) in query.iter_mut(world) {
                     let t = (
-                        ((transform.coords().x() - BOARD_OFFSET.0) / BLOC_SIZE) as u32,
-                        ((transform.coords().y() - BOARD_OFFSET.1) / BLOC_SIZE) as u32,
+                        ((transform.translation().x() - BOARD_OFFSET.0) / BLOC_SIZE) as u32,
+                        ((transform.translation().y() - BOARD_OFFSET.1) / BLOC_SIZE) as u32,
                     );
                     match bloc.kind {
                         BlocKind::Moving => piece_values.push(t),
@@ -105,7 +105,7 @@ pub fn initialize_bloc(
     coord_x: f32,
     coord_y: f32,
 ) {
-    let mut bloc_transform = Transform2D::default();
+    let mut bloc_transform = Transform::default();
     bloc_transform.append_translation(
         coord_x * BLOC_SIZE + offset.0 * BLOC_SIZE,
         coord_y * BLOC_SIZE + offset.1 * BLOC_SIZE,
@@ -142,7 +142,7 @@ pub fn initialize_next_bloc(
     coord_x: f32,
     coord_y: f32,
 ) {
-    let mut bloc_transform = Transform2D::default();
+    let mut bloc_transform = Transform::default();
     bloc_transform.append_translation(
         coord_x * BLOC_SIZE + offset.0 * BLOC_SIZE,
         coord_y * BLOC_SIZE + offset.1 * BLOC_SIZE,
