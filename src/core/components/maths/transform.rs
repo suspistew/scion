@@ -43,13 +43,13 @@ impl Coordinates {
 /// Component used by the renderer to know where and how to represent an object.
 /// Default is position 0;0 with a scale of 1.0 and no angle.
 #[derive(Debug)]
-pub struct Transform2D {
+pub struct Transform {
     pub(crate) coords: Coordinates,
     pub(crate) scale: f32,
     pub(crate) angle: f32,
 }
 
-impl Default for Transform2D {
+impl Default for Transform {
     fn default() -> Self {
         Self {
             coords: Default::default(),
@@ -59,7 +59,7 @@ impl Default for Transform2D {
     }
 }
 
-impl Transform2D {
+impl Transform {
     /// Creates a new transform using provided values.
     pub fn new(coords: Coordinates, scale: f32, angle: f32) -> Self {
         Self {

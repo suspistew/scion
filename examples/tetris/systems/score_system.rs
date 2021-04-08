@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use scion::{
-    core::components::maths::transform::Transform2D,
+    core::components::maths::transform::Transform,
     legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query},
 };
 
@@ -15,7 +15,7 @@ pub fn score(
     cmd: &mut CommandBuffer,
     #[resource] tetris: &mut TetrisResource,
     world: &mut SubWorld,
-    query: &mut Query<(Entity, &Bloc, &mut Transform2D)>,
+    query: &mut Query<(Entity, &Bloc, &mut Transform)>,
 ) {
     let mut lines = HashMap::new();
     for i in 1..=BOARD_HEIGHT {

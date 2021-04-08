@@ -3,7 +3,7 @@ use legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query};
 use crate::core::components::{
     maths::{
         hierarchy::Parent,
-        transform::{Coordinates, Transform2D},
+        transform::{Coordinates, Transform},
     },
     ui::{
         font::Font,
@@ -17,7 +17,7 @@ use crate::core::components::{
 pub(crate) fn ui_text_bitmap_update(
     world: &mut SubWorld,
     cmd: &mut CommandBuffer,
-    query_ui_texts: &mut Query<(Entity, &mut UiText, &Transform2D)>,
+    query_ui_texts: &mut Query<(Entity, &mut UiText, &Transform)>,
     query_ui_text_images: &mut Query<(Entity, &UiTextImage, &Parent)>,
 ) {
     let (mut world_1, world_2) = world.split_for_query(query_ui_texts);
@@ -64,7 +64,7 @@ pub(crate) fn ui_text_bitmap_update(
                             ),
                         ];
 
-                        let mut char_transform = Transform2D::new(
+                        let mut char_transform = Transform::new(
                             Coordinates::new(
                                 transform.coords().x() + (index as f32 * (width + 1.)),
                                 transform.coords().y(),
@@ -96,7 +96,7 @@ mod tests {
 
     use super::*;
     use crate::core::components::{
-        maths::transform::Transform2D,
+        maths::transform::Transform,
         ui::{
             font::Font,
             ui_text::{UiText, UiTextImage},
@@ -140,7 +140,7 @@ mod tests {
             .add_system(ui_text_bitmap_update_system())
             .build();
 
-        let _entity = world.push((get_test_ui_text(), Transform2D::default()));
+        let _entity = world.push((get_test_ui_text(), Transform::default()));
         schedule.execute(&mut world, &mut resources);
         let vec: Vec<(&Entity, &UiTextImage)> =
             <(Entity, &UiTextImage)>::query().iter(&world).collect();

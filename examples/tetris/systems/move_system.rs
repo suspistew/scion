@@ -1,6 +1,6 @@
 use scion::{
     core::{
-        components::maths::transform::Transform2D,
+        components::maths::transform::Transform,
         inputs::keycode::KeyCode,
         resources::{inputs::Inputs, time::Timers},
     },
@@ -18,7 +18,7 @@ pub fn move_piece(
     #[resource] timers: &mut Timers,
     #[resource] tetris: &mut TetrisResource,
     world: &mut SubWorld,
-    query: &mut Query<(&mut Bloc, &mut Transform2D)>,
+    query: &mut Query<(&mut Bloc, &mut Transform)>,
 ) {
     handle_acceleration(inputs, timers);
 
