@@ -44,7 +44,7 @@ impl Coordinates {
 /// Default is position 0;0 with a scale of 1.0 and no angle.
 #[derive(Debug)]
 pub struct Transform {
-    pub(crate) coords: Coordinates,
+    pub(crate) translation: Coordinates,
     pub(crate) scale: f32,
     pub(crate) angle: f32,
 }
@@ -86,7 +86,7 @@ impl Transform {
     }
 
     /// Get the transform's coordinates
-    pub fn coords(&self) -> &Coordinates {
+    pub fn translation(&self) -> &Coordinates {
         &self.coords
     }
 
