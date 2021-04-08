@@ -73,16 +73,7 @@ fn add_score_ui(world: &mut World) -> Entity {
     world.push((txt, transform));
 
     let txt = UiText::new("".to_string(), font.clone());
-    let mut transform = 
-    
-    
-    
-    
-    
-    
-    
-    
-    ::default();
+    let mut transform = Transform::default();
     transform.append_translation(394., 290.);
     transform.set_layer(2);
     world.push((txt, transform))
