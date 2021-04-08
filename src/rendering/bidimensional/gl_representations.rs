@@ -2,7 +2,7 @@ use ultraviolet::{Mat4, Rotor3, Similarity3, Vec3, Vec4};
 
 use crate::core::components::maths::{
     camera::Camera2D,
-    transform::{Coordinates, Transform2D},
+    transform::{Coordinates, Transform},
 };
 
 #[repr(C)]
@@ -160,8 +160,8 @@ pub(crate) fn create_glmat(t: &Vec4) -> [f32; 4] {
     [t.x, t.y, t.z, t.w]
 }
 
-impl From<(&Transform2D, &Camera2D)> for GlUniform {
-    fn from((transform, camera): (&Transform2D, &Camera2D)) -> Self {
+impl From<(&Transform, &Camera2D)> for GlUniform {
+    fn from((transform, camera): (&Transform, &Camera2D)) -> Self {
         let mut model_trans = Similarity3::identity();
         model_trans.prepend_scaling(transform.scale);
         model_trans.append_translation(Vec3 {

@@ -5,7 +5,7 @@ use scion::{
             material::Material2D,
             maths::{
                 camera::Camera2D,
-                transform::{Coordinates, Transform2D},
+                transform::{Coordinates, Transform},
             },
             Square,
         },
@@ -85,7 +85,7 @@ fn taquin(
     #[resource] inputs: &Inputs,
     #[resource] taquin: &mut Taquin,
     case: &mut Case,
-    transform: &mut Transform2D,
+    transform: &mut Transform,
 ) {
     if inputs.mouse().click_event() {
         let mouse_x = inputs.mouse().x();
@@ -132,7 +132,7 @@ impl SimpleGameLayer for Layer {
                         Case(Coordinates::new(x as f32, y as f32)),
                         square(x, y),
                         Material2D::Texture(p.as_path().to_str().unwrap().to_string()),
-                        Transform2D::new(
+                        Transform::new(
                             Coordinates::new(x as f32 * 192., y as f32 * 192.),
                             1.,
                             0.,
