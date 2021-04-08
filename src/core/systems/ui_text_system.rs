@@ -66,13 +66,13 @@ pub(crate) fn ui_text_bitmap_update(
 
                         let mut char_transform = Transform::new(
                             Coordinates::new(
-                                transform.coords().x() + (index as f32 * (width + 1.)),
-                                transform.coords().y(),
+                                transform.translation().x() + (index as f32 * (width + 1.)),
+                                transform.translation().y(),
                             ),
                             1.0,
                             0.,
                         );
-                        char_transform.set_layer(transform.coords().layer());
+                        char_transform.set_layer(transform.translation().layer());
                         cmd.push((
                             UiTextImage(UiImage::new_with_uv_map(
                                 *width as f32,

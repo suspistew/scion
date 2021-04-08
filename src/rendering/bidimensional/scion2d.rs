@@ -403,7 +403,7 @@ impl Scion2D {
                 }
             };
             render_infos.push(RenderingInfos {
-                layer: transform.coords().layer(),
+                layer: transform.translation().layer(),
                 range: component.range(),
                 entity: *entity,
                 texture_path: path,
@@ -421,7 +421,7 @@ impl Scion2D {
             <(Entity, &mut T, &Transform)>::query().iter_mut(world)
         {
             render_infos.push(RenderingInfos {
-                layer: transform.coords().layer(),
+                layer: transform.translation().layer(),
                 range: component.range(),
                 entity: *entity,
                 texture_path: component.get_texture_path(),

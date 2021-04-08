@@ -45,7 +45,7 @@ pub fn piece_rotation(
                         match bloc.kind {
                             BlocKind::Moving => {}
                             _ => {
-                                let translation = transform.coords();
+                                let translation = transform.translation();
                                 if translation.x() / BLOC_SIZE == x as f32 + offset.0
                                     && translation.y() / BLOC_SIZE == y as f32 + offset.1
                                 {

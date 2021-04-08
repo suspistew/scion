@@ -50,8 +50,8 @@ pub fn piece_update(
                 let mut piece_values: Vec<(u32, u32)> = Vec::new();
                 for (bloc, transform) in query.iter_mut(world) {
                     let t = (
-                        ((transform.coords().x() - BOARD_OFFSET.0) / BLOC_SIZE) as u32,
-                        ((transform.coords().y() - BOARD_OFFSET.1) / BLOC_SIZE) as u32,
+                        ((transform.translation().x() - BOARD_OFFSET.0) / BLOC_SIZE) as u32,
+                        ((transform.translation().y() - BOARD_OFFSET.1) / BLOC_SIZE) as u32,
                     );
                     match bloc.kind {
                         BlocKind::Moving => piece_values.push(t),
