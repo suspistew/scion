@@ -165,9 +165,9 @@ impl From<(&Transform, &Camera2D)> for GlUniform {
         let mut model_trans = Similarity3::identity();
         model_trans.prepend_scaling(transform.scale);
         model_trans.append_translation(Vec3 {
-            x: transform.translation.x(),
-            y: transform.translation.y(),
-            z: transform.translation.layer() as f32,
+            x: transform.global_translation.x(),
+            y: transform.global_translation.y(),
+            z: transform.global_translation.layer() as f32,
         });
         model_trans.prepend_rotation(Rotor3::from_rotation_xy(transform.angle).normalized());
         let mut model_trans = model_trans.into_homogeneous_matrix();
