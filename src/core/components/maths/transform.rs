@@ -52,7 +52,7 @@ pub struct Transform {
 impl Default for Transform {
     fn default() -> Self {
         Self {
-            coords: Default::default(),
+            translation: Default::default(),
             scale: 1.0,
             angle: 0.0,
         }
@@ -61,9 +61,9 @@ impl Default for Transform {
 
 impl Transform {
     /// Creates a new transform using provided values.
-    pub fn new(coords: Coordinates, scale: f32, angle: f32) -> Self {
+    pub fn new(translation: Coordinates, scale: f32, angle: f32) -> Self {
         Self {
-            coords,
+            translation,
             scale,
             angle,
         }
@@ -71,13 +71,13 @@ impl Transform {
 
     /// Append a translation to this transform's position
     pub fn append_translation(&mut self, x: f32, y: f32) {
-        self.coords.x += x;
-        self.coords.y += y;
+        self.translation.x += x;
+        self.translation.y += y;
     }
 
     /// Move this transform down
     pub fn move_down(&mut self, y: f32) {
-        self.coords.y += y;
+        self.translation.y += y;
     }
 
     /// Append an angle to this transform's angle
@@ -87,7 +87,7 @@ impl Transform {
 
     /// Get the transform's coordinates
     pub fn translation(&self) -> &Coordinates {
-        &self.coords
+        &self.translation
     }
 
     /// Change the scale value to a new one.
@@ -97,6 +97,6 @@ impl Transform {
 
     /// Change the layer value in the coordinates.
     pub fn set_layer(&mut self, layer: usize) {
-        self.coords.layer = layer
+        self.translation.layer = layer
     }
 }
