@@ -1,37 +1,40 @@
-use legion::{
-    system,
-    systems::CommandBuffer,
-    world::{EntityAccessError, SubWorld},
-    Entity, IntoQuery,
-};
+use legion::{system, systems::CommandBuffer, world::{EntityAccessError, SubWorld}, Entity, Query};
 
 use crate::core::components::maths::hierarchy::{Children, Parent};
 
 /// System responsible to add/modify Children components to the entities referenced by a Parent component
-#[system(for_each)]
+#[system]
 pub(crate) fn children_manager(
     world: &mut SubWorld,
     cmd: &mut CommandBuffer,
-    entity: &Entity,
-    parent: &Parent,
+    query_parent: &mut Query<(Entity, &mut Parent)>,
+    query_children: &mut Query<(Entity, Option<&mut Children>)>,
 ) {
-    match <(Entity, &mut Children)>::query().get_mut(world, parent.0) {
-        Ok((_, children_component)) => {
-            if !children_component.0.contains(entity) {
-                children_component.0.push(*entity);
-            }
-        }
-        Err(e) => {
-            match e {
-                EntityAccessError::AccessDenied => {
+    let (mut w1, mut w2) = world.split_for_query(query_parent);
+    query_parent.for_each_mut(&mut w1, |(entity, parent)|{
+        match query_children.get_mut(&mut w2, parent.0) {
+            Ok((_, children_component)) => {
+                if let Some(children_component) = children_component{
+                    if !children_component.0.contains(entity) {
+                        children_component.0.push(*entity);
+                    }
+                }else{
                     cmd.add_component(parent.0, Children(vec![*entity]))
                 }
-                EntityAccessError::EntityNotFound => {
-                    cmd.remove(*entity);
-                }
-            };
+            }
+            Err(e) => {
+                match e {
+                    EntityAccessError::AccessDenied => {
+                        cmd.add_component(parent.0, Children(vec![*entity]))
+                    }
+                    EntityAccessError::EntityNotFound => {
+                        cmd.remove(*entity);
+                    }
+                };
+            }
         }
-    }
+    });
+
 }
 
 #[cfg(test)]
