@@ -10,7 +10,7 @@ use scion::{
             Square,
         },
         game_layer::{GameLayer, SimpleGameLayer},
-        resources::inputs::Inputs,
+        resources::inputs::inputs_controller::InputsController,
     },
     legion::{system, Resources, World},
     utils::file::app_base_path,
@@ -82,12 +82,12 @@ fn square(x: usize, y: usize) -> Square {
 
 #[system(for_each)]
 fn taquin(
-    #[resource] inputs: &Inputs,
+    #[resource] inputs: &InputsController,
     #[resource] taquin: &mut Taquin,
     case: &mut Case,
     transform: &mut Transform,
 ) {
-    if inputs.mouse().click_event() {
+    if let Some(_event) = inputs.mouse().click_event() {
         let mouse_x = inputs.mouse().x();
         let mouse_y = inputs.mouse().y();
         if mouse_x > (case.0.x() * 192.) as f64
@@ -132,11 +132,7 @@ impl SimpleGameLayer for Layer {
                         Case(Coordinates::new(x as f32, y as f32)),
                         square(x, y),
                         Material2D::Texture(p.as_path().to_str().unwrap().to_string()),
-                        Transform::new(
-                            Coordinates::new(x as f32 * 192., y as f32 * 192.),
-                            1.,
-                            0.,
-                        ),
+                        Transform::new(Coordinates::new(x as f32 * 192., y as f32 * 192.), 1., 0.),
                     );
                     world.push(square);
                 }

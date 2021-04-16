@@ -60,7 +60,7 @@ impl Default for Transform {
             scale: 1.0,
             angle: 0.0,
             dirty: false,
-            dirty_child: true
+            dirty_child: true,
         }
     }
 }
@@ -74,7 +74,7 @@ impl Transform {
             scale,
             angle,
             dirty: false,
-            dirty_child: true
+            dirty_child: true,
         }
     }
 
@@ -153,7 +153,7 @@ mod tests {
         let mut transform = Transform::new(Coordinates::new(5., 3.), 1., 1.);
         assert_eq!(false, transform.dirty);
 
-        transform.append_translation(1.,1.);
+        transform.append_translation(1., 1.);
         assert_eq!(true, transform.dirty);
 
         transform.dirty = false;

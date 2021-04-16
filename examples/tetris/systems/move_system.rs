@@ -1,8 +1,10 @@
 use scion::{
     core::{
         components::maths::transform::Transform,
-        inputs::keycode::KeyCode,
-        resources::{inputs::Inputs, time::Timers},
+        resources::{
+            inputs::{inputs_controller::InputsController, keycode::KeyCode},
+            time::Timers,
+        },
     },
     legion::{system, world::SubWorld, Query},
 };
@@ -14,7 +16,7 @@ use crate::{
 
 #[system]
 pub fn move_piece(
-    #[resource] inputs: &Inputs,
+    #[resource] inputs: &InputsController,
     #[resource] timers: &mut Timers,
     #[resource] tetris: &mut TetrisResource,
     world: &mut SubWorld,
@@ -60,7 +62,6 @@ pub fn move_piece(
         };
 
         if should_move {
-            log::info!("move true {}", movement_timer.ended());
             movement_timer.reset();
             if let TetrisState::MOVING(x, y) = tetris.state {
                 tetris.state = TetrisState::MOVING((x as i32 + movement as i32) as u32, y);
@@ -77,7 +78,7 @@ pub fn move_piece(
     }
 }
 
-fn handle_acceleration(input: &Inputs, timers: &mut Timers) {
+fn handle_acceleration(input: &InputsController, timers: &mut Timers) {
     if input.keyboard().key_pressed(&KeyCode::Down) {
         timers
             .get_timer("piece")
@@ -91,7 +92,7 @@ fn handle_acceleration(input: &Inputs, timers: &mut Timers) {
     }
 }
 
-fn read_movements_actions(input: &Inputs) -> i32 {
+fn read_movements_actions(input: &InputsController) -> i32 {
     ({
         if input.keyboard().key_pressed(&KeyCode::Left) {
             -1

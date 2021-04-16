@@ -1,4 +1,9 @@
-use legion::{system, systems::CommandBuffer, world::{EntityAccessError, SubWorld}, Entity, Query};
+use legion::{
+    system,
+    systems::CommandBuffer,
+    world::{EntityAccessError, SubWorld},
+    Entity, Query,
+};
 
 use crate::core::components::maths::hierarchy::{Children, Parent};
 
@@ -11,14 +16,14 @@ pub(crate) fn children_manager(
     query_children: &mut Query<(Entity, Option<&mut Children>)>,
 ) {
     let (mut w1, mut w2) = world.split_for_query(query_parent);
-    query_parent.for_each_mut(&mut w1, |(entity, parent)|{
+    query_parent.for_each_mut(&mut w1, |(entity, parent)| {
         match query_children.get_mut(&mut w2, parent.0) {
             Ok((_, children_component)) => {
-                if let Some(children_component) = children_component{
+                if let Some(children_component) = children_component {
                     if !children_component.0.contains(entity) {
                         children_component.0.push(*entity);
                     }
-                }else{
+                } else {
                     cmd.add_component(parent.0, Children(vec![*entity]))
                 }
             }
@@ -34,7 +39,6 @@ pub(crate) fn children_manager(
             }
         }
     });
-
 }
 
 #[cfg(test)]

@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use winit::event::VirtualKeyCode;
 
-#[derive(Eq, PartialEq, Hash, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize)]
 pub enum KeyCode {
     Escape,
     Left,
