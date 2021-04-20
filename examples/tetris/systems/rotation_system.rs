@@ -1,8 +1,10 @@
 use scion::{
     core::{
         components::maths::transform::Transform,
-        inputs::keycode::KeyCode,
-        resources::{inputs::Inputs, time::Timers},
+        resources::{
+            inputs::{inputs_controller::InputsController, keycode::KeyCode},
+            time::Timers,
+        },
     },
     legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query},
 };
@@ -16,7 +18,7 @@ use crate::{
 #[system]
 pub fn piece_rotation(
     cmd: &mut CommandBuffer,
-    #[resource] inputs: &Inputs,
+    #[resource] inputs: &InputsController,
     #[resource] timers: &mut Timers,
     #[resource] tetris: &mut TetrisResource,
     world: &mut SubWorld,

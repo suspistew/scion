@@ -6,7 +6,6 @@ use legion::{
 };
 use log::info;
 use winit::{
-    event::{ElementState, Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
@@ -14,17 +13,20 @@ use winit::{
 use crate::{
     config::scion_config::{ScionConfig, ScionConfigReader},
     core::{
+        event_handler::handle_event,
         game_layer::{GameLayer, GameLayerController, GameLayerMachine, LayerAction},
-        inputs::keycode::KeyCode,
         legion_ext::PausableSystem,
         resources::{
-            inputs::Inputs,
+            events::{topic::TopicConfiguration, Events},
+            inputs::inputs_controller::InputsController,
             time::{Time, Timers},
             window::WindowDimensions,
         },
         state::GameState,
         systems::{
-            hierarchy_system::children_manager_system, ui_text_system::ui_text_bitmap_update_system,
+            hierarchy_system::children_manager_system,
+            parent_transform_system::{dirty_child_system, dirty_transform_system},
+            ui_text_system::ui_text_bitmap_update_system,
         },
     },
     rendering::{renderer_state::RendererState, RendererType},
@@ -74,6 +76,15 @@ impl Scion {
     }
 
     fn setup(&mut self) {
+        self.initialize_internal_resources();
+        self.layer_machine.apply_layers_action(
+            LayerAction::Start,
+            &mut self.world,
+            &mut self.resources,
+        );
+    }
+
+    fn initialize_internal_resources(&mut self) {
         let inner_size = self
             .window
             .as_ref()
@@ -82,128 +93,34 @@ impl Scion {
         self.resources
             .insert(WindowDimensions::new((inner_size.width, inner_size.height)));
 
+        let mut events = Events::default();
+        events
+            .create_topic("Inputs", TopicConfiguration::default())
+            .expect("Error while creating topic for inputs event");
+
         self.resources.insert(Time::default());
+        self.resources.insert(events);
         self.resources.insert(Timers::default());
-        self.resources.insert(Inputs::default());
+        self.resources.insert(InputsController::default());
         self.resources.insert(GameState::default());
         self.resources.insert(GameLayerController::default());
-
-        self.layer_machine.apply_layers_action(
-            LayerAction::Start,
-            &mut self.world,
-            &mut self.resources,
-        );
     }
 
     fn run(mut self, event_loop: EventLoop<()>) {
         event_loop.run(move |event, _, control_flow| {
-            let mut click_event = false; // WIP while we don't use events internally
             *control_flow = ControlFlow::Poll;
-            match event {
-                Event::WindowEvent {
-                    ref event,
-                    window_id,
-                } if window_id
-                    == self
-                        .window
-                        .as_ref()
-                        .expect("A window is mandatory to run this game !")
-                        .id() =>
-                {
-                    match event {
-                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Resized(physical_size) => {
-                            self.resources
-                                .get_mut::<WindowDimensions>()
-                                .expect("Missing mandatory ressource : WindowDimension")
-                                .set(physical_size.width, physical_size.height);
-                            self.renderer
-                                .as_mut()
-                                .expect("A renderer is mandatory to run this game !")
-                                .resize(*physical_size);
-                        }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            self.renderer
-                                .as_mut()
-                                .expect("A renderer is mandatory to run this game !")
-                                .resize(**new_inner_size);
-                        }
-                        WindowEvent::CursorMoved {
-                            device_id: _,
-                            position,
-                            ..
-                        } => {
-                            let dpi_factor = self
-                                .window
-                                .as_ref()
-                                .expect("Missing the window")
-                                .current_monitor()
-                                .expect("Missing the monitor")
-                                .scale_factor();
-                            self.resources
-                                .get_mut::<Inputs>()
-                                .expect("Missing mandatory ressource : Inputs")
-                                .mouse_mut()
-                                .set_position(position.x / dpi_factor, position.y / dpi_factor);
-                        }
-                        WindowEvent::MouseInput {
-                            state, button: _, ..
-                        } => {
-                            match state {
-                                ElementState::Pressed => {
-                                    click_event = true; // WIP while we don't use events internally
-                                }
-                                ElementState::Released => {}
-                            }
-                        }
-                        WindowEvent::KeyboardInput { input, .. } => {
-                            if let Some(keycode) = input.virtual_keycode {
-                                match input.state {
-                                    ElementState::Pressed => {
-                                        self.resources
-                                            .get_mut::<Inputs>()
-                                            .expect("Missing mandatory ressource : Inputs")
-                                            .keyboard_mut()
-                                            .press(KeyCode::from(keycode));
-                                    }
-                                    ElementState::Released => {
-                                        self.resources
-                                            .get_mut::<Inputs>()
-                                            .expect("Missing mandatory ressource : Inputs")
-                                            .keyboard_mut()
-                                            .release(KeyCode::from(keycode));
-                                    }
-                                }
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-                Event::MainEventsCleared => {
-                    self.window.as_ref().unwrap().request_redraw();
-                }
-                Event::RedrawRequested(_) => {
-                    self.renderer
-                        .as_mut()
-                        .expect("A renderer is mandatory to run this game !")
-                        .update(&mut self.world, &mut self.resources);
-                    match self
-                        .renderer
-                        .as_mut()
-                        .expect("A renderer is mandatory to run this game !")
-                        .render(&mut self.world, &mut self.resources)
-                    {
-                        Ok(_) => {}
-                        Err(e) => log::error!("{:?}", e),
-                    }
-                }
-                _ => (),
-            }
-            self.resources
-                .get_mut::<Inputs>()
-                .expect("Missing mandatory ressource : Inputs")
-                .mouse_mut()
-                .set_click_event(click_event);
+            handle_event(
+                event,
+                control_flow,
+                self.window
+                    .as_mut()
+                    .expect("A window is mandatory to run this game !"),
+                self.renderer
+                    .as_mut()
+                    .expect("A renderer is mandatory to run this game !"),
+                &mut self.world,
+                &mut self.resources,
+            );
             self.next_frame();
             self.layer_machine.apply_layers_action(
                 LayerAction::EndFrame,
@@ -235,10 +152,13 @@ impl Scion {
             &mut self.resources,
         );
         self.resources
-            .get_mut::<Inputs>()
-            .expect("Missing mandatory ressource : Inputs")
-            .keyboard_mut()
-            .clear_events();
+            .get_mut::<InputsController>()
+            .expect("Missing mandatory ressource : InputsController")
+            .reset_inputs();
+        self.resources
+            .get_mut::<Events>()
+            .expect("Missing mandatory ressource : Events")
+            .cleanup();
     }
 }
 
@@ -325,14 +245,13 @@ impl ScionBuilder {
             .expect("The window configuration has not been found")
             .into();
         let window = window_builder.build(&event_loop).expect("");
+
+        self.init_schedule_with_internal_systems();
+
         let renderer = self.renderer.into_boxed_renderer();
         let renderer_state = futures::executor::block_on(
             crate::rendering::renderer_state::RendererState::new(&window, renderer),
         );
-
-        self.schedule_builder.add_system(children_manager_system());
-        self.schedule_builder
-            .add_system(ui_text_bitmap_update_system());
 
         let mut scion = Scion {
             config: self.config,
@@ -348,5 +267,15 @@ impl ScionBuilder {
 
         scion.setup();
         scion.run(event_loop);
+    }
+
+    fn init_schedule_with_internal_systems(&mut self) {
+        self.schedule_builder.add_system(children_manager_system());
+        self.schedule_builder.flush();
+        self.schedule_builder.add_system(dirty_child_system());
+        self.schedule_builder.flush();
+        self.schedule_builder.add_system(dirty_transform_system());
+        self.schedule_builder
+            .add_system(ui_text_bitmap_update_system());
     }
 }
