@@ -2,7 +2,9 @@ use scion::{
     core::{
         components::{
             material::Material2D,
-            maths::transform::{Coordinates, Transform},
+            maths::{
+                transform::{Coordinates, Transform},
+            },
             Square,
         },
         resources::time::Timers,

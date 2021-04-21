@@ -13,6 +13,10 @@ use winit::{
 use crate::{
     config::scion_config::{ScionConfig, ScionConfigReader},
     core::{
+        components::ui::{
+            ui_image::UiImage,
+            ui_text::{UiText, UiTextImage},
+        },
         event_handler::handle_event,
         game_layer::{GameLayer, GameLayerController, GameLayerMachine, LayerAction},
         legion_ext::PausableSystem,
@@ -25,6 +29,7 @@ use crate::{
         state::GameState,
         systems::{
             hierarchy_system::children_manager_system,
+            missing_ui_component_system::missing_ui_component_system,
             parent_transform_system::{dirty_child_system, dirty_transform_system},
             ui_text_system::ui_text_bitmap_update_system,
         },
@@ -271,6 +276,12 @@ impl ScionBuilder {
 
     fn init_schedule_with_internal_systems(&mut self) {
         self.schedule_builder.add_system(children_manager_system());
+        self.schedule_builder
+            .add_system(missing_ui_component_system::<UiImage>());
+        self.schedule_builder
+            .add_system(missing_ui_component_system::<UiTextImage>());
+        self.schedule_builder
+            .add_system(missing_ui_component_system::<UiText>());
         self.schedule_builder.flush();
         self.schedule_builder.add_system(dirty_child_system());
         self.schedule_builder.flush();
