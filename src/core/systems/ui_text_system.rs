@@ -9,6 +9,7 @@ use crate::core::components::{
         font::Font,
         ui_image::UiImage,
         ui_text::{UiText, UiTextImage},
+        UiComponent,
     },
 };
 
@@ -80,6 +81,7 @@ pub(crate) fn ui_text_bitmap_update(
                                 texture_path.clone(),
                                 uvs,
                             )),
+                            UiComponent,
                             char_transform,
                             Parent(*entity),
                         ));

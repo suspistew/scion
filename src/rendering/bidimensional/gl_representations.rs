@@ -160,24 +160,38 @@ pub(crate) fn create_glmat(t: &Vec4) -> [f32; 4] {
     [t.x, t.y, t.z, t.w]
 }
 
-impl From<(&Transform, &Camera2D)> for GlUniform {
-    fn from((transform, camera): (&Transform, &Camera2D)) -> Self {
+pub(crate) struct UniformData<'a> {
+    pub transform: &'a Transform,
+    pub camera: &'a Camera2D,
+    pub is_ui_component: bool,
+}
+
+impl From<UniformData<'_>> for GlUniform {
+    fn from(uniform_data: UniformData) -> Self {
         let mut model_trans = Similarity3::identity();
-        model_trans.prepend_scaling(transform.scale);
+        model_trans.prepend_scaling(uniform_data.transform.scale);
         model_trans.append_translation(Vec3 {
-            x: transform.global_translation.x(),
-            y: transform.global_translation.y(),
-            z: transform.global_translation.layer() as f32,
+            x: uniform_data.transform.global_translation.x(),
+            y: uniform_data.transform.global_translation.y(),
+            z: uniform_data.transform.global_translation.layer() as f32,
         });
-        model_trans.prepend_rotation(Rotor3::from_rotation_xy(transform.angle).normalized());
+        if !uniform_data.is_ui_component {
+            model_trans.append_translation(Vec3 {
+                x: -1. * uniform_data.camera.position.x(),
+                y: -1. * uniform_data.camera.position.y(),
+                z: 0.0,
+            });
+        }
+        model_trans
+            .prepend_rotation(Rotor3::from_rotation_xy(uniform_data.transform.angle).normalized());
         let mut model_trans = model_trans.into_homogeneous_matrix();
         let mut camera_view = ultraviolet::projection::lh_ydown::orthographic_wgpu_dx(
-            camera.left,
-            camera.right,
-            camera.bottom,
-            camera.top,
-            camera.near,
-            camera.far,
+            uniform_data.camera.left,
+            uniform_data.camera.right,
+            uniform_data.camera.bottom,
+            uniform_data.camera.top,
+            uniform_data.camera.near,
+            uniform_data.camera.far,
         );
         GlUniform {
             model_trans: create_glmat4(&mut model_trans),

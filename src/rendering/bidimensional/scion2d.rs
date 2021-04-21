@@ -12,10 +12,12 @@ use crate::{
         material::{Material2D, Texture},
         maths::{camera::Camera2D, transform::Transform},
         shapes::{square::Square, triangle::Triangle},
-        ui::{ui_image::UiImage, ui_text::UiTextImage},
+        ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
     },
     rendering::{
-        bidimensional::gl_representations::GlUniform, shaders::pipeline::pipeline, ScionRenderer,
+        bidimensional::gl_representations::{GlUniform, UniformData},
+        shaders::pipeline::pipeline,
+        ScionRenderer,
     },
 };
 
@@ -187,8 +189,13 @@ fn create_transform_uniform_bind_group(
     device: &Device,
     transform: &Transform,
     camera: &Camera2D,
+    is_ui_component: bool,
 ) -> (GlUniform, Buffer, BindGroupLayout, BindGroup) {
-    let uniform = GlUniform::from((transform, camera));
+    let uniform = GlUniform::from(UniformData {
+        transform,
+        camera,
+        is_ui_component,
+    });
     let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Uniform Buffer"),
         contents: bytemuck::cast_slice(&[uniform]),
@@ -440,10 +447,16 @@ impl Scion2D {
         let camera = resources
             .get::<Camera2D>()
             .expect("Missing Camera2D component, can't update transform without the camera view");
-        for (entity, transform) in <(Entity, &Transform)>::query().iter_mut(world) {
+        for (entity, transform, optional_ui_component) in
+            <(Entity, &Transform, Option<&UiComponent>)>::query().iter_mut(world)
+        {
             if !self.transform_uniform_bind_groups.contains_key(entity) {
-                let (uniform, uniform_buffer, glayout, group) =
-                    create_transform_uniform_bind_group(&device, transform, &*camera);
+                let (uniform, uniform_buffer, glayout, group) = create_transform_uniform_bind_group(
+                    &device,
+                    transform,
+                    &*camera,
+                    optional_ui_component.is_some(),
+                );
                 queue.write_buffer(&uniform_buffer, 0, bytemuck::cast_slice(&[uniform]));
                 self.transform_uniform_bind_groups
                     .insert(*entity, (uniform, uniform_buffer, glayout, group));
@@ -452,7 +465,11 @@ impl Scion2D {
                     .transform_uniform_bind_groups
                     .get_mut(entity)
                     .expect("Fatal error, a transform has been marked as found but doesn't exist");
-                uniform.replace_with(GlUniform::from((transform, &*camera)));
+                uniform.replace_with(GlUniform::from(UniformData {
+                    transform,
+                    camera: &camera,
+                    is_ui_component: optional_ui_component.is_some(),
+                }));
                 queue.write_buffer(uniform_buffer, 0, bytemuck::cast_slice(&[*uniform]));
             }
         }
