@@ -17,8 +17,8 @@ pub struct Square {
 }
 
 impl Square {
-    pub fn new(origin: Coordinates, length: f32, uvs: Option<[Coordinates; 4]>) -> Self {
-        let a = origin;
+    pub fn new(length: f32, uvs: Option<[Coordinates; 4]>) -> Self {
+        let a = Coordinates::new(0., 0.);
         let b = Coordinates::new(a.x(), a.y() + length);
         let c = Coordinates::new(a.x() + length, a.y() + length);
         let d = Coordinates::new(a.x() + length, a.y());

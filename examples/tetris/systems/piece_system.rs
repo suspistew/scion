@@ -117,7 +117,6 @@ pub fn initialize_bloc(
         Bloc::new(BlocKind::Moving),
         bloc_transform,
         Square::new(
-            Coordinates::new(0., 0.),
             32.,
             Some([
                 Coordinates::new(0., 0.),
@@ -154,7 +153,6 @@ pub fn initialize_next_bloc(
         NextBloc,
         bloc_transform,
         Square::new(
-            Coordinates::new(0., 0.),
             32.,
             Some([
                 Coordinates::new(0., 0.),

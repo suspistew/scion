@@ -171,8 +171,9 @@ mod timer {
         }
 
         pub(crate) fn add_delta_duration(&mut self, delta_duration: Duration) {
+            let delta = delta_duration.as_secs_f32();
             self.timers.values_mut().for_each(|timer| {
-                timer.add_delta_duration(delta_duration.as_secs_f32());
+                timer.add_delta_duration(delta);
             })
         }
     }

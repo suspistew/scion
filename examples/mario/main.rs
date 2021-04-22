@@ -25,7 +25,6 @@ impl SimpleGameLayer for Layer {
         let p = p.join("assets/taquin.png");
         let square = (
             Square::new(
-                Coordinates::new(0., 0.),
                 192.,
                 Some([
                     Coordinates::new(0., 0.),

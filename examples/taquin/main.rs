@@ -69,7 +69,6 @@ fn square(x: usize, y: usize) -> Square {
     let x_offset = x as f32 * 0.25;
     let y_offset = y as f32 * 0.25;
     Square::new(
-        Coordinates::new(0., 0.),
         192.,
         Some([
             Coordinates::new(x_offset, y_offset),

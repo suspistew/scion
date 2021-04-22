@@ -65,6 +65,8 @@ impl ScionRenderer for Scion2D {
             self.upsert_component_pipeline::<Square>(world, &device, &sc_desc);
             self.upsert_ui_component_pipeline::<UiImage>(world, &device, &sc_desc, queue);
             self.upsert_ui_component_pipeline::<UiTextImage>(world, &device, &sc_desc, queue);
+        }else{
+            log::warn!("No camera has been found in resources");
         }
     }
 

@@ -48,7 +48,7 @@ impl Default for TopicConfiguration {
 }
 
 mod topic_tests {
-    use crate::core::resources::events::topic::{Topic, TopicConfiguration};
+    use super::*;
 
     #[test]
     fn topic_cleanup_overflow_test() {
