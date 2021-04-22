@@ -15,6 +15,7 @@ use scion::{
     utils::file::app_base_path,
     Scion,
 };
+use scion::core::resources::asset_manager::AssetManager;
 
 #[derive(Default)]
 struct Layer;
@@ -23,6 +24,11 @@ impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, resource: &mut Resources) {
         let p = app_base_path().expect("A base path is mandatory");
         let p = p.join("assets/taquin.png");
+
+        let asset_ref = {
+            let mut asset_manager = resource.get_mut::<AssetManager>().expect("");
+            asset_manager.register_material(Material2D::Texture(p.as_path().to_str().unwrap().to_string()))
+        };
         let square = (
             Square::new(
                 192.,
@@ -33,7 +39,7 @@ impl SimpleGameLayer for Layer {
                     Coordinates::new(1., 0.),
                 ]),
             ),
-            Material2D::Texture(p.as_path().to_str().unwrap().to_string()),
+            asset_ref,
             Transform::new(Coordinates::new(200., 200.), 1., 0.),
         );
         world.push(square);
