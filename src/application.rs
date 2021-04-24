@@ -32,10 +32,14 @@ use crate::{
             missing_ui_component_system::missing_ui_component_system,
             parent_transform_system::{dirty_child_system, dirty_transform_system},
             ui_text_system::ui_text_bitmap_update_system,
+            asset_ref_resolver_system::asset_ref_resolver_system
         },
     },
     rendering::{renderer_state::RendererState, RendererType},
 };
+use crate::core::components::material::Material2D;
+use crate::core::systems::asset_ref_resolver_system::MaterialAssetResolverFn;
+use crate::core::resources::asset_manager::AssetManager;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -106,6 +110,7 @@ impl Scion {
         self.resources.insert(Time::default());
         self.resources.insert(events);
         self.resources.insert(Timers::default());
+        self.resources.insert(AssetManager::default());
         self.resources.insert(InputsController::default());
         self.resources.insert(GameState::default());
         self.resources.insert(GameLayerController::default());
@@ -282,6 +287,8 @@ impl ScionBuilder {
             .add_system(missing_ui_component_system::<UiTextImage>());
         self.schedule_builder
             .add_system(missing_ui_component_system::<UiText>());
+        self.schedule_builder
+            .add_system(asset_ref_resolver_system::<Material2D, MaterialAssetResolverFn>());
         self.schedule_builder.flush();
         self.schedule_builder.add_system(dirty_child_system());
         self.schedule_builder.flush();

@@ -1,6 +1,7 @@
 use crate::rendering::bidimensional::gl_representations::GlColor;
 
 /// A struct that represents colors for rendering.
+#[derive(Clone)]
 pub struct Color {
     /// Red value of the color
     r: u8,
