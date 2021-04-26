@@ -122,15 +122,14 @@ struct Layer;
 
 impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, resource: &mut Resources) {
-        let p = app_base_path().expect("A base path is mandatory");
-        let p = p.join("assets/taquin.png");
+        let p = app_base_path().join("assets/taquin.png").get();
         for x in 0..4 {
             for y in 0..4 {
                 if !(x == 3 && y == 3) {
                     let square = (
                         Case(Coordinates::new(x as f32, y as f32)),
                         square(x, y),
-                        Material2D::Texture(p.as_path().to_str().unwrap().to_string()),
+                        Material2D::Texture(p.clone()),
                         Transform::new(Coordinates::new(x as f32 * 192., y as f32 * 192.), 1., 0.),
                     );
                     world.push(square);

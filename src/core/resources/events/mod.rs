@@ -199,7 +199,7 @@ mod event_tests {
     fn event_publish_test() {
         let mut event = Events::default();
         assert_eq!(true, event.publish("test_topic", "Coucou").is_err());
-        event.create_topic("test_topic", TopicConfiguration { limit: 100 });
+        let _r = event.create_topic("test_topic", TopicConfiguration { limit: 100 });
         assert_eq!(true, event.publish("test_topic", 1).is_ok());
 
         let topic = event.topics.get("test_topic").expect("topic must be here");

@@ -47,8 +47,9 @@ impl Default for TopicConfiguration {
     }
 }
 
+#[cfg(test)]
 mod topic_tests {
-    use super::*;
+    use super::{TopicConfiguration, Topic};
 
     #[test]
     fn topic_cleanup_overflow_test() {

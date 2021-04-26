@@ -126,12 +126,7 @@ pub fn initialize_bloc(
             ]),
         ),
         Material2D::Texture(
-            asset_path()
-                .join(get_color_skin(color).as_str())
-                .as_path()
-                .to_str()
-                .unwrap()
-                .to_string(),
+            asset_path().join(get_color_skin(color).as_str()).get(),
         ),
     ));
 }
@@ -162,12 +157,7 @@ pub fn initialize_next_bloc(
             ]),
         ),
         Material2D::Texture(
-            asset_path()
-                .join(get_color_skin(color).as_str())
-                .as_path()
-                .to_str()
-                .unwrap()
-                .to_string(),
+            asset_path().join(get_color_skin(color).as_str()).get(),
         ),
     ));
 }

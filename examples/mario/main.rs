@@ -22,12 +22,12 @@ struct Layer;
 
 impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, resource: &mut Resources) {
-        let p = app_base_path().expect("A base path is mandatory");
-        let p = p.join("assets/taquin.png");
-
+        let p = app_base_path().join("assets/taquin.png");
+        log::warn!("path: {:?}", p.get());
+        let p = app_base_path().join("assets/taquin.png");
         let asset_ref = {
             let mut asset_manager = resource.get_mut::<AssetManager>().expect("");
-            asset_manager.register_material(Material2D::Texture(p.as_path().to_str().unwrap().to_string()))
+            asset_manager.register_material(Material2D::Texture(p.get()))
         };
         let square = (
             Square::new(

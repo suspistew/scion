@@ -50,14 +50,7 @@ impl SimpleGameLayer for TetrisLayer {
 fn add_score_ui(world: &mut World) -> Entity {
     // First we add an UiText to the world
     let font = Font::Bitmap {
-        texture_path: app_base_path()
-            .expect("")
-            .join("assets")
-            .join("tetris")
-            .join("font.png")
-            .to_str()
-            .expect("")
-            .to_string(),
+        texture_path: app_base_path().join("assets/tetris/font.png").get(),
         chars: "0123456789ACEOPRSULI".to_string(),
         texture_columns: 20.,
         texture_lines: 1.,
@@ -80,7 +73,7 @@ fn add_score_ui(world: &mut World) -> Entity {
 }
 
 fn add_main_ui_mask(world: &mut World) {
-    let path = asset_path().join("ui.png").to_str().expect("").to_string();
+    let path = asset_path().join("ui.png").get();
     let image = UiImage::new(544., 704., path);
 
     let mut t = Transform::default();
@@ -89,11 +82,7 @@ fn add_main_ui_mask(world: &mut World) {
 }
 
 fn add_ui_top_overflow(world: &mut World) {
-    let path = asset_path()
-        .join("ui_overflow_top.png")
-        .to_str()
-        .expect("")
-        .to_string();
+    let path = asset_path().join("ui_overflow_top.png").get();
     let image = UiImage::new(324., 32., path);
 
     let mut t = Transform::default();

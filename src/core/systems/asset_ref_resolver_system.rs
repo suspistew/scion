@@ -23,7 +23,6 @@ pub(crate) fn asset_ref_resolver<T: Component, F: AssetResolverFn<T>>(
         .for_each(world, |(e, asset_ref)| {
             cmd.add_component(*e, F::resolve(asset_manager, asset_ref));
         });
-    ;
 }
 
 pub(crate) struct MaterialAssetResolverFn;

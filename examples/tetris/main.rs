@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+
 
 use scion::{
     config::{
@@ -17,6 +17,7 @@ use crate::{
         rotation_system::piece_rotation_system, score_system::score_system,
     },
 };
+use scion::utils::file::PathBuilder;
 
 mod components;
 mod layer;
@@ -45,9 +46,6 @@ fn app_config() -> ScionConfig {
         .get()
 }
 
-pub fn asset_path() -> PathBuf {
-    app_base_path()
-        .expect("base_path is mandatory to run the game")
-        .join("assets")
-        .join("tetris")
+pub fn asset_path() -> PathBuilder {
+    app_base_path().join("assets/tetris")
 }
