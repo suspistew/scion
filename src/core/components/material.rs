@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use image::{DynamicImage, ImageFormat};
+use image::{DynamicImage, ImageFormat, ImageBuffer};
 
 use crate::{core::components::color::Color, utils::file::read_file};
 
@@ -29,6 +29,17 @@ impl Texture {
         }
         log::error!("Error while loading your texture, loading fallback texture instead.");
         Texture::fallback_texture()
+    }
+
+    pub fn from_color(color: &Color) -> Texture {
+        let img = ImageBuffer::from_fn(1, 1, |_x, _y| {
+            image::Rgba([color.red(), color.green(), color.blue(), (color.alpha() * 255.) as u8])
+        });
+        Texture {
+            bytes: img.into_raw(),
+            width: 1,
+            height: 1,
+        }
     }
 
     fn fallback_texture() -> Texture {

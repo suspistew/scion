@@ -20,6 +20,7 @@ use crate::{
         ScionRenderer,
     },
 };
+use crate::core::components::color::Color;
 
 pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor;
@@ -286,7 +287,10 @@ impl Scion2D {
             }
 
             match material {
-                Material2D::Color(_) => {}
+                Material2D::Color(color) => {
+                    let path = get_path_from_color(&color);
+                    self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path)
+                }
                 Material2D::Texture(path) => {
                     self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path)
                 }
@@ -404,13 +408,15 @@ impl Scion2D {
         for (entity, component, material, transform) in
             <(Entity, &mut T, &Material2D, &Transform)>::query().iter_mut(world)
         {
-            let mut path = None;
-            match material {
-                Material2D::Color(_) => {}
-                Material2D::Texture(p) => {
-                    path = Some(p.clone());
-                }
-            };
+            let path =
+                match material {
+                    Material2D::Color(color) => {
+                        Some(get_path_from_color(&color))
+                    }
+                    Material2D::Texture(p) => {
+                        Some(p.clone())
+                    }
+                };
             render_infos.push(RenderingInfos {
                 layer: transform.translation().layer(),
                 range: component.range(),
@@ -495,8 +501,21 @@ impl Scion2D {
                         );
                     }
                 }
-                _ => {}
+                Material2D::Color(color) => {
+                    let path = get_path_from_color(&color);
+                    if !self.diffuse_bind_groups.contains_key(path.as_str()) {
+                        let loaded_texture = Texture::from_color(&color);
+                        self.diffuse_bind_groups.insert(
+                            path.clone(),
+                            load_texture_to_queue(&loaded_texture, queue, device),
+                        );
+                    }
+                }
             }
         });
     }
+}
+
+fn get_path_from_color(color: &Color) -> String {
+    format!("color-{}-{}-{}-{}", color.red(), color.green(), color.blue(), color.alpha())
 }

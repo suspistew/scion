@@ -16,18 +16,16 @@ use scion::{
     Scion,
 };
 use scion::core::resources::asset_manager::AssetManager;
+use scion::core::components::color::Color;
 
 #[derive(Default)]
 struct Layer;
 
 impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, resource: &mut Resources) {
-        let p = app_base_path().join("assets/taquin.png");
-        log::warn!("path: {:?}", p.get());
-        let p = app_base_path().join("assets/taquin.png");
         let asset_ref = {
             let mut asset_manager = resource.get_mut::<AssetManager>().expect("");
-            asset_manager.register_material(Material2D::Texture(p.get()))
+            asset_manager.register_material(Material2D::Color(Color::new(1,255,1,0.5)))
         };
         let square = (
             Square::new(
