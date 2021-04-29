@@ -9,8 +9,8 @@ use wgpu::{
 
 use crate::{
     core::components::{
-        material::{Material2D, Texture},
-        maths::{camera::Camera2D, transform::Transform},
+        material::{Material, Texture},
+        maths::{camera::Camera, transform::Transform},
         shapes::{square::Square, triangle::Triangle},
         ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
     },
@@ -59,7 +59,7 @@ impl ScionRenderer for Scion2D {
         sc_desc: &SwapChainDescriptor,
         queue: &mut Queue,
     ) {
-        if resources.contains::<Camera2D>() {
+        if resources.contains::<Camera>() {
             self.update_diffuse_bind_groups(world, device, queue);
             self.update_transforms(world, resources, &device, queue);
             self.upsert_component_pipeline::<Triangle>(world, &device, &sc_desc);
@@ -86,7 +86,7 @@ impl ScionRenderer for Scion2D {
             });
         }
 
-        if resource.contains::<Camera2D>() {
+        if resource.contains::<Camera>() {
             let mut rendering_infos = Vec::new();
             rendering_infos.append(&mut self.pre_render_component::<Triangle>(world));
             rendering_infos.append(&mut self.pre_render_component::<Square>(world));
@@ -191,7 +191,7 @@ fn load_texture_to_queue(
 fn create_transform_uniform_bind_group(
     device: &Device,
     transform: &Transform,
-    camera: &Camera2D,
+    camera: &Camera,
     is_ui_component: bool,
 ) -> (GlUniform, Buffer, BindGroupLayout, BindGroup) {
     let uniform = GlUniform::from(UniformData {
@@ -272,7 +272,7 @@ impl Scion2D {
         sc_desc: &&SwapChainDescriptor,
     ) {
         for (entity, component, material, _) in
-            <(Entity, &mut T, &Material2D, &Transform)>::query().iter_mut(world)
+            <(Entity, &mut T, &Material, &Transform)>::query().iter_mut(world)
         {
             if !self.vertex_buffers.contains_key(entity) {
                 let vertex_buffer =
@@ -287,11 +287,11 @@ impl Scion2D {
             }
 
             match material {
-                Material2D::Color(color) => {
+                Material::Color(color) => {
                     let path = get_path_from_color(&color);
                     self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path)
                 }
-                Material2D::Texture(path) => {
+                Material::Texture(path) => {
                     self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path)
                 }
             };
@@ -406,14 +406,14 @@ impl Scion2D {
     ) -> Vec<RenderingInfos> {
         let mut render_infos = Vec::new();
         for (entity, component, material, transform) in
-            <(Entity, &mut T, &Material2D, &Transform)>::query().iter_mut(world)
+            <(Entity, &mut T, &Material, &Transform)>::query().iter_mut(world)
         {
             let path =
                 match material {
-                    Material2D::Color(color) => {
+                    Material::Color(color) => {
                         Some(get_path_from_color(&color))
                     }
-                    Material2D::Texture(p) => {
+                    Material::Texture(p) => {
                         Some(p.clone())
                     }
                 };
@@ -453,7 +453,7 @@ impl Scion2D {
         queue: &mut Queue,
     ) {
         let camera = resources
-            .get::<Camera2D>()
+            .get::<Camera>()
             .expect("Missing Camera2D component, can't update transform without the camera view");
         for (entity, transform, optional_ui_component) in
             <(Entity, &Transform, Option<&UiComponent>)>::query().iter_mut(world)
@@ -490,9 +490,9 @@ impl Scion2D {
         device: &Device,
         queue: &mut Queue,
     ) {
-        <(Entity, &Material2D)>::query().for_each(world, |(_entity, material)| {
+        <(Entity, &Material)>::query().for_each(world, |(_entity, material)| {
             match material {
-                Material2D::Texture(path) => {
+                Material::Texture(path) => {
                     if !self.diffuse_bind_groups.contains_key(path.as_str()) {
                         let loaded_texture = Texture::from_png(Path::new(path.as_str()));
                         self.diffuse_bind_groups.insert(
@@ -501,7 +501,7 @@ impl Scion2D {
                         );
                     }
                 }
-                Material2D::Color(color) => {
+                Material::Color(color) => {
                     let path = get_path_from_color(&color);
                     if !self.diffuse_bind_groups.contains_key(path.as_str()) {
                         let loaded_texture = Texture::from_color(&color);

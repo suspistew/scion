@@ -2,9 +2,9 @@ use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
         components::{
-            material::Material2D,
+            material::Material,
             maths::{
-                camera::Camera2D,
+                camera::Camera,
                 transform::{Coordinates, Transform},
             },
             Square,
@@ -129,14 +129,14 @@ impl SimpleGameLayer for Layer {
                     let square = (
                         Case(Coordinates::new(x as f32, y as f32)),
                         square(x, y),
-                        Material2D::Texture(p.clone()),
+                        Material::Texture(p.clone()),
                         Transform::new(Coordinates::new(x as f32 * 192., y as f32 * 192.), 1., 0.),
                     );
                     world.push(square);
                 }
             }
         }
-        resource.insert(Camera2D::new(768., 768., 10.));
+        resource.insert(Camera::new(768., 768., 10.));
         resource.insert(Taquin::new());
     }
 }

@@ -1,7 +1,7 @@
 use ultraviolet::{Mat4, Rotor3, Similarity3, Vec3, Vec4};
 
 use crate::core::components::maths::{
-    camera::Camera2D,
+    camera::Camera,
     transform::{Coordinates, Transform},
 };
 
@@ -162,7 +162,7 @@ pub(crate) fn create_glmat(t: &Vec4) -> [f32; 4] {
 
 pub(crate) struct UniformData<'a> {
     pub transform: &'a Transform,
-    pub camera: &'a Camera2D,
+    pub camera: &'a Camera,
     pub is_ui_component: bool,
 }
 

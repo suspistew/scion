@@ -1,7 +1,7 @@
 use scion::{
     core::{
         components::{
-            material::Material2D,
+            material::Material,
             maths::{
                 transform::{Coordinates, Transform},
             },
@@ -125,7 +125,7 @@ pub fn initialize_bloc(
                 Coordinates::new(1., 0.),
             ]),
         ),
-        Material2D::Texture(
+        Material::Texture(
             asset_path().join(get_color_skin(color).as_str()).get(),
         ),
     ));
@@ -156,7 +156,7 @@ pub fn initialize_next_bloc(
                 Coordinates::new(1., 0.),
             ]),
         ),
-        Material2D::Texture(
+        Material::Texture(
             asset_path().join(get_color_skin(color).as_str()).get(),
         ),
     ));

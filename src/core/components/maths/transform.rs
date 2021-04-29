@@ -87,6 +87,20 @@ impl Transform {
         self.dirty = true;
     }
 
+    /// Appends the x val to the translation's x value
+    pub fn append_x(&mut self, x: f32) {
+        self.local_translation.x += x;
+        self.global_translation.x += x;
+        self.dirty = true;
+    }
+
+    /// Appends the y val to the translation's y value
+    pub fn append_y(&mut self, y: f32) {
+        self.local_translation.y += y;
+        self.global_translation.y += y;
+        self.dirty = true;
+    }
+
     /// Move this transform down
     pub fn move_down(&mut self, y: f32) {
         self.local_translation.y += y;
@@ -159,6 +173,16 @@ mod tests {
         transform.dirty = false;
 
         transform.move_down(1.);
+        assert_eq!(true, transform.dirty);
+
+        transform.dirty = false;
+
+        transform.append_x(1.);
+        assert_eq!(true, transform.dirty);
+
+        transform.dirty = false;
+
+        transform.append_y(1.);
         assert_eq!(true, transform.dirty);
 
         transform.dirty = false;

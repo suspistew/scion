@@ -1,7 +1,7 @@
 use scion::{
     core::{
         components::{
-            maths::{camera::Camera2D, transform::Transform},
+            maths::{camera::Camera, transform::Transform},
             ui::{font::Font, ui_image::UiImage, ui_text::UiText},
         },
         game_layer::SimpleGameLayer,
@@ -23,7 +23,7 @@ impl SimpleGameLayer for TetrisLayer {
         add_main_ui_mask(world);
         add_ui_top_overflow(world);
         self.score = Some(add_score_ui(world));
-        resources.insert(Camera2D::new(544., 704., 10.));
+        resources.insert(Camera::new(544., 704., 10.));
         let _r = resources
             .get_mut::<Timers>()
             .unwrap()

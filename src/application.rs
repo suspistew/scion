@@ -37,7 +37,7 @@ use crate::{
     },
     rendering::{renderer_state::RendererState, RendererType},
 };
-use crate::core::components::material::Material2D;
+use crate::core::components::material::Material;
 use crate::core::systems::asset_ref_resolver_system::MaterialAssetResolverFn;
 use crate::core::resources::asset_manager::AssetManager;
 
@@ -288,7 +288,7 @@ impl ScionBuilder {
         self.schedule_builder
             .add_system(missing_ui_component_system::<UiText>());
         self.schedule_builder
-            .add_system(asset_ref_resolver_system::<Material2D, MaterialAssetResolverFn>());
+            .add_system(asset_ref_resolver_system::<Material, MaterialAssetResolverFn>());
         self.schedule_builder.flush();
         self.schedule_builder.add_system(dirty_child_system());
         self.schedule_builder.flush();

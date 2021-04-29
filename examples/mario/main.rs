@@ -2,9 +2,9 @@ use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
         components::{
-            material::Material2D,
+            material::Material,
             maths::{
-                camera::Camera2D,
+                camera::Camera,
                 transform::{Coordinates, Transform},
             },
             Square,
@@ -25,7 +25,7 @@ impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, resource: &mut Resources) {
         let asset_ref = {
             let mut asset_manager = resource.get_mut::<AssetManager>().expect("");
-            asset_manager.register_material(Material2D::Color(Color::new(1,255,1,0.5)))
+            asset_manager.register_material(Material::Color(Color::new(1, 255, 1, 0.5)))
         };
         let square = (
             Square::new(
@@ -41,7 +41,7 @@ impl SimpleGameLayer for Layer {
             Transform::new(Coordinates::new(200., 200.), 1., 0.),
         );
         world.push(square);
-        resource.insert(Camera2D::new_with_position(
+        resource.insert(Camera::new_with_position(
             768.,
             768.,
             10.,
