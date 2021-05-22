@@ -55,7 +55,7 @@ impl UiImage {
 }
 
 impl Renderable2D for UiImage {
-    fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor {
+    fn vertex_buffer_descriptor(&mut self) -> BufferInitDescriptor {
         wgpu::util::BufferInitDescriptor {
             label: Some("Square Vertex Buffer"),
             contents: bytemuck::cast_slice(&self.contents),
