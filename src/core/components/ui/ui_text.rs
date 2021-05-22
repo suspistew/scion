@@ -43,7 +43,7 @@ impl UiText {
 pub(crate) struct UiTextImage(pub(crate) UiImage);
 
 impl Renderable2D for UiTextImage {
-    fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor {
+    fn vertex_buffer_descriptor(&mut self) -> BufferInitDescriptor {
         self.0.vertex_buffer_descriptor()
     }
 

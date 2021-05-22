@@ -35,7 +35,7 @@ impl Triangle {
 }
 
 impl Renderable2D for Triangle {
-    fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor {
+    fn vertex_buffer_descriptor(&mut self) -> BufferInitDescriptor {
         wgpu::util::BufferInitDescriptor {
             label: Some("Vertex Buffer"),
             contents: bytemuck::cast_slice(&self.contents),

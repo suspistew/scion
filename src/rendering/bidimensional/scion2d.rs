@@ -21,9 +21,10 @@ use crate::{
     },
 };
 use crate::core::components::color::Color;
+use crate::core::components::sprite::Sprite;
 
 pub(crate) trait Renderable2D {
-    fn vertex_buffer_descriptor(&self) -> BufferInitDescriptor;
+    fn vertex_buffer_descriptor(&mut self) -> BufferInitDescriptor;
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor;
     fn range(&self) -> Range<u32>;
 }
@@ -64,6 +65,7 @@ impl ScionRenderer for Scion2D {
             self.update_transforms(world, resources, &device, queue);
             self.upsert_component_pipeline::<Triangle>(world, &device, &sc_desc);
             self.upsert_component_pipeline::<Square>(world, &device, &sc_desc);
+            self.upsert_component_pipeline::<Sprite>(world, &device, &sc_desc);
             self.upsert_ui_component_pipeline::<UiImage>(world, &device, &sc_desc, queue);
             self.upsert_ui_component_pipeline::<UiTextImage>(world, &device, &sc_desc, queue);
         }else{
@@ -90,6 +92,7 @@ impl ScionRenderer for Scion2D {
             let mut rendering_infos = Vec::new();
             rendering_infos.append(&mut self.pre_render_component::<Triangle>(world));
             rendering_infos.append(&mut self.pre_render_component::<Square>(world));
+            rendering_infos.append(&mut self.pre_render_component::<Sprite>(world));
             rendering_infos.append(&mut self.pre_render_ui_component::<UiImage>(world));
             rendering_infos.append(&mut self.pre_render_ui_component::<UiTextImage>(world));
 

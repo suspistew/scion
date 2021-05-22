@@ -7,7 +7,6 @@ use scion::{
                 camera::Camera,
                 transform::{Coordinates, Transform},
             },
-            Square,
         },
         game_layer::{GameLayer, SimpleGameLayer},
     },
@@ -16,7 +15,7 @@ use scion::{
     Scion,
 };
 use scion::core::resources::asset_manager::AssetManager;
-use scion::core::components::color::Color;
+use scion::core::components::sprite::Sprite;
 
 #[derive(Default)]
 struct Layer;
@@ -25,18 +24,11 @@ impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, resource: &mut Resources) {
         let asset_ref = {
             let mut asset_manager = resource.get_mut::<AssetManager>().expect("");
-            asset_manager.register_material(Material::Color(Color::new(1, 255, 1, 0.5)))
+            let p = app_base_path().join("assets/tetris/blocs.png").get();
+            asset_manager.register_material(Material::Texture(p))
         };
         let square = (
-            Square::new(
-                192.,
-                Some([
-                    Coordinates::new(0., 0.),
-                    Coordinates::new(0., 1.),
-                    Coordinates::new(1., 1.),
-                    Coordinates::new(1., 0.),
-                ]),
-            ),
+            Sprite::new(8, 1, 32, 0),
             asset_ref,
             Transform::new(Coordinates::new(200., 200.), 1., 0.),
         );
