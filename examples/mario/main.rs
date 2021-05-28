@@ -48,6 +48,6 @@ fn main() {
             .with_window_config(WindowConfigBuilder::new().with_dimensions((768, 768)).get())
             .get(),
     )
-    .with_game_layer(GameLayer::weak::<Layer>())
+    .with_game_layer(GameLayer::weak::<Layer>("Test"))
     .run();
 }

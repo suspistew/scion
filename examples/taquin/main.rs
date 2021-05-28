@@ -148,6 +148,6 @@ fn main() {
             .get(),
     )
     .with_system(taquin_system())
-    .with_game_layer(GameLayer::weak::<Layer>())
+    .with_game_layer(GameLayer::weak::<Layer>("Taquin"))
     .run();
 }
