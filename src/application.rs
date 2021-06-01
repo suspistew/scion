@@ -32,7 +32,8 @@ use crate::{
             missing_ui_component_system::missing_ui_component_system,
             parent_transform_system::{dirty_child_system, dirty_transform_system},
             ui_text_system::ui_text_bitmap_update_system,
-            asset_ref_resolver_system::asset_ref_resolver_system
+            asset_ref_resolver_system::asset_ref_resolver_system,
+            collider_systems::{compute_collisions_system, colliders_cleaner_system}
         },
     },
     rendering::{renderer_state::RendererState, RendererType},
@@ -184,12 +185,14 @@ pub struct ScionBuilder {
 
 impl ScionBuilder {
     fn new(config: ScionConfig) -> Self {
-        Self {
+        let mut builder = Self {
             config,
             schedule_builder: Default::default(),
             renderer: Default::default(),
             game_layers: Default::default(),
-        }
+        };
+        builder.init_schedule_with_internal_systems();
+        builder
     }
 
     /// Add a [legion](https://docs.rs/legion/latest/legion/) system to the scheduler.
@@ -256,7 +259,7 @@ impl ScionBuilder {
             .into();
         let window = window_builder.build(&event_loop).expect("");
 
-        self.init_schedule_with_internal_systems();
+        self.add_late_internal_systems_to_schedule();
 
         let renderer = self.renderer.into_boxed_renderer();
         let renderer_state = futures::executor::block_on(
@@ -281,6 +284,7 @@ impl ScionBuilder {
 
     fn init_schedule_with_internal_systems(&mut self) {
         self.schedule_builder.add_system(children_manager_system());
+
         self.schedule_builder
             .add_system(missing_ui_component_system::<UiImage>());
         self.schedule_builder
@@ -295,5 +299,13 @@ impl ScionBuilder {
         self.schedule_builder.add_system(dirty_transform_system());
         self.schedule_builder
             .add_system(ui_text_bitmap_update_system());
+        self.schedule_builder.add_system(compute_collisions_system());
+        self.schedule_builder.flush();
     }
+
+    fn add_late_internal_systems_to_schedule(&mut self) {
+        self.schedule_builder.flush();
+        self.schedule_builder.add_system(colliders_cleaner_system());
+    }
+
 }
