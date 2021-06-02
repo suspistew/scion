@@ -21,12 +21,13 @@ Scion relies on a short list of principles that also serves as a guideline.
 - **Easy** and **Fun** to use.
 - Clean and readable source code.
 - Tiled integration
+- Maybe one day (Editor)
 
 ### Non goals
 
 - Ultra/over optimized code and performances. For this, please try other engines or build your own !
 - 3D
-- Editor
+
 
 ## Why ECS ?
 
@@ -45,3 +46,9 @@ These are the dependencies this project is relying on. Thanks to these awesome c
 - <a href="https://github.com/amethyst/legion" target="blank">legion</a> (Entity component system)
 - <a href="https://github.com/termhn/ultraviolet" target="blank">ultraviolet</a> (Maths)
 
+
+## Showcase
+
+<img src="./examples/taquin/taquin.gif" alt="Taquin" style="width:300px"/>
+<img src="./examples/tetris/tetris.gif" alt="Tetris" style="width:300px" />
+<img src="./examples/mario/mario.gif" alt="Mario" style="width:300px" />

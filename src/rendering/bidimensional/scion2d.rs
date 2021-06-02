@@ -9,9 +9,11 @@ use wgpu::{
 
 use crate::{
     core::components::{
+        color::Color,
         material::{Material, Texture},
         maths::{camera::Camera, transform::Transform},
-        shapes::{square::Square, triangle::Triangle},
+        shapes::{rectangle::Rectangle, square::Square, triangle::Triangle},
+        sprite::Sprite,
         ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
     },
     rendering::{
@@ -20,8 +22,6 @@ use crate::{
         ScionRenderer,
     },
 };
-use crate::core::components::color::Color;
-use crate::core::components::sprite::Sprite;
 
 pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&mut self) -> BufferInitDescriptor;
@@ -65,10 +65,11 @@ impl ScionRenderer for Scion2D {
             self.update_transforms(world, resources, &device, queue);
             self.upsert_component_pipeline::<Triangle>(world, &device, &sc_desc);
             self.upsert_component_pipeline::<Square>(world, &device, &sc_desc);
+            self.upsert_component_pipeline::<Rectangle>(world, &device, &sc_desc);
             self.upsert_component_pipeline::<Sprite>(world, &device, &sc_desc);
             self.upsert_ui_component_pipeline::<UiImage>(world, &device, &sc_desc, queue);
             self.upsert_ui_component_pipeline::<UiTextImage>(world, &device, &sc_desc, queue);
-        }else{
+        } else {
             log::warn!("No camera has been found in resources");
         }
     }
@@ -92,6 +93,7 @@ impl ScionRenderer for Scion2D {
             let mut rendering_infos = Vec::new();
             rendering_infos.append(&mut self.pre_render_component::<Triangle>(world));
             rendering_infos.append(&mut self.pre_render_component::<Square>(world));
+            rendering_infos.append(&mut self.pre_render_component::<Rectangle>(world));
             rendering_infos.append(&mut self.pre_render_component::<Sprite>(world));
             rendering_infos.append(&mut self.pre_render_ui_component::<UiImage>(world));
             rendering_infos.append(&mut self.pre_render_ui_component::<UiTextImage>(world));
@@ -411,15 +413,10 @@ impl Scion2D {
         for (entity, component, material, transform) in
             <(Entity, &mut T, &Material, &Transform)>::query().iter_mut(world)
         {
-            let path =
-                match material {
-                    Material::Color(color) => {
-                        Some(get_path_from_color(&color))
-                    }
-                    Material::Texture(p) => {
-                        Some(p.clone())
-                    }
-                };
+            let path = match material {
+                Material::Color(color) => Some(get_path_from_color(&color)),
+                Material::Texture(p) => Some(p.clone()),
+            };
             render_infos.push(RenderingInfos {
                 layer: transform.translation().layer(),
                 range: component.range(),
@@ -520,5 +517,11 @@ impl Scion2D {
 }
 
 fn get_path_from_color(color: &Color) -> String {
-    format!("color-{}-{}-{}-{}", color.red(), color.green(), color.blue(), color.alpha())
+    format!(
+        "color-{}-{}-{}-{}",
+        color.red(),
+        color.green(),
+        color.blue(),
+        color.alpha()
+    )
 }

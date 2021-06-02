@@ -2,9 +2,7 @@ use scion::{
     core::{
         components::{
             material::Material,
-            maths::{
-                transform::{Coordinates, Transform},
-            },
+            maths::transform::{Coordinates, Transform},
             Square,
         },
         resources::time::Timers,
@@ -125,9 +123,7 @@ pub fn initialize_bloc(
                 Coordinates::new(1., 0.),
             ]),
         ),
-        Material::Texture(
-            asset_path().join(get_color_skin(color).as_str()).get(),
-        ),
+        Material::Texture(asset_path().join(get_color_skin(color).as_str()).get()),
     ));
 }
 
@@ -156,9 +152,7 @@ pub fn initialize_next_bloc(
                 Coordinates::new(1., 0.),
             ]),
         ),
-        Material::Texture(
-            asset_path().join(get_color_skin(color).as_str()).get(),
-        ),
+        Material::Texture(asset_path().join(get_color_skin(color).as_str()).get()),
     ));
 }
 

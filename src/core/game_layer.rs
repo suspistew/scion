@@ -46,12 +46,11 @@ impl GameLayer {
         })
     }
 
-    pub(crate) fn start(&mut self, world: &mut World, resources: &mut Resources){
+    pub(crate) fn start(&mut self, world: &mut World, resources: &mut Resources) {
         let mut layer = &mut self.layer;
 
         match &mut layer {
-            GameLayerType::Strong( simple_layer)
-            | GameLayerType::Weak( simple_layer) => {
+            GameLayerType::Strong(simple_layer) | GameLayerType::Weak(simple_layer) => {
                 simple_layer.on_start(world, resources);
             }
         };
@@ -121,16 +120,22 @@ impl GameLayerMachine {
                         }
                         GameLayerTrans::Push(new_layer) => {
                             self.game_layers.push(new_layer);
-                            let index = self.game_layers.len()-1;
-                            self.game_layers.get_mut(index).expect("A recently added layer can't be found").start(world, resources);
+                            let index = self.game_layers.len() - 1;
+                            self.game_layers
+                                .get_mut(index)
+                                .expect("A recently added layer can't be found")
+                                .start(world, resources);
                         }
                         GameLayerTrans::Replace(name, new_layer) => {
+                            if let Some((index, old_layer)) =
+                                self.find_layer_and_index_to_replace(name)
                             {
-                                if let Some((index, old_layer)) = self.find_layer_and_index_to_replace(name){
-                                    self.game_layers.insert(index, new_layer);
-                                    GameLayerMachine::stop_layer(world, resources, old_layer);
-                                    self.game_layers.get_mut(index).expect("A recently added layer can't be found").start(world, resources);
-                                }
+                                self.game_layers.insert(index, new_layer);
+                                GameLayerMachine::stop_layer(world, resources, old_layer);
+                                self.game_layers
+                                    .get_mut(index)
+                                    .expect("A recently added layer can't be found")
+                                    .start(world, resources);
                             }
                         }
                     }
@@ -142,16 +147,18 @@ impl GameLayerMachine {
 
     fn stop_layer(world: &mut World, resources: &mut Resources, layer: Box<GameLayer>) {
         match layer.layer {
-            GameLayerType::Strong(mut simple_layer)
-            | GameLayerType::Weak(mut simple_layer) => {
+            GameLayerType::Strong(mut simple_layer) | GameLayerType::Weak(mut simple_layer) => {
                 simple_layer.on_stop(world, resources);
             }
         }
     }
 
     fn find_layer_and_index_to_replace(&mut self, name: String) -> Option<(usize, Box<GameLayer>)> {
-        if let Some(index) =
-        self.game_layers.iter().position(|layer| layer.name.eq(name.as_str())) {
+        if let Some(index) = self
+            .game_layers
+            .iter()
+            .position(|layer| layer.name.eq(name.as_str()))
+        {
             Some((index, self.game_layers.remove(index)))
         } else {
             None
@@ -188,7 +195,10 @@ impl GameLayerController {
     /// Replace the layer with the name `layer_to_replace` with the layer `new_game_layer`. (Useful for level switching).
     /// If no layer exists with this name, won't do anything. Note that the layer's stop will happen at the end of the frame.
     pub fn replace_layer(&mut self, layer_to_replace: &str, new_game_layer: Box<GameLayer>) {
-        self.actions.push(GameLayerTrans::Replace(layer_to_replace.to_string(), new_game_layer));
+        self.actions.push(GameLayerTrans::Replace(
+            layer_to_replace.to_string(),
+            new_game_layer,
+        ));
     }
 }
 
@@ -214,17 +224,27 @@ mod tests {
     impl SimpleGameLayer for C {}
     impl SimpleGameLayer for D {}
 
-
     #[test]
-    fn replace_layer_should_replace_at_same_index(){
+    fn replace_layer_should_replace_at_same_index() {
         let mut world = World::default();
         let mut resources = Resources::default();
         resources.insert(GameLayerController::default());
 
-        let game_layers = vec![GameLayer::weak::<A>("A"), GameLayer::weak::<B>("B"), GameLayer::weak::<C>("C")];
-        let mut machine = GameLayerMachine{ game_layers };
+        let game_layers = vec![
+            GameLayer::weak::<A>("A"),
+            GameLayer::weak::<B>("B"),
+            GameLayer::weak::<C>("C"),
+        ];
+        let mut machine = GameLayerMachine { game_layers };
 
-        assert_eq!(1, machine.game_layers.iter().position(|l| l.name.eq("B")).unwrap());
+        assert_eq!(
+            1,
+            machine
+                .game_layers
+                .iter()
+                .position(|l| l.name.eq("B"))
+                .unwrap()
+        );
 
         resources
             .get_mut::<GameLayerController>()
@@ -232,8 +252,13 @@ mod tests {
             .replace_layer("B", GameLayer::weak::<D>("D"));
         machine.apply_layers_action(LayerAction::EndFrame, &mut world, &mut resources);
 
-        assert_eq!(1, machine.game_layers.iter().position(|l| l.name.eq("D")).unwrap());
-
+        assert_eq!(
+            1,
+            machine
+                .game_layers
+                .iter()
+                .position(|l| l.name.eq("D"))
+                .unwrap()
+        );
     }
-
 }

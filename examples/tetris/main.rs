@@ -1,12 +1,10 @@
-
-
 use scion::{
     config::{
         scion_config::{ScionConfig, ScionConfigBuilder},
         window_config::WindowConfigBuilder,
     },
     core::game_layer::GameLayer,
-    utils::file::app_base_path,
+    utils::file::{app_base_path, PathBuilder},
     Scion,
 };
 
@@ -17,7 +15,6 @@ use crate::{
         rotation_system::piece_rotation_system, score_system::score_system,
     },
 };
-use scion::utils::file::PathBuilder;
 
 mod components;
 mod layer;
