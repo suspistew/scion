@@ -8,7 +8,7 @@ pub mod keyboard;
 pub mod keycode;
 pub mod mouse;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Eq, PartialEq, Deserialize, Clone)]
 pub enum InputState {
     Pressed,
     Released,

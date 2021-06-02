@@ -9,18 +9,18 @@ use crate::{
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
-/// Renderable 2D Square.
-pub struct Square {
+/// Renderable 2D Rectangle.
+pub struct Rectangle {
     pub vertices: [Coordinates; 4],
     pub uvs: Option<[Coordinates; 4]>,
     contents: [TexturedGlVertex; 4],
 }
 
-impl Square {
-    pub fn new(length: f32, uvs: Option<[Coordinates; 4]>) -> Self {
+impl Rectangle {
+    pub fn new(length: f32, height: f32, uvs: Option<[Coordinates; 4]>) -> Self {
         let a = Coordinates::new(0., 0.);
-        let b = Coordinates::new(a.x(), a.y() + length);
-        let c = Coordinates::new(a.x() + length, a.y() + length);
+        let b = Coordinates::new(a.x(), a.y() + height);
+        let c = Coordinates::new(a.x() + length, a.y() + height);
         let d = Coordinates::new(a.x() + length, a.y());
         let uvs_ref = uvs.unwrap_or(default_uvs());
         let contents = [
@@ -46,10 +46,10 @@ fn default_uvs() -> [Coordinates; 4] {
     ]
 }
 
-impl Renderable2D for Square {
+impl Renderable2D for Rectangle {
     fn vertex_buffer_descriptor(&mut self) -> BufferInitDescriptor {
         wgpu::util::BufferInitDescriptor {
-            label: Some("Square Vertex Buffer"),
+            label: Some("Rectangle Vertex Buffer"),
             contents: bytemuck::cast_slice(&self.contents),
             usage: wgpu::BufferUsage::VERTEX,
         }
@@ -57,7 +57,7 @@ impl Renderable2D for Square {
 
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
         wgpu::util::BufferInitDescriptor {
-            label: Some("Square Index Buffer"),
+            label: Some("Rectangle Index Buffer"),
             contents: bytemuck::cast_slice(&INDICES),
             usage: wgpu::BufferUsage::INDEX,
         }

@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use image::{DynamicImage, ImageFormat, ImageBuffer};
+use image::{DynamicImage, ImageBuffer, ImageFormat};
 
 use crate::{core::components::color::Color, utils::file::read_file};
 
@@ -33,7 +33,12 @@ impl Texture {
 
     pub fn from_color(color: &Color) -> Texture {
         let img = ImageBuffer::from_fn(1, 1, |_x, _y| {
-            image::Rgba([color.red(), color.green(), color.blue(), (color.alpha() * 255.) as u8])
+            image::Rgba([
+                color.red(),
+                color.green(),
+                color.blue(),
+                (color.alpha() * 255.) as u8,
+            ])
         });
         Texture {
             bytes: img.into_raw(),

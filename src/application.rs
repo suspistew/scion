@@ -13,14 +13,18 @@ use winit::{
 use crate::{
     config::scion_config::{ScionConfig, ScionConfigReader},
     core::{
-        components::ui::{
-            ui_image::UiImage,
-            ui_text::{UiText, UiTextImage},
+        components::{
+            material::Material,
+            ui::{
+                ui_image::UiImage,
+                ui_text::{UiText, UiTextImage},
+            },
         },
         event_handler::handle_event,
         game_layer::{GameLayer, GameLayerController, GameLayerMachine, LayerAction},
         legion_ext::PausableSystem,
         resources::{
+            asset_manager::AssetManager,
             events::{topic::TopicConfiguration, Events},
             inputs::inputs_controller::InputsController,
             time::{Time, Timers},
@@ -28,19 +32,16 @@ use crate::{
         },
         state::GameState,
         systems::{
+            asset_ref_resolver_system::{asset_ref_resolver_system, MaterialAssetResolverFn},
+            collider_systems::{colliders_cleaner_system, compute_collisions_system},
             hierarchy_system::children_manager_system,
             missing_ui_component_system::missing_ui_component_system,
             parent_transform_system::{dirty_child_system, dirty_transform_system},
             ui_text_system::ui_text_bitmap_update_system,
-            asset_ref_resolver_system::asset_ref_resolver_system,
-            collider_systems::{compute_collisions_system, colliders_cleaner_system}
         },
     },
     rendering::{renderer_state::RendererState, RendererType},
 };
-use crate::core::components::material::Material;
-use crate::core::systems::asset_ref_resolver_system::MaterialAssetResolverFn;
-use crate::core::resources::asset_manager::AssetManager;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -299,7 +300,8 @@ impl ScionBuilder {
         self.schedule_builder.add_system(dirty_transform_system());
         self.schedule_builder
             .add_system(ui_text_bitmap_update_system());
-        self.schedule_builder.add_system(compute_collisions_system());
+        self.schedule_builder
+            .add_system(compute_collisions_system());
         self.schedule_builder.flush();
     }
 
@@ -307,5 +309,4 @@ impl ScionBuilder {
         self.schedule_builder.flush();
         self.schedule_builder.add_system(colliders_cleaner_system());
     }
-
 }

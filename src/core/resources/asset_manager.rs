@@ -1,12 +1,13 @@
-use std::collections::HashMap;
-use crate::core::components::material::Material;
-use std::marker::PhantomData;
+use std::{collections::HashMap, marker::PhantomData};
+
 use legion::storage::Component;
+
+use crate::core::components::material::Material;
 
 /// `AssetManager` is resource that will link assets to an asset ref to allow reusability of assets
 #[derive(Default)]
 pub struct AssetManager {
-    materials: HashMap<usize, Material>
+    materials: HashMap<usize, Material>,
 }
 
 impl AssetManager {
@@ -25,13 +26,16 @@ impl AssetManager {
 }
 
 #[derive(Clone)]
-pub struct AssetRef<T>(pub(crate) usize, PhantomData<T>) where T:Component;
+pub struct AssetRef<T>(pub(crate) usize, PhantomData<T>)
+where
+    T: Component;
 
 #[cfg(test)]
 mod tests {
-    use crate::core::resources::asset_manager::AssetManager;
-    use crate::core::components::material::Material;
-    use crate::core::components::color::Color;
+    use crate::core::{
+        components::{color::Color, material::Material},
+        resources::asset_manager::AssetManager,
+    };
 
     #[test]
     fn register_material_test() {

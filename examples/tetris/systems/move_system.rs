@@ -1,6 +1,6 @@
 use scion::{
     core::{
-        components::maths::{transform::Transform},
+        components::maths::transform::Transform,
         resources::{
             inputs::{inputs_controller::InputsController, keycode::KeyCode},
             time::Timers,

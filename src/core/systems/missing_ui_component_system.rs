@@ -3,7 +3,7 @@ use legion::{
     IntoQuery,
 };
 
-use crate::{core::components::ui::UiComponent};
+use crate::core::components::ui::UiComponent;
 
 /// System responsible to add the UiComponent to any T missing its uiComponent
 #[system]
