@@ -44,5 +44,5 @@ fn app_config() -> ScionConfig {
 }
 
 pub fn asset_path() -> PathBuilder {
-    app_base_path().join("assets/tetris")
+    app_base_path().join("examples/tetris/assets/")
 }
