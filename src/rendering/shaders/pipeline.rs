@@ -1,6 +1,4 @@
-use wgpu::{
-    BindGroupLayout, BlendFactor, BlendOperation, Device, RenderPipeline, SwapChainDescriptor,
-};
+use wgpu::{BindGroupLayout, BlendFactor, BlendOperation, Device, RenderPipeline, SwapChainDescriptor, BlendComponent};
 
 use crate::rendering::bidimensional::gl_representations::TexturedGlVertex;
 
@@ -32,25 +30,31 @@ pub fn pipeline(
             entry_point: "main",
             targets: &[wgpu::ColorTargetState {
                 format: sc_desc.format,
-                alpha_blend: wgpu::BlendState {
-                    src_factor: BlendFactor::One,
-                    dst_factor: BlendFactor::One,
-                    operation: BlendOperation::Add,
-                },
-                color_blend: wgpu::BlendState {
-                    src_factor: BlendFactor::SrcAlpha,
-                    dst_factor: BlendFactor::OneMinusSrcAlpha,
-                    operation: BlendOperation::Add,
-                },
                 write_mask: wgpu::ColorWrite::ALL,
+                blend: Some(
+                    wgpu::BlendState {
+                        color: BlendComponent {
+                            src_factor: BlendFactor::SrcAlpha,
+                            dst_factor: BlendFactor::OneMinusSrcAlpha,
+                            operation: BlendOperation::Add,
+                        },
+                        alpha: BlendComponent {
+                            src_factor: BlendFactor::One,
+                            dst_factor: BlendFactor::One,
+                            operation: BlendOperation::Add,
+                        },
+                    }
+                ),
             }],
         }),
         primitive: wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
-            cull_mode: wgpu::CullMode::Back,
+            cull_mode: Some(wgpu::Face::Back),
+            clamp_depth: false,
             polygon_mode: wgpu::PolygonMode::Fill,
+            conservative: false,
         },
         depth_stencil: None,
         multisample: wgpu::MultisampleState {

@@ -16,17 +16,17 @@ parallel = ["legion/parallel"]
 legion = { version = "0.4", default-features = false, features = ["codegen"] }
 
 # window & rendering
-winit = "0.24.0"
-wgpu = "0.7.0"
+winit = "0.25"
+wgpu = "0.8"
 futures = "0.3"
 
 # maths
 ultraviolet = "0.8"
 
 # serialization
-serde = { version = "1.0.124", features = ["derive"] }
+serde = { version = "1.0.126", features = ["derive"] }
 serde_json = "1.0.64"
-bytemuck = { version = "1.4", features = ["derive"] }
+bytemuck = { version = "1.5", features = ["derive"] }
 image = { version = "0.23", default-features = false, features = ["png"] }
 
 # logging
@@ -45,7 +45,7 @@ deflate = { opt-level = 3 }
 
 [build-dependencies]
 anyhow = "1.0"
-fs_extra = "1.1"
+fs_extra = "1.2"
 glob = "0.3"
 shaderc = "0.7"
 
