@@ -122,7 +122,7 @@ struct Layer;
 
 impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, resource: &mut Resources) {
-        let p = app_base_path().join("assets/taquin.png").get();
+        let p = app_base_path().join("examples/taquin/assets/taquin.png").get();
         for x in 0..4 {
             for y in 0..4 {
                 if !(x == 3 && y == 3) {
