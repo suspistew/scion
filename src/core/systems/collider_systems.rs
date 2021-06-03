@@ -19,17 +19,17 @@ pub(crate) fn compute_collisions(
         query_colliders.iter_mut(world).collect();
     let len = colliders.len();
     for i in 0..len {
-        let col = colliders.get(i).expect("");
+        let col = colliders.get(i).expect("A collider can't be found while it must exist due to previous checks");
         if !col.2.passive() {
             let mut collisions = (0..len)
                 .filter(|index| *index != i)
                 .filter(|index| {
-                    let col2 = colliders.get(*index).expect("");
+                    let col2 = colliders.get(*index).expect("A collider can't be found while it must exist due to previous checks");
                     col.2.collides_with(col.1, col2.2, col2.1)
                 })
                 .map(|index| {
-                    let col = colliders.get(index).expect("");
-                    let col2 = colliders.get(index).expect("");
+                    let col = colliders.get(index).expect("A collider can't be found while it must exist due to previous checks");
+                    let col2 = colliders.get(index).expect("A collider can't be found while it must exist due to previous checks");
                     Collision {
                         mask: col.2.mask().clone(),
                         entity: *col.0,
@@ -39,7 +39,7 @@ pub(crate) fn compute_collisions(
                 .collect();
             colliders
                 .get_mut(i)
-                .expect("")
+                .expect("A collider can't be found while it must exist due to previous checks")
                 .2
                 .add_collisions(&mut collisions);
         }
@@ -71,8 +71,8 @@ mod tests {
             t,
             Collider::new(ColliderMask::Bullet, vec![], ColliderType::Square(5)),
         ));
-        let mut entry = world.entry_mut(e).expect("");
-        let res = entry.get_component_mut::<Collider>().expect("");
+        let mut entry = world.entry_mut(e).unwrap();
+        let res = entry.get_component_mut::<Collider>().unwrap();
         res.add_collisions(&mut vec![Collision {
             mask: ColliderMask::Character,
             entity: e,
@@ -82,8 +82,8 @@ mod tests {
 
         schedule.execute(&mut world, &mut resources);
 
-        let entry = world.entry(e).expect("");
-        let res = entry.get_component::<Collider>().expect("");
+        let entry = world.entry(e).unwrap();
+        let res = entry.get_component::<Collider>().unwrap();
         assert_eq!(0, res.collisions().len());
     }
 
@@ -116,12 +116,12 @@ mod tests {
 
         schedule.execute(&mut world, &mut resources);
 
-        let entry = world.entry(e).expect("");
-        let res = entry.get_component::<Collider>().expect("");
+        let entry = world.entry(e).unwrap();
+        let res = entry.get_component::<Collider>().unwrap();
         assert_eq!(0, res.collisions().len());
 
-        let entry = world.entry(e2).expect("");
-        let res = entry.get_component::<Collider>().expect("");
+        let entry = world.entry(e2).unwrap();
+        let res = entry.get_component::<Collider>().unwrap();
         assert_eq!(1, res.collisions().len());
     }
 }

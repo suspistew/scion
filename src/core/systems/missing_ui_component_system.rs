@@ -33,13 +33,13 @@ mod tests {
 
         let e = world.push((UiImage::new(1., 1., "".to_string()),));
 
-        let entry = world.entry(e).expect("");
+        let entry = world.entry(e).unwrap();
         let res = entry.get_component::<UiComponent>();
         assert_eq!(true, res.is_err());
 
         schedule.execute(&mut world, &mut resources);
 
-        let entry = world.entry(e).expect("");
+        let entry = world.entry(e).unwrap();
         let res = entry.get_component::<UiComponent>();
         assert_eq!(true, res.is_ok());
     }

@@ -35,7 +35,7 @@ pub fn move_char(
         > 0;
 
     if input_velocity != 0 {
-        let timer = timers.get_timer("input").expect("");
+        let timer = timers.get_timer("input").expect("Missing timer : input");
         query.for_each_mut(world, |(hero, _t)| {
             if timer.ended()
                 && ((input_velocity > 0 && hero.velocity < MAX_VELOCITY)
@@ -47,7 +47,7 @@ pub fn move_char(
             }
         });
     } else {
-        let timer = timers.get_timer("input").expect("");
+        let timer = timers.get_timer("input").expect("Missing timer : input");
         query.for_each_mut(world, |(hero, _t)| {
             if timer.ended() && hero.velocity != 0 {
                 hero.landed = false;
@@ -71,7 +71,7 @@ pub fn move_char(
             }
         });
     } else {
-        let timer = timers.get_timer("gravity").expect("");
+        let timer = timers.get_timer("gravity").expect("Missing timer : gravity");
         query.for_each_mut(world, |(hero, _t)| {
             if !hero.landed {
                 if timer.ended() {

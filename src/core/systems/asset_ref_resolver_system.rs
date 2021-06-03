@@ -60,7 +60,7 @@ mod tests {
             true,
             world
                 .entry(e)
-                .expect("")
+                .unwrap()
                 .get_component::<Material>()
                 .is_err()
         );
@@ -71,7 +71,7 @@ mod tests {
             true,
             world
                 .entry(e)
-                .expect("")
+                .unwrap()
                 .get_component::<Material>()
                 .is_ok()
         );

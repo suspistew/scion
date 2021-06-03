@@ -139,7 +139,7 @@ mod tests {
             1.,
             world
                 .entry(parent)
-                .expect("")
+                .unwrap()
                 .get_component::<Transform>()
                 .unwrap()
                 .global_translation
@@ -149,7 +149,7 @@ mod tests {
             2.,
             world
                 .entry(child)
-                .expect("")
+                .unwrap()
                 .get_component::<Transform>()
                 .unwrap()
                 .global_translation
@@ -159,7 +159,7 @@ mod tests {
             3.,
             world
                 .entry(child_of_child)
-                .expect("")
+                .unwrap()
                 .get_component::<Transform>()
                 .unwrap()
                 .global_translation
@@ -176,7 +176,7 @@ mod tests {
             6.,
             world
                 .entry(parent)
-                .expect("")
+                .unwrap()
                 .get_component::<Transform>()
                 .unwrap()
                 .global_translation
@@ -186,7 +186,7 @@ mod tests {
             7.,
             world
                 .entry(child)
-                .expect("")
+                .unwrap()
                 .get_component::<Transform>()
                 .unwrap()
                 .global_translation
@@ -196,7 +196,7 @@ mod tests {
             8.,
             world
                 .entry(child_of_child)
-                .expect("")
+                .unwrap()
                 .get_component::<Transform>()
                 .unwrap()
                 .global_translation

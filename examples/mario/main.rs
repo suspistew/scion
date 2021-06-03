@@ -56,14 +56,14 @@ impl SimpleGameLayer for Mario {
     }
     fn late_update(&mut self, world: &mut World, resources: &mut Resources) {
         let hero = <(&mut Hero, &mut Transform)>::query()
-            .get_mut(world, self.hero.expect(""))
-            .expect("");
+            .get_mut(world, self.hero.unwrap())
+            .unwrap();
         if hero.0.velocity != 0 {
             hero.1
                 .append_x(hero.0.velocity as f32 / MAX_VELOCITY as f32 * 2.5);
             resources
                 .get_mut::<Camera>()
-                .expect("")
+                .unwrap()
                 .append_position(hero.0.velocity as f32 / MAX_VELOCITY as f32 * 2.5, 0.);
         }
 

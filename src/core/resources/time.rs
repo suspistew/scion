@@ -194,7 +194,7 @@ mod tests {
         // Test manual timer
         let timer = timers.get_timer("test_timer");
         assert_eq!(true, timer.is_ok());
-        let timer = timer.expect("");
+        let timer = timer.expect("impossible");
         assert_eq!(false, timer.add_delta_duration(0.5));
         assert_eq!(true, timer.add_delta_duration(0.5));
         assert_eq!(true, timer.ended());
@@ -202,7 +202,7 @@ mod tests {
         // Test cyclic timer
         let timer = timers.add_timer("test_timer2", TimerType::Cyclic, 1.0);
         assert_eq!(true, timer.is_ok());
-        let timer = timer.expect("");
+        let timer = timer.unwrap();
         assert_eq!(false, timer.add_delta_duration(0.5));
         assert_eq!(true, timer.add_delta_duration(0.5));
         assert_eq!(true, timer.cycle());

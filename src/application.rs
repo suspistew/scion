@@ -258,7 +258,9 @@ impl ScionBuilder {
             .clone()
             .expect("The window configuration has not been found")
             .into();
-        let window = window_builder.build(&event_loop).expect("");
+        let window = window_builder
+            .build(&event_loop)
+            .expect("An error occured while building the main game window");
 
         self.add_late_internal_systems_to_schedule();
 

@@ -220,10 +220,10 @@ mod event_tests {
         let _r = event.create_topic("test_topic", TopicConfiguration { limit: 100 });
         let subscribe_result = event.subscribe("test_topic", PollConfiguration::default());
         assert_eq!(true, subscribe_result.is_ok());
-        assert_eq!(0, subscribe_result.expect(""));
+        assert_eq!(0, subscribe_result.unwrap());
         let subscribe_result2 = event.subscribe("test_topic", PollConfiguration::default());
         assert_eq!(true, subscribe_result2.is_ok());
-        assert_eq!(1, subscribe_result2.expect(""));
+        assert_eq!(1, subscribe_result2.unwrap());
     }
 
     #[test]
@@ -232,12 +232,12 @@ mod event_tests {
         let _r = event.create_topic("test_topic", TopicConfiguration { limit: 100 });
         let subscriber_id = event
             .subscribe("test_topic", PollConfiguration::default())
-            .expect("");
+            .unwrap();
         let _r = event.publish("test_topic", 42);
 
-        let mut poll_result = event.poll::<usize>(&subscriber_id).expect("");
+        let mut poll_result = event.poll::<usize>(&subscriber_id).unwrap();
         assert_eq!(1, poll_result.len());
-        assert_eq!(42, poll_result.pop_front().expect(""));
+        assert_eq!(42, poll_result.pop_front().unwrap());
 
         let _r = event.publish("test_topic", 4);
         let _r = event.publish("test_topic", 8);
@@ -245,11 +245,11 @@ mod event_tests {
         let _r = event.publish("test_topic", 16);
         let _r = event.publish("test_topic", 20);
         let _r = event.publish("test_topic", 24);
-        let mut poll_result = event.poll::<usize>(&subscriber_id).expect("");
+        let mut poll_result = event.poll::<usize>(&subscriber_id).unwrap();
         assert_eq!(5, poll_result.len());
-        assert_eq!(4, poll_result.pop_front().expect(""));
-        assert_eq!(8, poll_result.pop_front().expect(""));
-        assert_eq!(12, poll_result.pop_front().expect(""));
+        assert_eq!(4, poll_result.pop_front().unwrap());
+        assert_eq!(8, poll_result.pop_front().unwrap());
+        assert_eq!(12, poll_result.pop_front().unwrap());
     }
 
     #[test]
@@ -258,25 +258,25 @@ mod event_tests {
         let _r = event.create_topic("test_topic", TopicConfiguration { limit: 3 });
         let subscriber_id = event
             .subscribe("test_topic", PollConfiguration { max_messages: 2 })
-            .expect("");
+            .unwrap();
         let subscriber_id2 = event
             .subscribe("test_topic", PollConfiguration { max_messages: 1 })
-            .expect("");
+            .unwrap();
 
         let _r = event.publish("test_topic", 4);
         let _r = event.publish("test_topic", 8);
         let _r = event.publish("test_topic", 12);
         let _r = event.publish("test_topic", 16);
 
-        assert_eq!(4, event.topics.get("test_topic").expect("").messages.len());
+        assert_eq!(4, event.topics.get("test_topic").unwrap().messages.len());
         event.cleanup();
-        assert_eq!(3, event.topics.get("test_topic").expect("").messages.len());
-        let poll_result = event.poll::<usize>(&subscriber_id).expect("");
-        let poll_result2 = event.poll::<usize>(&subscriber_id2).expect("");
+        assert_eq!(3, event.topics.get("test_topic").unwrap().messages.len());
+        let poll_result = event.poll::<usize>(&subscriber_id).unwrap();
+        let poll_result2 = event.poll::<usize>(&subscriber_id2).unwrap();
         assert_eq!(2, poll_result.len());
         assert_eq!(1, poll_result2.len());
-        assert_eq!(3, event.topics.get("test_topic").expect("").messages.len());
+        assert_eq!(3, event.topics.get("test_topic").unwrap().messages.len());
         event.cleanup();
-        assert_eq!(2, event.topics.get("test_topic").expect("").messages.len());
+        assert_eq!(2, event.topics.get("test_topic").unwrap().messages.len());
     }
 }
