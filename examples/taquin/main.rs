@@ -7,10 +7,10 @@ use scion::{
                 camera::Camera,
                 transform::{Coordinates, Transform},
             },
-            Square,
+            sprite::Sprite,
         },
         game_layer::{GameLayer, SimpleGameLayer},
-        resources::inputs::inputs_controller::InputsController,
+        resources::{asset_manager::AssetManager, inputs::inputs_controller::InputsController},
     },
     legion::{system, Resources, World},
     utils::file::app_base_path,
@@ -34,49 +34,30 @@ struct Taquin {
 
 impl Taquin {
     fn new() -> Self {
-        Self {
-            board: [
-                [true, true, true, true],
-                [true, true, true, true],
-                [true, true, true, true],
-                [true, true, true, false],
-            ],
-        }
+        let mut board = [[true; 4]; 4];
+        board[3][3] = false;
+        Self { board }
     }
 
-    fn try_move(&mut self, x: usize, y: usize) -> MoveDirection {
-        self.board[x][y] = false;
-        if x > 0 && !self.board[x - 1][y] {
-            self.board[x - 1][y] = true;
+    fn try_move(&mut self, column: usize, line: usize) -> MoveDirection {
+        self.board[column][line] = false;
+        if column > 0 && !self.board[column - 1][line] {
+            self.board[column - 1][line] = true;
             MoveDirection::Left
-        } else if y > 0 && !self.board[x][y - 1] {
-            self.board[x][y - 1] = true;
+        } else if line > 0 && !self.board[column][line - 1] {
+            self.board[column][line - 1] = true;
             MoveDirection::Top
-        } else if x < 3 && !self.board[x + 1][y] {
-            self.board[x + 1][y] = true;
+        } else if column < 3 && !self.board[column + 1][line] {
+            self.board[column + 1][line] = true;
             MoveDirection::Right
-        } else if y < 3 && !self.board[x][y + 1] {
-            self.board[x][y + 1] = true;
+        } else if line < 3 && !self.board[column][line + 1] {
+            self.board[column][line + 1] = true;
             MoveDirection::Bottom
         } else {
-            self.board[x][y] = true;
+            self.board[column][line] = true;
             MoveDirection::None
         }
     }
-}
-
-fn square(x: usize, y: usize) -> Square {
-    let x_offset = x as f32 * 0.25;
-    let y_offset = y as f32 * 0.25;
-    Square::new(
-        192.,
-        Some([
-            Coordinates::new(x_offset, y_offset),
-            Coordinates::new(x_offset, 0.25 + y_offset),
-            Coordinates::new(0.25 + x_offset, 0.25 + y_offset),
-            Coordinates::new(0.25 + x_offset, y_offset),
-        ]),
-    )
 }
 
 #[system(for_each)]
@@ -86,7 +67,7 @@ fn taquin(
     case: &mut Case,
     transform: &mut Transform,
 ) {
-    if let Some(_event) = inputs.mouse().click_event() {
+    if inputs.mouse().click_event().is_some() {
         let mouse_x = inputs.mouse().x();
         let mouse_y = inputs.mouse().y();
         if mouse_x > (case.0.x() * 192.) as f64
@@ -121,30 +102,46 @@ fn taquin(
 struct Layer;
 
 impl SimpleGameLayer for Layer {
-    fn on_start(&mut self, world: &mut World, resource: &mut Resources) {
-        let p = app_base_path().join("examples/taquin/assets/taquin.png").get();
-        for x in 0..4 {
-            for y in 0..4 {
-                if !(x == 3 && y == 3) {
+    fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
+        let material_ref = resources
+            .get_mut::<AssetManager>()
+            .expect("AssetManager is mandatory")
+            .register_material(Material::Texture(
+                app_base_path()
+                    .join("examples/taquin/assets/taquin.png")
+                    .get(),
+            ));
+        for line in 0..4 {
+            for column in 0..4 {
+                if !(line == 3 && column == 3) {
                     let square = (
-                        Case(Coordinates::new(x as f32, y as f32)),
-                        square(x, y),
-                        Material::Texture(p.clone()),
-                        Transform::new(Coordinates::new(x as f32 * 192., y as f32 * 192.), 1., 0.),
+                        Transform::new(
+                            Coordinates::new(column as f32 * 192., line as f32 * 192.),
+                            1.,
+                            0.,
+                        ),
+                        material_ref.clone(),
+                        Sprite::new(4, 4, 192, line * 4 + column),
+                        Case(Coordinates::new(column as f32, line as f32)),
                     );
                     world.push(square);
                 }
             }
         }
-        resource.insert(Camera::new(768., 768., 10.));
-        resource.insert(Taquin::new());
+        resources.insert(Camera::new(768., 768., 10.));
+        resources.insert(Taquin::new());
     }
 }
 
 fn main() {
     Scion::app_with_config(
         ScionConfigBuilder::new()
-            .with_window_config(WindowConfigBuilder::new().with_dimensions((768, 768)).get())
+            .with_window_config(
+                WindowConfigBuilder::new()
+                    .with_resizable(false)
+                    .with_dimensions((768, 768))
+                    .get(),
+            )
             .get(),
     )
     .with_system(taquin_system())

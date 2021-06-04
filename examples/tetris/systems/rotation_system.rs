@@ -71,7 +71,7 @@ pub fn piece_rotation(
                 tetris.active_piece.rotate();
                 let offsets = tetris.active_piece.get_current_offsets();
                 for offset in offsets {
-                    initialize_bloc(&offset, cmd, tetris.active_piece.color, x as f32, y as f32);
+                    initialize_bloc(&offset, cmd, tetris, x as f32, y as f32, false);
                 }
                 movement_timer.reset();
             }

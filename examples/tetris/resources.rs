@@ -1,3 +1,5 @@
+use scion::core::{components::material::Material, resources::asset_manager::AssetRef};
+
 use crate::components::Piece;
 
 pub enum TetrisState {
@@ -6,6 +8,7 @@ pub enum TetrisState {
 }
 
 pub struct TetrisResource {
+    pub asset: Option<AssetRef<Material>>,
     pub state: TetrisState,
     pub active_piece: Piece,
     pub next_piece: Piece,
@@ -19,6 +22,7 @@ impl Default for TetrisResource {
             active_piece: Piece::random_new(),
             next_piece: Piece::random_new(),
             score: 0,
+            asset: None,
         }
     }
 }

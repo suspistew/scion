@@ -58,22 +58,14 @@ mod tests {
         let e = world.push((1, asset_ref.clone()));
         assert_eq!(
             true,
-            world
-                .entry(e)
-                .unwrap()
-                .get_component::<Material>()
-                .is_err()
+            world.entry(e).unwrap().get_component::<Material>().is_err()
         );
 
         schedule.execute(&mut world, &mut resources);
 
         assert_eq!(
             true,
-            world
-                .entry(e)
-                .unwrap()
-                .get_component::<Material>()
-                .is_ok()
+            world.entry(e).unwrap().get_component::<Material>().is_ok()
         );
     }
 }

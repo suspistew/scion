@@ -98,7 +98,7 @@ impl Into<WindowBuilder> for WindowConfig {
             maximized: self.maximized,
             resizable: self.resizable,
             transparent: self.transparent,
-            position: None
+            position: None,
         };
         builder
     }

@@ -99,7 +99,9 @@ impl SimpleGameLayer for Mario {
 
 fn add_level_data(world: &mut World) -> Vec<Vec<usize>> {
     let file = read_file(Path::new(
-        &app_base_path().join("examples/mario/assets/level.csv").get(),
+        &app_base_path()
+            .join("examples/mario/assets/level.csv")
+            .get(),
     ))
     .unwrap_or(vec![]);
     let csv = from_utf8(file.as_slice()).expect("no");
@@ -151,7 +153,11 @@ fn add_level_data(world: &mut World) -> Vec<Vec<usize>> {
 fn add_background(world: &mut World) {
     let background = (
         Rectangle::new(2560., 640., None),
-        Material::Texture(app_base_path().join("examples/mario/assets/level.png").get()),
+        Material::Texture(
+            app_base_path()
+                .join("examples/mario/assets/level.png")
+                .get(),
+        ),
         Transform::new(Coordinates::new_with_layer(0., 0., 1), 1., 0.),
     );
     world.push(background);

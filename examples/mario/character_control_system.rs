@@ -71,7 +71,9 @@ pub fn move_char(
             }
         });
     } else {
-        let timer = timers.get_timer("gravity").expect("Missing timer : gravity");
+        let timer = timers
+            .get_timer("gravity")
+            .expect("Missing timer : gravity");
         query.for_each_mut(world, |(hero, _t)| {
             if !hero.landed {
                 if timer.ended() {

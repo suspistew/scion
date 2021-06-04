@@ -2,4 +2,4 @@
 Cargo.lock
 .idea
 .vscode
-Scion.toml
+scion.json
