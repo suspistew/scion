@@ -61,7 +61,7 @@ impl SimpleGameLayer for TetrisLayer {
 fn add_score_ui(world: &mut World) -> Entity {
     // First we add an UiText to the world
     let font = Font::Bitmap {
-        texture_path: app_base_path().join("assets/tetris/font.png").get(),
+        texture_path: asset_path().join("font.png").get(),
         chars: "0123456789ACEOPRSULI".to_string(),
         texture_columns: 20.,
         texture_lines: 1.,

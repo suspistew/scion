@@ -67,8 +67,7 @@ pub(crate) fn ui_text_bitmap_update(
 
                         let mut char_transform = Transform::new(
                             Coordinates::new(
-                                transform.translation().x() + (index as f32 * (width + 1.)),
-                                transform.translation().y(),
+                                (index as f32 * (width + 1.)),0.,
                             ),
                             1.0,
                             0.,

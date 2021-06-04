@@ -286,8 +286,10 @@ impl ScionBuilder {
     }
 
     fn init_schedule_with_internal_systems(&mut self) {
+        self.schedule_builder
+            .add_system(ui_text_bitmap_update_system());
+        self.schedule_builder.flush();
         self.schedule_builder.add_system(children_manager_system());
-
         self.schedule_builder
             .add_system(missing_ui_component_system::<UiImage>());
         self.schedule_builder
@@ -300,8 +302,7 @@ impl ScionBuilder {
         self.schedule_builder.add_system(dirty_child_system());
         self.schedule_builder.flush();
         self.schedule_builder.add_system(dirty_transform_system());
-        self.schedule_builder
-            .add_system(ui_text_bitmap_update_system());
+
         self.schedule_builder
             .add_system(compute_collisions_system());
         self.schedule_builder.flush();
