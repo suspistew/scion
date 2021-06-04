@@ -1,4 +1,7 @@
-use wgpu::{BindGroupLayout, BlendFactor, BlendOperation, Device, RenderPipeline, SwapChainDescriptor, BlendComponent};
+use wgpu::{
+    BindGroupLayout, BlendComponent, BlendFactor, BlendOperation, Device, RenderPipeline,
+    SwapChainDescriptor,
+};
 
 use crate::rendering::bidimensional::gl_representations::TexturedGlVertex;
 
@@ -31,20 +34,18 @@ pub fn pipeline(
             targets: &[wgpu::ColorTargetState {
                 format: sc_desc.format,
                 write_mask: wgpu::ColorWrite::ALL,
-                blend: Some(
-                    wgpu::BlendState {
-                        color: BlendComponent {
-                            src_factor: BlendFactor::SrcAlpha,
-                            dst_factor: BlendFactor::OneMinusSrcAlpha,
-                            operation: BlendOperation::Add,
-                        },
-                        alpha: BlendComponent {
-                            src_factor: BlendFactor::One,
-                            dst_factor: BlendFactor::One,
-                            operation: BlendOperation::Add,
-                        },
-                    }
-                ),
+                blend: Some(wgpu::BlendState {
+                    color: BlendComponent {
+                        src_factor: BlendFactor::SrcAlpha,
+                        dst_factor: BlendFactor::OneMinusSrcAlpha,
+                        operation: BlendOperation::Add,
+                    },
+                    alpha: BlendComponent {
+                        src_factor: BlendFactor::One,
+                        dst_factor: BlendFactor::One,
+                        operation: BlendOperation::Add,
+                    },
+                }),
             }],
         }),
         primitive: wgpu::PrimitiveState {

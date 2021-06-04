@@ -1,7 +1,11 @@
 use std::{collections::HashMap, ops::Range, path::Path};
 
 use legion::{storage::Component, Entity, IntoQuery, Resources, World};
-use wgpu::{util::{BufferInitDescriptor, DeviceExt}, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPipeline, SwapChainDescriptor, SwapChainTexture, RenderPassColorAttachment};
+use wgpu::{
+    util::{BufferInitDescriptor, DeviceExt},
+    BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment,
+    RenderPipeline, SwapChainDescriptor, SwapChainTexture,
+};
 
 use crate::{
     core::components::{
@@ -110,7 +114,7 @@ fn load_texture_to_queue(
     let texture_size = wgpu::Extent3d {
         width: texture.width as u32,
         height: texture.height as u32,
-        depth_or_array_layers: 1
+        depth_or_array_layers: 1,
     };
 
     let diffuse_texture = device.create_texture(&wgpu::TextureDescriptor {
@@ -132,7 +136,7 @@ fn load_texture_to_queue(
         wgpu::ImageDataLayout {
             offset: 0,
             bytes_per_row: std::num::NonZeroU32::new((4 * texture.width) as u32),
-            rows_per_image:  std::num::NonZeroU32::new((texture.height as u32)),
+            rows_per_image: std::num::NonZeroU32::new(texture.height as u32),
         },
         texture_size,
     );

@@ -1,11 +1,15 @@
 use scion::{
     core::{
         components::{
+            material::Material,
             maths::{camera::Camera, transform::Transform},
             ui::{font::Font, ui_image::UiImage, ui_text::UiText},
         },
         game_layer::SimpleGameLayer,
-        resources::time::{TimerType, Timers},
+        resources::{
+            asset_manager::AssetManager,
+            time::{TimerType, Timers},
+        },
     },
     legion::{Entity, Resources, World},
     utils::file::app_base_path,
@@ -33,7 +37,14 @@ impl SimpleGameLayer for TetrisLayer {
             TimerType::Manual,
             0.2,
         );
-        resources.insert(TetrisResource::default());
+        let mut tetris = TetrisResource::default();
+        tetris.asset = Some(
+            resources
+                .get_mut::<AssetManager>()
+                .unwrap()
+                .register_material(Material::Texture(asset_path().join("blocs.png").get())),
+        );
+        resources.insert(tetris);
     }
 
     fn update(&mut self, world: &mut World, resources: &mut Resources) {

@@ -3,6 +3,7 @@ use scion::{
         components::{
             material::Material,
             maths::transform::{Coordinates, Transform},
+            sprite::Sprite,
             Square,
         },
         resources::time::Timers,
@@ -11,7 +12,6 @@ use scion::{
 };
 
 use crate::{
-    asset_path,
     components::{Bloc, BlocKind, NextBloc, BLOC_SIZE, BOARD_HEIGHT, BOARD_OFFSET},
     resources::{TetrisResource, TetrisState},
 };
@@ -37,12 +37,12 @@ pub fn piece_update(
                 });
                 let offsets = tetris.next_piece.get_current_offsets();
                 for offset in offsets {
-                    initialize_next_bloc(&offset, cmd, tetris.next_piece.color, 12., 2.);
+                    initialize_bloc(&offset, cmd, tetris, 12., 2., true);
                 }
 
                 let offsets = tetris.active_piece.get_current_offsets();
                 for offset in offsets {
-                    initialize_bloc(&offset, cmd, tetris.active_piece.color, 4., 0.);
+                    initialize_bloc(&offset, cmd, tetris, 4., 0., false);
                 }
             }
             TetrisState::MOVING(x, y) => {
@@ -101,9 +101,10 @@ pub fn piece_update(
 pub fn initialize_bloc(
     offset: &(f32, f32),
     cmd: &mut CommandBuffer,
-    color: usize,
+    tetris: &TetrisResource,
     coord_x: f32,
     coord_y: f32,
+    is_next_bloc: bool,
 ) {
     let mut bloc_transform = Transform::default();
     bloc_transform.append_translation(
@@ -111,60 +112,24 @@ pub fn initialize_bloc(
         coord_y * BLOC_SIZE + offset.1 * BLOC_SIZE,
     );
     bloc_transform.set_layer(1);
-    cmd.push((
-        Bloc::new(BlocKind::Moving),
+    let tuple = (
         bloc_transform,
-        Square::new(
-            32.,
-            Some([
-                Coordinates::new(0., 0.),
-                Coordinates::new(0., 1.),
-                Coordinates::new(1., 1.),
-                Coordinates::new(1., 0.),
-            ]),
+        Sprite::new(
+            8,
+            1,
+            32,
+            if is_next_bloc {
+                tetris.next_piece.color
+            } else {
+                tetris.active_piece.color
+            },
         ),
-        Material::Texture(asset_path().join(get_color_skin(color).as_str()).get()),
-    ));
-}
-
-pub fn initialize_next_bloc(
-    offset: &(f32, f32),
-    cmd: &mut CommandBuffer,
-    color: usize,
-    coord_x: f32,
-    coord_y: f32,
-) {
-    let mut bloc_transform = Transform::default();
-    bloc_transform.append_translation(
-        coord_x * BLOC_SIZE + offset.0 * BLOC_SIZE,
-        coord_y * BLOC_SIZE + offset.1 * BLOC_SIZE,
+        tetris.asset.as_ref().unwrap().clone(),
     );
-    bloc_transform.set_layer(1);
-    cmd.push((
-        NextBloc,
-        bloc_transform,
-        Square::new(
-            32.,
-            Some([
-                Coordinates::new(0., 0.),
-                Coordinates::new(0., 1.),
-                Coordinates::new(1., 1.),
-                Coordinates::new(1., 0.),
-            ]),
-        ),
-        Material::Texture(asset_path().join(get_color_skin(color).as_str()).get()),
-    ));
-}
 
-fn get_color_skin(color: usize) -> String {
-    let color = match color {
-        0 => "blue.png",
-        1 => "brown.png",
-        2 => "cyan.png",
-        3 => "green.png",
-        4 => "pink.png",
-        5 => "red.png",
-        _ => "yellow.png",
+    if is_next_bloc {
+        cmd.push((tuple.0, tuple.1, tuple.2, NextBloc));
+    } else {
+        cmd.push((tuple.0, tuple.1, tuple.2, Bloc::new(BlocKind::Moving)));
     };
-    color.to_string()
 }

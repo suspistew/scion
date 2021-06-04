@@ -19,17 +19,25 @@ pub(crate) fn compute_collisions(
         query_colliders.iter_mut(world).collect();
     let len = colliders.len();
     for i in 0..len {
-        let col = colliders.get(i).expect("A collider can't be found while it must exist due to previous checks");
+        let col = colliders
+            .get(i)
+            .expect("A collider can't be found while it must exist due to previous checks");
         if !col.2.passive() {
             let mut collisions = (0..len)
                 .filter(|index| *index != i)
                 .filter(|index| {
-                    let col2 = colliders.get(*index).expect("A collider can't be found while it must exist due to previous checks");
+                    let col2 = colliders.get(*index).expect(
+                        "A collider can't be found while it must exist due to previous checks",
+                    );
                     col.2.collides_with(col.1, col2.2, col2.1)
                 })
                 .map(|index| {
-                    let col = colliders.get(index).expect("A collider can't be found while it must exist due to previous checks");
-                    let col2 = colliders.get(index).expect("A collider can't be found while it must exist due to previous checks");
+                    let col = colliders.get(index).expect(
+                        "A collider can't be found while it must exist due to previous checks",
+                    );
+                    let col2 = colliders.get(index).expect(
+                        "A collider can't be found while it must exist due to previous checks",
+                    );
                     Collision {
                         mask: col.2.mask().clone(),
                         entity: *col.0,
