@@ -162,7 +162,7 @@ pub(crate) fn create_glmat(t: &Vec4) -> [f32; 4] {
 
 pub(crate) struct UniformData<'a> {
     pub transform: &'a Transform,
-    pub camera: &'a Camera,
+    pub camera: (&'a Camera, &'a Transform),
     pub is_ui_component: bool,
 }
 
@@ -177,8 +177,8 @@ impl From<UniformData<'_>> for GlUniform {
         });
         if !uniform_data.is_ui_component {
             model_trans.append_translation(Vec3 {
-                x: -1. * uniform_data.camera.position.x(),
-                y: -1. * uniform_data.camera.position.y(),
+                x: -1. * uniform_data.camera.1.global_translation().x(),
+                y: -1. * uniform_data.camera.1.global_translation().y(),
                 z: 0.0,
             });
         }
@@ -186,12 +186,12 @@ impl From<UniformData<'_>> for GlUniform {
             .prepend_rotation(Rotor3::from_rotation_xy(uniform_data.transform.angle).normalized());
         let mut model_trans = model_trans.into_homogeneous_matrix();
         let mut camera_view = ultraviolet::projection::lh_ydown::orthographic_wgpu_dx(
-            uniform_data.camera.left,
-            uniform_data.camera.right,
-            uniform_data.camera.bottom,
-            uniform_data.camera.top,
-            uniform_data.camera.near,
-            uniform_data.camera.far,
+            uniform_data.camera.0.left,
+            uniform_data.camera.0.right,
+            uniform_data.camera.0.bottom,
+            uniform_data.camera.0.top,
+            uniform_data.camera.0.near,
+            uniform_data.camera.0.far,
         );
         GlUniform {
             model_trans: create_glmat4(&mut model_trans),

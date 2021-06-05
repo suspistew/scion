@@ -50,6 +50,10 @@ pub struct Transform {
     pub(crate) angle: f32,
     pub(crate) dirty: bool,
     pub(crate) dirty_child: bool,
+    pub(crate) min_x: Option<f32>,
+    pub(crate) max_x: Option<f32>,
+    pub(crate) min_y: Option<f32>,
+    pub(crate) max_y: Option<f32>,
 }
 
 impl Default for Transform {
@@ -61,6 +65,10 @@ impl Default for Transform {
             angle: 0.0,
             dirty: false,
             dirty_child: true,
+            min_x: None,
+            max_x: None,
+            min_y: None,
+            max_y: None,
         }
     }
 }
@@ -75,6 +83,10 @@ impl Transform {
             angle,
             dirty: false,
             dirty_child: true,
+            min_x: None,
+            max_x: None,
+            min_y: None,
+            max_y: None,
         }
     }
 
@@ -85,6 +97,7 @@ impl Transform {
         self.global_translation.x += x;
         self.global_translation.y += y;
         self.dirty = true;
+        self.handle_bounds();
     }
 
     /// Appends the x val to the translation's x value
@@ -92,6 +105,7 @@ impl Transform {
         self.local_translation.x += x;
         self.global_translation.x += x;
         self.dirty = true;
+        self.handle_bounds();
     }
 
     /// Appends the y val to the translation's y value
@@ -99,6 +113,7 @@ impl Transform {
         self.local_translation.y += y;
         self.global_translation.y += y;
         self.dirty = true;
+        self.handle_bounds();
     }
 
     /// Move this transform down
@@ -106,6 +121,7 @@ impl Transform {
         self.local_translation.y += y;
         self.global_translation.y += y;
         self.dirty = true;
+        self.handle_bounds();
     }
 
     /// Append an angle to this transform's angle
@@ -133,6 +149,27 @@ impl Transform {
         self.local_translation.layer = layer
     }
 
+    /// Configure the minimum global x position for this transform to be min_x
+    pub fn set_min_x(&mut self, min_x: Option<f32>) { self.min_x = min_x; self.handle_bounds();}
+
+    /// Configure the maximum global x position for this transform to be max_x
+    pub fn set_max_x(&mut self, max_x: Option<f32>) { self.max_x = max_x; self.handle_bounds();}
+
+    /// Configure the minimum global y position for this transform to be min_x
+    pub fn set_min_y(&mut self, min_y: Option<f32>) { self.min_y = min_y; self.handle_bounds();}
+
+    /// Configure the maximum global y position for this transform to be max_x
+    pub fn set_max_y(&mut self, max_y: Option<f32>) { self.max_y = max_y; self.handle_bounds();}
+
+    /// Configure the minimum and maximum global values of x and y
+    pub fn set_global_translation_bounds(&mut self, min_x: Option<f32>, max_x: Option<f32>, min_y: Option<f32>, max_y: Option<f32>){
+        self.min_x = min_x;
+        self.max_x = max_x;
+        self.min_y = min_y;
+        self.max_y = max_y;
+        self.handle_bounds();
+    }
+
     /// Computes the global_translation using the parent as origin
     pub(crate) fn compute_global_from_parent(&mut self, parent_translation: &Coordinates) {
         let mut new_global = parent_translation.clone();
@@ -141,6 +178,33 @@ impl Transform {
         new_global.layer = self.local_translation.layer;
         self.global_translation = new_global;
         self.dirty = true;
+        self.handle_bounds();
+    }
+
+    fn handle_bounds(&mut self) {
+        if let Some(min_x) = self.min_x {
+            if self.global_translation.x < min_x {
+                self.global_translation.set_x(min_x);
+            }
+        }
+
+        if let Some(max_x) = self.max_x {
+            if self.global_translation.x > max_x {
+                self.global_translation.set_x(max_x);
+            }
+        }
+
+        if let Some(min_y) = self.min_y {
+            if self.global_translation.y < min_y {
+                self.global_translation.set_y(min_y);
+            }
+        }
+
+        if let Some(max_y) = self.max_y {
+            if self.global_translation.y > max_y {
+                self.global_translation.set_y(max_y);
+            }
+        }
     }
 }
 
@@ -189,5 +253,14 @@ mod tests {
 
         transform.compute_global_from_parent(&Coordinates::new(1., 2.));
         assert_eq!(true, transform.dirty);
+    }
+
+    #[test]
+    fn handle_bounds_test() {
+        let mut t = Transform::default();
+        t.set_min_x(Some(1.));
+        assert_eq!(1., t.global_translation.x);
+        t.append_x(-6.);
+        assert_eq!(1., t.global_translation.x);
     }
 }

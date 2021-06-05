@@ -12,7 +12,6 @@ use scion::{
         },
     },
     legion::{Entity, Resources, World},
-    utils::file::app_base_path,
 };
 
 use crate::{asset_path, resources::TetrisResource};
@@ -27,7 +26,7 @@ impl SimpleGameLayer for TetrisLayer {
         add_main_ui_mask(world);
         add_ui_top_overflow(world);
         self.score = Some(add_score_ui(world));
-        resources.insert(Camera::new(544., 704., 10.));
+        world.push((Camera::new(544., 704., 10.), Transform::default()));
         let _r = resources
             .get_mut::<Timers>()
             .unwrap()

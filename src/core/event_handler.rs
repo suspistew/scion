@@ -64,8 +64,8 @@ pub(crate) fn handle_event(
             window.request_redraw();
         }
         Event::RedrawRequested(_) => {
-            renderer.update(world, resources);
-            match renderer.render(world, resources) {
+            renderer.update(world);
+            match renderer.render(world) {
                 Ok(_) => {}
                 Err(e) => log::error!("{:?}", e),
             }

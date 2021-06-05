@@ -1,6 +1,6 @@
 use std::{collections::HashMap, ops::Range, path::Path};
 
-use legion::{storage::Component, Entity, IntoQuery, Resources, World};
+use legion::{storage::Component, Entity, IntoQuery, World};
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
     BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment,
@@ -55,14 +55,13 @@ impl ScionRenderer for Scion2D {
     fn update(
         &mut self,
         world: &mut World,
-        resources: &mut Resources,
         device: &Device,
         sc_desc: &SwapChainDescriptor,
         queue: &mut Queue,
     ) {
-        if resources.contains::<Camera>() {
+        if world_contains_camera(world) {
             self.update_diffuse_bind_groups(world, device, queue);
-            self.update_transforms(world, resources, &device, queue);
+            self.update_transforms(world, &device, queue);
             self.upsert_component_pipeline::<Triangle>(world, &device, &sc_desc);
             self.upsert_component_pipeline::<Square>(world, &device, &sc_desc);
             self.upsert_component_pipeline::<Rectangle>(world, &device, &sc_desc);
@@ -77,7 +76,6 @@ impl ScionRenderer for Scion2D {
     fn render(
         &mut self,
         world: &mut World,
-        resource: &mut Resources,
         frame: &SwapChainTexture,
         encoder: &mut CommandEncoder,
     ) {
@@ -89,7 +87,7 @@ impl ScionRenderer for Scion2D {
             });
         }
 
-        if resource.contains::<Camera>() {
+        if world_contains_camera(world) {
             let mut rendering_infos = Vec::new();
             rendering_infos.append(&mut self.pre_render_component::<Triangle>(world));
             rendering_infos.append(&mut self.pre_render_component::<Square>(world));
@@ -105,6 +103,7 @@ impl ScionRenderer for Scion2D {
         }
     }
 }
+
 
 fn load_texture_to_queue(
     texture: &Texture,
@@ -196,7 +195,7 @@ fn load_texture_to_queue(
 fn create_transform_uniform_bind_group(
     device: &Device,
     transform: &Transform,
-    camera: &Camera,
+    camera: (&Camera, &Transform),
     is_ui_component: bool,
 ) -> (GlUniform, Buffer, BindGroupLayout, BindGroup) {
     let uniform = GlUniform::from(UniformData {
@@ -447,22 +446,22 @@ impl Scion2D {
 
     fn update_transforms(
         &mut self,
-        world: &mut World,
-        resources: &mut Resources,
+        main_world: &mut World,
         device: &&Device,
         queue: &mut Queue,
     ) {
-        let camera = resources
-            .get::<Camera>()
-            .expect("Missing Camera2D component, can't update transform without the camera view");
+        let mut camera_query = <(&Camera, &Transform)>::query();
+        let (camera_world, mut world) = main_world.split_for_query(&camera_query);
+        let camera = camera_query.iter(&camera_world)
+            .next().expect("No camera has been found in the world after the security check");
         for (entity, transform, optional_ui_component) in
-            <(Entity, &Transform, Option<&UiComponent>)>::query().iter_mut(world)
+            <(Entity, &Transform, Option<&UiComponent>)>::query().iter_mut(&mut world)
         {
             if !self.transform_uniform_bind_groups.contains_key(entity) {
                 let (uniform, uniform_buffer, glayout, group) = create_transform_uniform_bind_group(
                     &device,
                     transform,
-                    &*camera,
+                    camera,
                     optional_ui_component.is_some(),
                 );
                 queue.write_buffer(&uniform_buffer, 0, bytemuck::cast_slice(&[uniform]));
@@ -475,7 +474,7 @@ impl Scion2D {
                     .expect("Fatal error, a transform has been marked as found but doesn't exist");
                 uniform.replace_with(GlUniform::from(UniformData {
                     transform,
-                    camera: &camera,
+                    camera,
                     is_ui_component: optional_ui_component.is_some(),
                 }));
                 queue.write_buffer(uniform_buffer, 0, bytemuck::cast_slice(&[*uniform]));
@@ -524,4 +523,8 @@ fn get_path_from_color(color: &Color) -> String {
         color.blue(),
         color.alpha()
     )
+}
+
+fn world_contains_camera(world: &mut World) -> bool {
+    <&Camera>::query().iter(world).count() > 0
 }
