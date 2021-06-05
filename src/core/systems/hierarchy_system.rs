@@ -1,7 +1,6 @@
 use legion::{system, systems::CommandBuffer, world::{EntityAccessError, SubWorld}, Entity, Query, EntityStore};
 
 use crate::core::components::maths::hierarchy::{Children, Parent};
-use futures::StreamExt;
 
 /// System responsible to add/modify Children components to the entities referenced by a Parent component
 /// If the parent component referenced by the Children one is not found, then it deletes the entity
@@ -38,8 +37,8 @@ pub(crate) fn children_manager(
         }
     });
 
-    query_children.for_each_mut(&mut w2, |(e, p)|{
-        if let Some(mut p) = p {
+    query_children.for_each_mut(&mut w2, |(_e, p)|{
+        if let Some(p) = p {
             let mut to_delete = Vec::new();
             for (index, child) in p.0.iter().enumerate(){
                 if w1.entry_ref(*child).is_err(){

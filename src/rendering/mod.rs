@@ -1,5 +1,5 @@
 //! Everything that is relative to rendering to the window (Like renderable components, camera, transforms..)
-use legion::{Resources, World};
+use legion::{World};
 use wgpu::{CommandEncoder, Device, Queue, SwapChainDescriptor, SwapChainTexture};
 
 use crate::rendering::bidimensional::scion2d::Scion2D;
@@ -14,7 +14,6 @@ pub trait ScionRenderer {
     fn update(
         &mut self,
         world: &mut World,
-        resource: &mut Resources,
         device: &Device,
         sc_desc: &SwapChainDescriptor,
         queue: &mut Queue,
@@ -24,7 +23,6 @@ pub trait ScionRenderer {
     fn render(
         &mut self,
         world: &mut World,
-        resources: &mut Resources,
         frame: &SwapChainTexture,
         encoder: &mut CommandEncoder,
     );

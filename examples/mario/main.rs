@@ -26,6 +26,7 @@ use scion::{
 };
 
 use crate::{character_control_system::move_char_system, collisions_system::collider_system};
+use scion::core::components::maths::hierarchy::Parent;
 
 pub const MAX_VELOCITY: i32 = 100;
 
@@ -43,28 +44,26 @@ pub struct Mario {
 }
 
 impl SimpleGameLayer for Mario {
-    fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
+    fn on_start(&mut self, world: &mut World, _resources: &mut Resources) {
         add_background(world);
         self.hero = Some(add_character(world));
         self.map = add_level_data(world);
-        resources.insert(Camera::new_with_position(
+        let mut camera_transform = Transform::new(Coordinates::new(-202., -320.), 1.0, 0.);
+        camera_transform.set_global_translation_bounds(Some(0.),Some(2060.),Some(0.),Some(0.));
+        world.push((Camera::new(
             500.,
             640.,
-            10.,
-            Coordinates::new(50., 0.),
-        ));
+            10.),
+                    camera_transform
+                    , Parent(self.hero.expect("Hero is mandatory"))));
     }
-    fn late_update(&mut self, world: &mut World, resources: &mut Resources) {
+    fn late_update(&mut self, world: &mut World, _resources: &mut Resources) {
         let hero = <(&mut Hero, &mut Transform)>::query()
             .get_mut(world, self.hero.unwrap())
             .unwrap();
         if hero.0.velocity != 0 {
             hero.1
                 .append_x(hero.0.velocity as f32 / MAX_VELOCITY as f32 * 2.5);
-            resources
-                .get_mut::<Camera>()
-                .unwrap()
-                .append_position(hero.0.velocity as f32 / MAX_VELOCITY as f32 * 2.5, 0.);
         }
 
         if hero.0.gravity != 0 {
@@ -103,7 +102,7 @@ fn add_level_data(world: &mut World) -> Vec<Vec<usize>> {
             .join("examples/mario/assets/level.csv")
             .get(),
     ))
-    .unwrap_or(vec![]);
+        .unwrap_or(vec![]);
     let csv = from_utf8(file.as_slice()).expect("no");
     let data: Vec<Vec<usize>> = csv
         .split("\r\n")
@@ -192,8 +191,8 @@ fn main() {
             )
             .get(),
     )
-    .with_game_layer(GameLayer::weak::<Mario>("Mario"))
-    .with_system(move_char_system())
-    .with_system(collider_system())
-    .run();
+        .with_game_layer(GameLayer::weak::<Mario>("Mario"))
+        .with_system(move_char_system())
+        .with_system(collider_system())
+        .run();
 }

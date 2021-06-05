@@ -128,7 +128,7 @@ impl SimpleGameLayer for Layer {
                 }
             }
         }
-        resources.insert(Camera::new(768., 768., 10.));
+        world.push((Camera::new(768., 768., 10.), Transform::default()));
         resources.insert(Taquin::new());
     }
 }
@@ -144,7 +144,7 @@ fn main() {
             )
             .get(),
     )
-    .with_system(taquin_system())
-    .with_game_layer(GameLayer::weak::<Layer>("Taquin"))
-    .run();
+        .with_system(taquin_system())
+        .with_game_layer(GameLayer::weak::<Layer>("Taquin"))
+        .run();
 }
