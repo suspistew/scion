@@ -1,4 +1,9 @@
-use legion::{system, systems::CommandBuffer, world::{EntityAccessError, SubWorld}, Entity, Query, EntityStore};
+use legion::{
+    system,
+    systems::CommandBuffer,
+    world::{EntityAccessError, SubWorld},
+    Entity, EntityStore, Query,
+};
 
 use crate::core::components::maths::hierarchy::{Children, Parent};
 
@@ -37,16 +42,16 @@ pub(crate) fn children_manager(
         }
     });
 
-    query_children.for_each_mut(&mut w2, |(_e, p)|{
+    query_children.for_each_mut(&mut w2, |(_e, p)| {
         if let Some(p) = p {
             let mut to_delete = Vec::new();
-            for (index, child) in p.0.iter().enumerate(){
-                if w1.entry_ref(*child).is_err(){
+            for (index, child) in p.0.iter().enumerate() {
+                if w1.entry_ref(*child).is_err() {
                     to_delete.push(index);
                 }
             }
             to_delete.reverse();
-            to_delete.iter().for_each(|index|{
+            to_delete.iter().for_each(|index| {
                 p.0.remove(*index);
             });
         }
@@ -94,14 +99,32 @@ mod tests {
             .build();
 
         let child = world.push((1,));
-        let parent = world.push((2,Children(vec![child])));
+        let parent = world.push((2, Children(vec![child])));
 
         // We check that we have the child
-        assert_eq!(true,world.entry(parent).unwrap().get_component::<Children>().unwrap().0.contains(&child));
+        assert_eq!(
+            true,
+            world
+                .entry(parent)
+                .unwrap()
+                .get_component::<Children>()
+                .unwrap()
+                .0
+                .contains(&child)
+        );
         world.remove(child);
 
         // we delete the child and then we execute the schedule and test that we have the good result
         schedule.execute(&mut world, &mut resources);
-        assert_eq!(0, world.entry(parent).unwrap().get_component::<Children>().unwrap().0.len());
+        assert_eq!(
+            0,
+            world
+                .entry(parent)
+                .unwrap()
+                .get_component::<Children>()
+                .unwrap()
+                .0
+                .len()
+        );
     }
 }

@@ -3,6 +3,7 @@ use scion::{
         components::{
             material::Material,
             maths::{camera::Camera, transform::Transform},
+            tiles::tileset::Tileset,
             ui::{font::Font, ui_image::UiImage, ui_text::UiText},
         },
         game_layer::SimpleGameLayer,
@@ -41,7 +42,12 @@ impl SimpleGameLayer for TetrisLayer {
             resources
                 .get_mut::<AssetManager>()
                 .unwrap()
-                .register_material(Material::Texture(asset_path().join("blocs.png").get())),
+                .register_tileset(Tileset::new(
+                    asset_path().join("blocs.png").get(),
+                    8,
+                    1,
+                    32,
+                )),
         );
         resources.insert(tetris);
     }

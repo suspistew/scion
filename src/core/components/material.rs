@@ -2,7 +2,10 @@ use std::path::Path;
 
 use image::{DynamicImage, ImageBuffer, ImageFormat};
 
-use crate::{core::components::color::Color, utils::file::read_file};
+use crate::{
+    core::components::{color::Color, tiles::tileset::Tileset},
+    utils::file::read_file,
+};
 
 /// Component used by the 2D Renderer to know which material to use when rendering a renderable object.
 #[derive(Clone)]
@@ -11,6 +14,8 @@ pub enum Material {
     Color(Color),
     /// Use a texture. Note that this means the target object will need to have uv maps.
     Texture(String),
+    /// Tileset Texture. This will be added by the engine on entities with a sprite component.
+    Tileset(Tileset),
 }
 
 pub(crate) struct Texture {

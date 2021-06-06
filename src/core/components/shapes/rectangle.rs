@@ -3,7 +3,7 @@ use std::ops::Range;
 use wgpu::util::BufferInitDescriptor;
 
 use crate::{
-    core::components::maths::transform::Coordinates,
+    core::components::{material::Material, maths::transform::Coordinates},
     rendering::bidimensional::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
 };
 
@@ -47,7 +47,7 @@ fn default_uvs() -> [Coordinates; 4] {
 }
 
 impl Renderable2D for Rectangle {
-    fn vertex_buffer_descriptor(&mut self) -> BufferInitDescriptor {
+    fn vertex_buffer_descriptor(&mut self, _material: Option<&Material>) -> BufferInitDescriptor {
         wgpu::util::BufferInitDescriptor {
             label: Some("Rectangle Vertex Buffer"),
             contents: bytemuck::cast_slice(&self.contents),

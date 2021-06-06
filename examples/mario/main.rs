@@ -13,6 +13,7 @@ use scion::{
             maths::{
                 camera::Camera,
                 collider::{Collider, ColliderMask, ColliderType},
+                hierarchy::Parent,
                 transform::{Coordinates, Transform},
             },
             shapes::rectangle::Rectangle,
@@ -26,7 +27,6 @@ use scion::{
 };
 
 use crate::{character_control_system::move_char_system, collisions_system::collider_system};
-use scion::core::components::maths::hierarchy::Parent;
 
 pub const MAX_VELOCITY: i32 = 100;
 
@@ -49,13 +49,12 @@ impl SimpleGameLayer for Mario {
         self.hero = Some(add_character(world));
         self.map = add_level_data(world);
         let mut camera_transform = Transform::new(Coordinates::new(-202., -320.), 1.0, 0.);
-        camera_transform.set_global_translation_bounds(Some(0.),Some(2060.),Some(0.),Some(0.));
-        world.push((Camera::new(
-            500.,
-            640.,
-            10.),
-                    camera_transform
-                    , Parent(self.hero.expect("Hero is mandatory"))));
+        camera_transform.set_global_translation_bounds(Some(0.), Some(2060.), Some(0.), Some(0.));
+        world.push((
+            Camera::new(500., 640., 10.),
+            camera_transform,
+            Parent(self.hero.expect("Hero is mandatory")),
+        ));
     }
     fn late_update(&mut self, world: &mut World, _resources: &mut Resources) {
         let hero = <(&mut Hero, &mut Transform)>::query()
@@ -102,7 +101,7 @@ fn add_level_data(world: &mut World) -> Vec<Vec<usize>> {
             .join("examples/mario/assets/level.csv")
             .get(),
     ))
-        .unwrap_or(vec![]);
+    .unwrap_or(vec![]);
     let csv = from_utf8(file.as_slice()).expect("no");
     let data: Vec<Vec<usize>> = csv
         .split("\r\n")
@@ -191,8 +190,8 @@ fn main() {
             )
             .get(),
     )
-        .with_game_layer(GameLayer::weak::<Mario>("Mario"))
-        .with_system(move_char_system())
-        .with_system(collider_system())
-        .run();
+    .with_game_layer(GameLayer::weak::<Mario>("Mario"))
+    .with_system(move_char_system())
+    .with_system(collider_system())
+    .run();
 }

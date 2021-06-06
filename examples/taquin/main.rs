@@ -7,7 +7,7 @@ use scion::{
                 camera::Camera,
                 transform::{Coordinates, Transform},
             },
-            sprite::Sprite,
+            tiles::{sprite::Sprite, tileset::Tileset},
         },
         game_layer::{GameLayer, SimpleGameLayer},
         resources::{asset_manager::AssetManager, inputs::inputs_controller::InputsController},
@@ -103,13 +103,16 @@ struct Layer;
 
 impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
-        let material_ref = resources
+        let tileset_ref = resources
             .get_mut::<AssetManager>()
             .expect("AssetManager is mandatory")
-            .register_material(Material::Texture(
+            .register_tileset(Tileset::new(
                 app_base_path()
                     .join("examples/taquin/assets/taquin.png")
                     .get(),
+                4,
+                4,
+                192,
             ));
         for line in 0..4 {
             for column in 0..4 {
@@ -120,8 +123,8 @@ impl SimpleGameLayer for Layer {
                             1.,
                             0.,
                         ),
-                        material_ref.clone(),
-                        Sprite::new(4, 4, 192, line * 4 + column),
+                        tileset_ref.clone(),
+                        Sprite::new(line * 4 + column),
                         Case(Coordinates::new(column as f32, line as f32)),
                     );
                     world.push(square);
@@ -144,7 +147,7 @@ fn main() {
             )
             .get(),
     )
-        .with_system(taquin_system())
-        .with_game_layer(GameLayer::weak::<Layer>("Taquin"))
-        .run();
+    .with_system(taquin_system())
+    .with_game_layer(GameLayer::weak::<Layer>("Taquin"))
+    .run();
 }
