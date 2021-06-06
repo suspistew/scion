@@ -1,4 +1,4 @@
-use legion::{World};
+use legion::{Resources, World};
 use winit::{event::WindowEvent, window::Window};
 
 use crate::rendering::ScionRenderer;
@@ -70,19 +70,17 @@ impl RendererState {
         false
     }
 
-    pub(crate) fn update(&mut self, world: &mut World) {
+    pub(crate) fn update(&mut self, world: &mut World, resources: &mut Resources) {
         self.scion_renderer.update(
             world,
+            resources,
             &self.device,
             &self.sc_desc,
             &mut self.queue,
         );
     }
 
-    pub(crate) fn render(
-        &mut self,
-        world: &mut World,
-    ) -> Result<(), wgpu::SwapChainError> {
+    pub(crate) fn render(&mut self, world: &mut World) -> Result<(), wgpu::SwapChainError> {
         let frame = self.swap_chain.get_current_frame()?.output;
         let mut encoder = self
             .device
@@ -90,8 +88,7 @@ impl RendererState {
                 label: Some("Render Encoder"),
             });
 
-        self.scion_renderer
-            .render(world, &frame, &mut encoder);
+        self.scion_renderer.render(world, &frame, &mut encoder);
         self.queue.submit(std::iter::once(encoder.finish()));
 
         Ok(())

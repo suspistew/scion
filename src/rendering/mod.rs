@@ -1,5 +1,5 @@
 //! Everything that is relative to rendering to the window (Like renderable components, camera, transforms..)
-use legion::{World};
+use legion::{Resources, World};
 use wgpu::{CommandEncoder, Device, Queue, SwapChainDescriptor, SwapChainTexture};
 
 use crate::rendering::bidimensional::scion2d::Scion2D;
@@ -14,18 +14,14 @@ pub trait ScionRenderer {
     fn update(
         &mut self,
         world: &mut World,
+        resources: &mut Resources,
         device: &Device,
         sc_desc: &SwapChainDescriptor,
         queue: &mut Queue,
     );
 
     /// Will be called after render, each time the window request redraw.
-    fn render(
-        &mut self,
-        world: &mut World,
-        frame: &SwapChainTexture,
-        encoder: &mut CommandEncoder,
-    );
+    fn render(&mut self, world: &mut World, frame: &SwapChainTexture, encoder: &mut CommandEncoder);
 }
 
 /// Type of renderer to use to render the game.

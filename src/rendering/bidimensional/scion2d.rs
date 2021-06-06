@@ -1,6 +1,6 @@
 use std::{collections::HashMap, ops::Range, path::Path};
 
-use legion::{storage::Component, Entity, IntoQuery, World};
+use legion::{storage::Component, Entity, IntoQuery, Resources, World};
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
     BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment,
@@ -13,7 +13,7 @@ use crate::{
         material::{Material, Texture},
         maths::{camera::Camera, transform::Transform},
         shapes::{rectangle::Rectangle, square::Square, triangle::Triangle},
-        sprite::Sprite,
+        tiles::sprite::Sprite,
         ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
     },
     rendering::{
@@ -24,7 +24,7 @@ use crate::{
 };
 
 pub(crate) trait Renderable2D {
-    fn vertex_buffer_descriptor(&mut self) -> BufferInitDescriptor;
+    fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor;
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor;
     fn range(&self) -> Range<u32>;
 }
@@ -55,6 +55,7 @@ impl ScionRenderer for Scion2D {
     fn update(
         &mut self,
         world: &mut World,
+        resources: &mut Resources,
         device: &Device,
         sc_desc: &SwapChainDescriptor,
         queue: &mut Queue,
@@ -62,12 +63,16 @@ impl ScionRenderer for Scion2D {
         if world_contains_camera(world) {
             self.update_diffuse_bind_groups(world, device, queue);
             self.update_transforms(world, &device, queue);
-            self.upsert_component_pipeline::<Triangle>(world, &device, &sc_desc);
-            self.upsert_component_pipeline::<Square>(world, &device, &sc_desc);
-            self.upsert_component_pipeline::<Rectangle>(world, &device, &sc_desc);
-            self.upsert_component_pipeline::<Sprite>(world, &device, &sc_desc);
-            self.upsert_ui_component_pipeline::<UiImage>(world, &device, &sc_desc, queue);
-            self.upsert_ui_component_pipeline::<UiTextImage>(world, &device, &sc_desc, queue);
+            self.upsert_component_pipeline::<Triangle>(world, resources, &device, &sc_desc);
+            self.upsert_component_pipeline::<Square>(world, resources, &device, &sc_desc);
+            self.upsert_component_pipeline::<Rectangle>(world, resources, &device, &sc_desc);
+            self.upsert_component_pipeline::<Sprite>(world, resources, &device, &sc_desc);
+            self.upsert_ui_component_pipeline::<UiImage>(
+                world, resources, &device, &sc_desc, queue,
+            );
+            self.upsert_ui_component_pipeline::<UiTextImage>(
+                world, resources, &device, &sc_desc, queue,
+            );
         } else {
             log::warn!("No camera has been found in resources");
         }
@@ -103,7 +108,6 @@ impl ScionRenderer for Scion2D {
         }
     }
 }
-
 
 fn load_texture_to_queue(
     texture: &Texture,
@@ -272,6 +276,7 @@ impl Scion2D {
     fn upsert_component_pipeline<T: Component + Renderable2D>(
         &mut self,
         world: &mut World,
+        _resources: &mut Resources,
         device: &&Device,
         sc_desc: &&SwapChainDescriptor,
     ) {
@@ -280,7 +285,7 @@ impl Scion2D {
         {
             if !self.vertex_buffers.contains_key(entity) {
                 let vertex_buffer =
-                    device.create_buffer_init(&component.vertex_buffer_descriptor());
+                    device.create_buffer_init(&component.vertex_buffer_descriptor(Some(material)));
                 self.vertex_buffers.insert(*entity, vertex_buffer);
             }
 
@@ -298,6 +303,9 @@ impl Scion2D {
                 Material::Texture(path) => {
                     self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path)
                 }
+                Material::Tileset(tileset) => {
+                    self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &tileset.texture)
+                }
             };
         }
     }
@@ -305,6 +313,7 @@ impl Scion2D {
     fn upsert_ui_component_pipeline<T: Component + Renderable2D + RenderableUi>(
         &mut self,
         world: &mut World,
+        _resources: &mut Resources,
         device: &&Device,
         sc_desc: &&SwapChainDescriptor,
         queue: &mut Queue,
@@ -312,7 +321,7 @@ impl Scion2D {
         for (entity, component, _) in <(Entity, &mut T, &Transform)>::query().iter_mut(world) {
             if !self.vertex_buffers.contains_key(entity) {
                 let vertex_buffer =
-                    device.create_buffer_init(&component.vertex_buffer_descriptor());
+                    device.create_buffer_init(&component.vertex_buffer_descriptor(None));
                 self.vertex_buffers.insert(*entity, vertex_buffer);
             }
 
@@ -415,6 +424,7 @@ impl Scion2D {
             let path = match material {
                 Material::Color(color) => Some(get_path_from_color(&color)),
                 Material::Texture(p) => Some(p.clone()),
+                Material::Tileset(tileset) => Some(tileset.texture.clone()),
             };
             render_infos.push(RenderingInfos {
                 layer: transform.translation().layer(),
@@ -444,16 +454,13 @@ impl Scion2D {
         render_infos
     }
 
-    fn update_transforms(
-        &mut self,
-        main_world: &mut World,
-        device: &&Device,
-        queue: &mut Queue,
-    ) {
+    fn update_transforms(&mut self, main_world: &mut World, device: &&Device, queue: &mut Queue) {
         let mut camera_query = <(&Camera, &Transform)>::query();
         let (camera_world, mut world) = main_world.split_for_query(&camera_query);
-        let camera = camera_query.iter(&camera_world)
-            .next().expect("No camera has been found in the world after the security check");
+        let camera = camera_query
+            .iter(&camera_world)
+            .next()
+            .expect("No camera has been found in the world after the security check");
         for (entity, transform, optional_ui_component) in
             <(Entity, &Transform, Option<&UiComponent>)>::query().iter_mut(&mut world)
         {
@@ -506,6 +513,18 @@ impl Scion2D {
                         let loaded_texture = Texture::from_color(&color);
                         self.diffuse_bind_groups.insert(
                             path.clone(),
+                            load_texture_to_queue(&loaded_texture, queue, device),
+                        );
+                    }
+                }
+                Material::Tileset(tileset) => {
+                    if !self
+                        .diffuse_bind_groups
+                        .contains_key(tileset.texture.as_str())
+                    {
+                        let loaded_texture = Texture::from_png(Path::new(tileset.texture.as_str()));
+                        self.diffuse_bind_groups.insert(
+                            tileset.texture.clone(),
                             load_texture_to_queue(&loaded_texture, queue, device),
                         );
                     }

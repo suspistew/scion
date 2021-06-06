@@ -3,7 +3,7 @@ use scion::{
         components::{
             material::Material,
             maths::transform::{Coordinates, Transform},
-            sprite::Sprite,
+            tiles::sprite::Sprite,
             Square,
         },
         resources::time::Timers,
@@ -114,16 +114,11 @@ pub fn initialize_bloc(
     bloc_transform.set_layer(1);
     let tuple = (
         bloc_transform,
-        Sprite::new(
-            8,
-            1,
-            32,
-            if is_next_bloc {
-                tetris.next_piece.color
-            } else {
-                tetris.active_piece.color
-            },
-        ),
+        Sprite::new(if is_next_bloc {
+            tetris.next_piece.color
+        } else {
+            tetris.active_piece.color
+        }),
         tetris.asset.as_ref().unwrap().clone(),
     );
 

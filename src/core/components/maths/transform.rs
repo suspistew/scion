@@ -150,19 +150,37 @@ impl Transform {
     }
 
     /// Configure the minimum global x position for this transform to be min_x
-    pub fn set_min_x(&mut self, min_x: Option<f32>) { self.min_x = min_x; self.handle_bounds();}
+    pub fn set_min_x(&mut self, min_x: Option<f32>) {
+        self.min_x = min_x;
+        self.handle_bounds();
+    }
 
     /// Configure the maximum global x position for this transform to be max_x
-    pub fn set_max_x(&mut self, max_x: Option<f32>) { self.max_x = max_x; self.handle_bounds();}
+    pub fn set_max_x(&mut self, max_x: Option<f32>) {
+        self.max_x = max_x;
+        self.handle_bounds();
+    }
 
     /// Configure the minimum global y position for this transform to be min_x
-    pub fn set_min_y(&mut self, min_y: Option<f32>) { self.min_y = min_y; self.handle_bounds();}
+    pub fn set_min_y(&mut self, min_y: Option<f32>) {
+        self.min_y = min_y;
+        self.handle_bounds();
+    }
 
     /// Configure the maximum global y position for this transform to be max_x
-    pub fn set_max_y(&mut self, max_y: Option<f32>) { self.max_y = max_y; self.handle_bounds();}
+    pub fn set_max_y(&mut self, max_y: Option<f32>) {
+        self.max_y = max_y;
+        self.handle_bounds();
+    }
 
     /// Configure the minimum and maximum global values of x and y
-    pub fn set_global_translation_bounds(&mut self, min_x: Option<f32>, max_x: Option<f32>, min_y: Option<f32>, max_y: Option<f32>){
+    pub fn set_global_translation_bounds(
+        &mut self,
+        min_x: Option<f32>,
+        max_x: Option<f32>,
+        min_y: Option<f32>,
+        max_y: Option<f32>,
+    ) {
         self.min_x = min_x;
         self.max_x = max_x;
         self.min_y = min_y;

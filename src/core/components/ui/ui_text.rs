@@ -3,7 +3,10 @@ use std::ops::Range;
 use wgpu::util::BufferInitDescriptor;
 
 use crate::{
-    core::components::ui::{font::Font, ui_image::UiImage},
+    core::components::{
+        material::Material,
+        ui::{font::Font, ui_image::UiImage},
+    },
     rendering::bidimensional::scion2d::{Renderable2D, RenderableUi},
 };
 
@@ -43,8 +46,8 @@ impl UiText {
 pub(crate) struct UiTextImage(pub(crate) UiImage);
 
 impl Renderable2D for UiTextImage {
-    fn vertex_buffer_descriptor(&mut self) -> BufferInitDescriptor {
-        self.0.vertex_buffer_descriptor()
+    fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor {
+        self.0.vertex_buffer_descriptor(material)
     }
 
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
