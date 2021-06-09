@@ -2,7 +2,6 @@ use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
         components::{
-            material::Material,
             maths::{
                 camera::Camera,
                 transform::{Coordinates, Transform},

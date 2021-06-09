@@ -5,6 +5,7 @@ use winit::{
     dpi::Size,
     window::{WindowAttributes, WindowBuilder},
 };
+use crate::core::components::color::Color;
 
 /// Main configuration for the game window
 /// Please use [`WindowConfigBuilder`] if you want to build if from code.
@@ -34,6 +35,8 @@ pub struct WindowConfig {
     pub(crate) resizable: bool,
     /// If the window should be able to be transparent.
     pub(crate) transparent: bool,
+    /// Default background color of each frame in the window
+    pub(crate) default_background_color: Option<Color>,
 }
 
 impl Default for WindowConfig {
@@ -51,6 +54,7 @@ impl Default for WindowConfig {
             maximized: false,
             resizable: true,
             transparent: false,
+            default_background_color: None
         }
     }
 }
@@ -73,6 +77,11 @@ impl WindowConfigBuilder {
 
     pub fn with_resizable(mut self, resizable: bool) -> Self {
         self.config.resizable = resizable;
+        self
+    }
+
+    pub fn with_default_background_color(mut self, color: Option<Color>) -> Self {
+        self.config.default_background_color = color;
         self
     }
 

@@ -15,6 +15,7 @@ use crate::{
     },
     rendering::renderer_state::RendererState,
 };
+use crate::config::scion_config::ScionConfig;
 
 pub(crate) fn handle_event(
     event: Event<()>,
@@ -23,6 +24,7 @@ pub(crate) fn handle_event(
     renderer: &mut RendererState,
     world: &mut World,
     resources: &mut Resources,
+    config: &ScionConfig
 ) {
     match event {
         Event::WindowEvent {
@@ -65,7 +67,7 @@ pub(crate) fn handle_event(
         }
         Event::RedrawRequested(_) => {
             renderer.update(world, resources);
-            match renderer.render(world) {
+            match renderer.render(world, config) {
                 Ok(_) => {}
                 Err(e) => log::error!("{:?}", e),
             }

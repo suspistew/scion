@@ -1,7 +1,6 @@
 use scion::{
     core::{
         components::{
-            material::Material,
             maths::{camera::Camera, transform::Transform},
             tiles::tileset::Tileset,
             ui::{font::Font, ui_image::UiImage, ui_text::UiText},

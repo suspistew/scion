@@ -22,6 +22,7 @@ use crate::{
         ScionRenderer,
     },
 };
+use crate::config::scion_config::ScionConfig;
 
 pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor;
@@ -81,13 +82,14 @@ impl ScionRenderer for Scion2D {
     fn render(
         &mut self,
         world: &mut World,
+        config: &ScionConfig,
         frame: &SwapChainTexture,
         encoder: &mut CommandEncoder,
     ) {
         {
             encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Scion 2D Render Pass"),
-                color_attachments: &[get_default_color_attachment(frame)],
+                color_attachments: &[get_default_color_attachment(frame, config)],
                 depth_stencil_attachment: None,
             });
         }
@@ -245,17 +247,27 @@ fn create_transform_uniform_bind_group(
     )
 }
 
-fn get_default_color_attachment(frame: &SwapChainTexture) -> RenderPassColorAttachment {
+fn get_default_color_attachment<'a>(frame: &'a SwapChainTexture, config: &'a ScionConfig,) -> RenderPassColorAttachment<'a> {
     RenderPassColorAttachment {
         view: &frame.view,
         resolve_target: None,
         ops: wgpu::Operations {
-            load: wgpu::LoadOp::Clear(wgpu::Color {
-                r: 1.,
-                g: 0.,
-                b: 0.,
-                a: 1.0,
-            }),
+            load: wgpu::LoadOp::Clear(
+                if let Some(color) = &config.window_config.as_ref().expect("Window config is missing").default_background_color {
+                    wgpu::Color {
+                        r: (color.red() as f32 / 255.) as f64,
+                        g: (color.green() as f32 / 255.) as f64,
+                        b: (color.blue() as f32 / 255.) as f64,
+                        a: color.alpha()  as f64,
+                    }
+                }else{
+                    wgpu::Color {
+                        r: 1.,
+                        g: 0.,
+                        b: 0.,
+                        a: 1.0,
+                    }
+                }),
             store: true,
         },
     }

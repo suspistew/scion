@@ -1,7 +1,8 @@
 use crate::rendering::bidimensional::gl_representations::GlColor;
+use serde::{Deserialize, Serialize};
 
 /// A struct that represents colors for rendering.
-#[derive(Clone)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Color {
     /// Red value of the color
     r: u8,

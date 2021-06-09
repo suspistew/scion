@@ -132,6 +132,7 @@ impl Scion {
                     .expect("A renderer is mandatory to run this game !"),
                 &mut self.world,
                 &mut self.resources,
+                &self.config
             );
             self.next_frame();
             self.layer_machine.apply_layers_action(
