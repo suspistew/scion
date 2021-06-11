@@ -2,8 +2,7 @@
 use legion::{Resources, World};
 use wgpu::{CommandEncoder, Device, Queue, SwapChainDescriptor, SwapChainTexture};
 
-use crate::rendering::bidimensional::scion2d::Scion2D;
-use crate::config::scion_config::ScionConfig;
+use crate::{config::scion_config::ScionConfig, rendering::bidimensional::scion2d::Scion2D};
 
 pub mod bidimensional;
 pub(crate) mod renderer_state;
@@ -22,7 +21,13 @@ pub trait ScionRenderer {
     );
 
     /// Will be called after render, each time the window request redraw.
-    fn render(&mut self, world: &mut World, config: &ScionConfig, frame: &SwapChainTexture, encoder: &mut CommandEncoder);
+    fn render(
+        &mut self,
+        world: &mut World,
+        config: &ScionConfig,
+        frame: &SwapChainTexture,
+        encoder: &mut CommandEncoder,
+    );
 }
 
 /// Type of renderer to use to render the game.

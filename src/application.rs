@@ -32,6 +32,7 @@ use crate::{
         },
         state::GameState,
         systems::{
+            animations_system::animation_executer_system,
             asset_ref_resolver_system::{asset_ref_resolver_system, MaterialAssetResolverFn},
             collider_systems::{colliders_cleaner_system, compute_collisions_system},
             hierarchy_system::children_manager_system,
@@ -132,7 +133,7 @@ impl Scion {
                     .expect("A renderer is mandatory to run this game !"),
                 &mut self.world,
                 &mut self.resources,
-                &self.config
+                &self.config,
             );
             self.next_frame();
             self.layer_machine.apply_layers_action(
@@ -299,6 +300,8 @@ impl ScionBuilder {
             .add_system(missing_ui_component_system::<UiText>());
         self.schedule_builder
             .add_system(asset_ref_resolver_system::<Material, MaterialAssetResolverFn>());
+        self.schedule_builder
+            .add_system(animation_executer_system());
         self.schedule_builder.flush();
         self.schedule_builder.add_system(dirty_child_system());
         self.schedule_builder.flush();

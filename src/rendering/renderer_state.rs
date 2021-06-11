@@ -1,8 +1,7 @@
 use legion::{Resources, World};
 use winit::{event::WindowEvent, window::Window};
 
-use crate::rendering::ScionRenderer;
-use crate::config::scion_config::ScionConfig;
+use crate::{config::scion_config::ScionConfig, rendering::ScionRenderer};
 
 pub(crate) struct RendererState {
     surface: wgpu::Surface,
@@ -81,7 +80,11 @@ impl RendererState {
         );
     }
 
-    pub(crate) fn render(&mut self, world: &mut World, config: &ScionConfig,) -> Result<(), wgpu::SwapChainError> {
+    pub(crate) fn render(
+        &mut self,
+        world: &mut World,
+        config: &ScionConfig,
+    ) -> Result<(), wgpu::SwapChainError> {
         let frame = self.swap_chain.get_current_frame()?.output;
         let mut encoder = self
             .device
@@ -89,7 +92,8 @@ impl RendererState {
                 label: Some("Render Encoder"),
             });
 
-        self.scion_renderer.render(world, config, &frame, &mut encoder);
+        self.scion_renderer
+            .render(world, config, &frame, &mut encoder);
         self.queue.submit(std::iter::once(encoder.finish()));
 
         Ok(())

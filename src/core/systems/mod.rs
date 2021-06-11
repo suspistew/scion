@@ -1,3 +1,4 @@
+pub(crate) mod animations_system;
 pub(crate) mod asset_ref_resolver_system;
 pub(crate) mod collider_systems;
 pub(crate) mod hierarchy_system;

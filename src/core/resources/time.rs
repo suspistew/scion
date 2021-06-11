@@ -70,6 +70,8 @@ mod timer {
         total_duration: f32,
         /// A flag to keep track if the current timer just finished its measure.
         dirty: bool,
+        /// Total cycles since last cycle fn call
+        current_elapsed_cycles: usize,
     }
 
     impl Timer {
@@ -81,6 +83,7 @@ mod timer {
                 current_duration: 0.0,
                 total_duration,
                 dirty: false,
+                current_elapsed_cycles: 0,
             }
         }
 
@@ -91,18 +94,25 @@ mod timer {
             if !self.running {
                 return false;
             }
-            self.current_duration += delta_duration;
-            if self.current_duration >= self.total_duration {
-                self.dirty = true;
-                match self.timer_type {
-                    TimerType::Manual => {
+
+            match self.timer_type {
+                TimerType::Manual => {
+                    self.current_duration += delta_duration;
+                    if self.current_duration >= self.total_duration {
                         self.running = false;
-                    }
-                    TimerType::Cyclic => {
-                        self.current_duration = 0.;
+                        self.dirty = true;
                     }
                 }
+                TimerType::Cyclic => {
+                    let total = self.current_duration + delta_duration;
+                    if total > self.total_duration {
+                        self.dirty = true;
+                    }
+                    self.current_elapsed_cycles += (total / self.total_duration) as usize;
+                    self.current_duration = total % self.total_duration;
+                }
             }
+
             self.dirty
         }
 
@@ -121,6 +131,7 @@ mod timer {
             self.running = true;
             self.current_duration = 0.;
             self.dirty = false;
+            self.current_elapsed_cycles = 0;
         }
 
         /// changes the total duration of this timer
@@ -128,9 +139,11 @@ mod timer {
             self.total_duration = new_cycle;
         }
 
-        /// Returns whether or not the timer has finished a cycle in the current frame
-        pub fn cycle(&self) -> bool {
-            self.dirty
+        /// Returns the number of cycles elapsed since the last call of this fn
+        pub fn cycle(&mut self) -> usize {
+            let res = self.current_elapsed_cycles;
+            self.current_elapsed_cycles = 0;
+            res
         }
     }
 
@@ -158,6 +171,16 @@ mod timer {
                 .timers
                 .get_mut(name)
                 .expect("Missing the timer we just inserted..."))
+        }
+
+        /// Delete a timer from the list of known timers
+        pub fn delete_timer(&mut self, name: &str) -> Result<(), Error> {
+            if self.timers.contains_key(name) {
+                self.timers.remove(name);
+                Ok(())
+            } else {
+                Err(Error::TimerAlreadyExists)
+            }
         }
 
         /// Returns whether or not a timer with the `name` identifier exists
@@ -204,8 +227,9 @@ mod tests {
         assert_eq!(true, timer.is_ok());
         let timer = timer.unwrap();
         assert_eq!(false, timer.add_delta_duration(0.5));
-        assert_eq!(true, timer.add_delta_duration(0.5));
-        assert_eq!(true, timer.cycle());
+        assert_eq!(true, timer.add_delta_duration(1.));
+        assert_eq!(1, timer.cycle());
+        assert_eq!(0.5, timer.elapsed());
         assert_eq!(false, timer.ended());
     }
 }

@@ -41,12 +41,7 @@ impl SimpleGameLayer for TetrisLayer {
             resources
                 .get_mut::<AssetManager>()
                 .unwrap()
-                .register_tileset(Tileset::new(
-                    asset_path().join("blocs.png").get(),
-                    8,
-                    1,
-                    32,
-                )),
+                .register_tileset(Tileset::new(asset_path().join("blocs.png").get(), 8, 1, 32)),
         );
         resources.insert(tetris);
     }

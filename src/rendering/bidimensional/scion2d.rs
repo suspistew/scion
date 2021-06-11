@@ -8,6 +8,7 @@ use wgpu::{
 };
 
 use crate::{
+    config::scion_config::ScionConfig,
     core::components::{
         color::Color,
         material::{Material, Texture},
@@ -22,7 +23,6 @@ use crate::{
         ScionRenderer,
     },
 };
-use crate::config::scion_config::ScionConfig;
 
 pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor;
@@ -298,12 +298,17 @@ impl Scion2D {
         self.update_transforms_for_type::<Triangle>(world, &device, queue);
         self.update_transforms_for_type::<Square>(world, &device, queue);
         self.update_transforms_for_type::<Rectangle>(world, &device, queue);
-        self.update_transforms_for_type::<Sprite>(world,  &device, queue);
-        self.update_transforms_for_type::<UiImage>(world,  &device, queue);
-        self.update_transforms_for_type::<UiTextImage>(world,  &device, queue);
+        self.update_transforms_for_type::<Sprite>(world, &device, queue);
+        self.update_transforms_for_type::<UiImage>(world, &device, queue);
+        self.update_transforms_for_type::<UiTextImage>(world, &device, queue);
     }
 
-    fn update_transforms_for_type<T: Component + Renderable2D>(&mut self, main_world: &mut World, device: &&Device, queue: &mut Queue) {
+    fn update_transforms_for_type<T: Component + Renderable2D>(
+        &mut self,
+        main_world: &mut World,
+        device: &&Device,
+        queue: &mut Queue,
+    ) {
         let mut camera_query = <(&Camera, &Transform)>::query();
         let (camera_world, mut world) = main_world.split_for_query(&camera_query);
         let camera = camera_query
@@ -385,11 +390,10 @@ impl Scion2D {
         let entities: Vec<&Entity> = <Entity>::query().iter(world).collect();
         self.vertex_buffers.retain(|&k, _| entities.contains(&&k));
         self.index_buffers.retain(|&k, _| entities.contains(&&k));
-        self.transform_uniform_bind_groups.retain(|&k, _| entities.contains(&&k));
+        self.transform_uniform_bind_groups
+            .retain(|&k, _| entities.contains(&&k));
     }
-
 }
-
 
 fn load_texture_to_queue(
     texture: &Texture,
@@ -527,27 +531,36 @@ fn create_transform_uniform_bind_group(
     )
 }
 
-fn get_default_color_attachment<'a>(frame: &'a SwapChainTexture, config: &'a ScionConfig,) -> RenderPassColorAttachment<'a> {
+fn get_default_color_attachment<'a>(
+    frame: &'a SwapChainTexture,
+    config: &'a ScionConfig,
+) -> RenderPassColorAttachment<'a> {
     RenderPassColorAttachment {
         view: &frame.view,
         resolve_target: None,
         ops: wgpu::Operations {
             load: wgpu::LoadOp::Clear(
-                if let Some(color) = &config.window_config.as_ref().expect("Window config is missing").default_background_color {
+                if let Some(color) = &config
+                    .window_config
+                    .as_ref()
+                    .expect("Window config is missing")
+                    .default_background_color
+                {
                     wgpu::Color {
                         r: (color.red() as f32 / 255.) as f64,
                         g: (color.green() as f32 / 255.) as f64,
                         b: (color.blue() as f32 / 255.) as f64,
-                        a: color.alpha()  as f64,
+                        a: color.alpha() as f64,
                     }
-                }else{
+                } else {
                     wgpu::Color {
                         r: 1.,
                         g: 0.,
                         b: 0.,
                         a: 1.0,
                     }
-                }),
+                },
+            ),
             store: true,
         },
     }

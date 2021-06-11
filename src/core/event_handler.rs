@@ -6,6 +6,7 @@ use winit::{
 };
 
 use crate::{
+    config::scion_config::ScionConfig,
     core::resources::{
         inputs::{
             inputs_controller::InputsController, keycode::KeyCode, mouse::MouseButton, InputState,
@@ -15,7 +16,6 @@ use crate::{
     },
     rendering::renderer_state::RendererState,
 };
-use crate::config::scion_config::ScionConfig;
 
 pub(crate) fn handle_event(
     event: Event<()>,
@@ -24,7 +24,7 @@ pub(crate) fn handle_event(
     renderer: &mut RendererState,
     world: &mut World,
     resources: &mut Resources,
-    config: &ScionConfig
+    config: &ScionConfig,
 ) {
     match event {
         Event::WindowEvent {

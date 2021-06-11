@@ -5,6 +5,7 @@ use winit::{
     dpi::Size,
     window::{WindowAttributes, WindowBuilder},
 };
+
 use crate::core::components::color::Color;
 
 /// Main configuration for the game window
@@ -54,7 +55,7 @@ impl Default for WindowConfig {
             maximized: false,
             resizable: true,
             transparent: false,
-            default_background_color: None
+            default_background_color: None,
         }
     }
 }
