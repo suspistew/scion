@@ -28,7 +28,7 @@ pub fn piece_update(
     let timer = timers
         .get_timer("piece")
         .expect("Missing a mandatory timer in the game : piece timer");
-    if timer.cycle() {
+    if timer.cycle() > 0 {
         match tetris.state {
             TetrisState::WAITING => {
                 tetris.switch_to_next_piece();
