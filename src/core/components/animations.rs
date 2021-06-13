@@ -18,15 +18,14 @@ impl Animations {
         Animations { animations }
     }
 
-    /// Runs the animation `name`. Returns true is the animation has been started, false if it does not exist or was already running
-    pub fn run_once(&mut self, animation_name: String) -> bool {
+    fn run(&mut self, animation_name: String, status: AnimationStatus) -> bool {
         if self.animations.contains_key(animation_name.as_str()) {
             let mut animation = self
                 .animations
                 .get_mut(animation_name.as_str())
                 .expect("An animation has not been found after the security check");
-            if !animation.is_running {
-                animation.is_running = true;
+            if AnimationStatus::STOPPED == animation.status {
+                animation.status = status;
                 true
             } else {
                 false
@@ -36,15 +35,31 @@ impl Animations {
         }
     }
 
+    /// Runs the animation `name`. Returns true is the animation has been started, false if it does not exist or was already running
+    pub fn run_animation(&mut self, animation_name: String) -> bool {
+        self.run(animation_name, AnimationStatus::RUNNING)
+    }
+
+    /// Runs the animation `name`. Returns true is the animation has been started, false if it does not exist or was already running
+    pub fn loop_animation(&mut self, animation_name: String) -> bool {
+        self.run(animation_name, AnimationStatus::LOOPING)
+    }
+
     /// Stops the animation `name`. Returns true is the animation has been stopped, false if it does not exist or was already stopped
-    pub fn stop(&mut self, animation_name: String) -> bool {
+    pub fn stop_animation(&mut self, animation_name: String, force: bool) -> bool {
         if self.animations.contains_key(animation_name.as_str()) {
             let mut animation = self
                 .animations
                 .get_mut(animation_name.as_str())
                 .expect("An animation has not been found after the security check");
-            if animation.is_running {
-                animation.is_running = false;
+            if animation.status == AnimationStatus::LOOPING
+                || animation.status == AnimationStatus::RUNNING
+            {
+                if force {
+                    animation.status = AnimationStatus::STOPPED;
+                } else {
+                    animation.status = AnimationStatus::STOPPING;
+                }
                 true
             } else {
                 false
@@ -60,10 +75,18 @@ impl Animations {
     }
 }
 
+#[derive(Eq, PartialEq)]
+pub(crate) enum AnimationStatus {
+    STOPPED,
+    RUNNING,
+    LOOPING,
+    STOPPING,
+}
+
 pub struct Animation {
     pub(crate) _duration: Duration,
     pub(crate) modifiers: Vec<AnimationModifier>,
-    pub(crate) is_running: bool,
+    pub(crate) status: AnimationStatus,
 }
 
 impl Animation {
@@ -80,7 +103,7 @@ impl Animation {
         Self {
             _duration: duration,
             modifiers,
-            is_running: false,
+            status: AnimationStatus::STOPPED,
         }
     }
 
@@ -89,11 +112,16 @@ impl Animation {
         if self
             .modifiers
             .iter()
-            .filter(|modifier| modifier.current_keyframe != 0)
+            .filter(|modifier| modifier.current_keyframe == modifier.number_of_keyframes)
             .count()
-            == 0
+            == self.modifiers.len()
         {
-            self.is_running = false;
+            self.modifiers
+                .iter_mut()
+                .for_each(|modifier| modifier.current_keyframe = 0);
+            if self.status == AnimationStatus::RUNNING || self.status == AnimationStatus::STOPPING {
+                self.status = AnimationStatus::STOPPED;
+            }
         }
     }
 }
@@ -104,17 +132,20 @@ pub struct AnimationModifier {
     pub(crate) modifier_type: AnimationModifierType,
     pub(crate) single_keyframe_duration: Option<Duration>,
     pub(crate) single_keyframe_modifier: Option<AnimationModifierType>,
+    /// In case of a sprite modifier we need to keep track of the next index position in the vec
+    pub(crate) next_sprite_index: Option<usize>,
 }
 
 impl AnimationModifier {
     /// Creates a new AnimationModifier using a number of keyframes and a type.
-    pub fn new(number_of_keyframes: usize, modifier_type: AnimationModifierType) -> Self {
+    fn new(number_of_keyframes: usize, modifier_type: AnimationModifierType) -> Self {
         Self {
             number_of_keyframes,
             current_keyframe: 0,
             modifier_type,
             single_keyframe_duration: None,
             single_keyframe_modifier: None,
+            next_sprite_index: None,
         }
     }
 
@@ -125,17 +156,24 @@ impl AnimationModifier {
         scale: Option<f32>,
         rotation: Option<f32>,
     ) -> Self {
-        Self {
+        AnimationModifier::new(
             number_of_keyframes,
-            current_keyframe: 0,
-            modifier_type: AnimationModifierType::TransformModifier {
-                vector: vector,
+            AnimationModifierType::TransformModifier {
+                vector,
                 scale,
                 rotation,
             },
-            single_keyframe_duration: None,
-            single_keyframe_modifier: None,
-        }
+        )
+    }
+    /// Convenience function to directly create an AnimationModifier of type Sprite with the needed informations
+    pub fn sprite(tile_numbers: Vec<usize>, end_tile_number: usize) -> Self {
+        AnimationModifier::new(
+            tile_numbers.len() - 1,
+            AnimationModifierType::SpriteModifier {
+                tile_numbers,
+                end_tile_number,
+            },
+        )
     }
 }
 
@@ -145,6 +183,10 @@ pub enum AnimationModifierType {
         vector: Option<Coordinates>,
         scale: Option<f32>,
         rotation: Option<f32>,
+    },
+    SpriteModifier {
+        tile_numbers: Vec<usize>,
+        end_tile_number: usize,
     },
 }
 
@@ -157,6 +199,9 @@ impl Display for AnimationModifier {
                 AnimationModifierType::TransformModifier { .. } => {
                     "TransformModifier"
                 }
+                AnimationModifierType::SpriteModifier { .. } => {
+                    "SpriteModifier"
+                }
             }
         )
     }
@@ -164,13 +209,13 @@ impl Display for AnimationModifier {
 
 fn compute_animation_keyframe_modifier(modifier: &mut AnimationModifier) {
     let keyframe_nb = modifier.number_of_keyframes as f32;
-    modifier.single_keyframe_modifier = Some(match modifier.modifier_type {
+    modifier.single_keyframe_modifier = match modifier.modifier_type {
         AnimationModifierType::TransformModifier {
             vector: coordinates,
             scale,
             rotation,
         } => {
-            AnimationModifierType::TransformModifier {
+            Some(AnimationModifierType::TransformModifier {
                 vector: coordinates.map_or(None, |coordinates| {
                     Some(Coordinates::new(
                         coordinates.x() / keyframe_nb,
@@ -179,14 +224,14 @@ fn compute_animation_keyframe_modifier(modifier: &mut AnimationModifier) {
                 }),
                 scale: scale.map_or(None, |scale| Some(scale / keyframe_nb)),
                 rotation: rotation.map_or(None, |rotation| Some(rotation / keyframe_nb)),
-            }
+            })
         }
-    });
+        AnimationModifierType::SpriteModifier { .. } => None,
+    };
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
