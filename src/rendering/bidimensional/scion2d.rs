@@ -28,6 +28,8 @@ pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor;
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor;
     fn range(&self) -> Range<u32>;
+    fn dirty(&self) -> bool;
+    fn set_dirty(&mut self, is_dirty: bool);
 }
 
 pub(crate) trait RenderableUi: Renderable2D {
@@ -123,13 +125,13 @@ impl Scion2D {
         for (entity, component, material, _) in
             <(Entity, &mut T, &Material, &Transform)>::query().iter_mut(world)
         {
-            if !self.vertex_buffers.contains_key(entity) {
+            if !self.vertex_buffers.contains_key(entity) || component.dirty() {
                 let vertex_buffer =
                     device.create_buffer_init(&component.vertex_buffer_descriptor(Some(material)));
                 self.vertex_buffers.insert(*entity, vertex_buffer);
             }
 
-            if !self.index_buffers.contains_key(entity) {
+            if !self.index_buffers.contains_key(entity) || component.dirty() {
                 let index_buffer =
                     device.create_buffer_init(&component.indexes_buffer_descriptor());
                 self.index_buffers.insert(*entity, index_buffer);
@@ -138,15 +140,22 @@ impl Scion2D {
             match material {
                 Material::Color(color) => {
                     let path = get_path_from_color(&color);
-                    self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path)
+                    self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path, false)
                 }
                 Material::Texture(path) => {
-                    self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path)
+                    self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path, false)
                 }
                 Material::Tileset(tileset) => {
-                    self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &tileset.texture)
+                    self.insert_pipeline_if_not_finded(
+                        device,
+                        sc_desc,
+                        &entity,
+                        &tileset.texture,
+                        component.dirty(),
+                    )
                 }
             };
+            component.set_dirty(false);
         }
     }
 
@@ -179,7 +188,7 @@ impl Scion2D {
                     );
                 }
 
-                self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path)
+                self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path, false)
             }
         }
     }
@@ -190,8 +199,9 @@ impl Scion2D {
         sc_desc: &&SwapChainDescriptor,
         entity: &Entity,
         path: &String,
+        force_reinsert: bool,
     ) {
-        if !self.render_pipelines.contains_key(path.as_str()) {
+        if !self.render_pipelines.contains_key(path.as_str()) || force_reinsert {
             self.render_pipelines.insert(
                 path.clone(),
                 pipeline(

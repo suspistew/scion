@@ -12,11 +12,16 @@ use scion::{
                 camera::Camera,
                 transform::{Coordinates, Transform},
             },
+            tiles::{sprite::Sprite, tileset::Tileset},
             Square,
         },
         game_layer::{GameLayer, SimpleGameLayer},
-        resources::inputs::{inputs_controller::InputsController, keycode::KeyCode, InputState},
+        resources::{
+            asset_manager::AssetManager,
+            inputs::{inputs_controller::InputsController, keycode::KeyCode, InputState},
+        },
     },
+    utils::file::app_base_path,
     Scion,
 };
 
@@ -26,41 +31,46 @@ struct BombermanLayer {
 }
 
 impl SimpleGameLayer for BombermanLayer {
-    fn on_start(&mut self, world: &mut World, _resources: &mut Resources) {
-        let square = Square::new(100., None);
-        let material = Material::Color(Color::new_rgb(255, 0, 0));
+    fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
+        let asset_ref = resources
+            .get_mut::<AssetManager>()
+            .expect("Asset Manager is mandatory")
+            .register_tileset(Tileset::new(
+                app_base_path()
+                    .join("examples/bomberman/assets/sokoban_tilesheet.png")
+                    .get(),
+                13,
+                8,
+                64,
+            ));
+        let sprite = Sprite::new(78);
         let transform = Transform::new(Coordinates::new(100., 100.), 1., 0.);
 
         let move_right_anim = Animation::new(
-            Duration::from_secs(1),
-            vec![AnimationModifier::transform(
-                120,
-                Some(Coordinates::new(300., 0.)),
-                Some(2.),
-                None,
-            )],
+            Duration::from_millis(500),
+            vec![
+                AnimationModifier::transform(120, Some(Coordinates::new(64., 0.)), None, None),
+                AnimationModifier::sprite(vec![79, 78, 80, 78, 79], 78),
+            ],
         );
 
         let mut animations_map = HashMap::new();
         animations_map.insert("MoveRight".to_string(), move_right_anim);
         let animations = Animations::new(animations_map);
-        self.entity = Some(world.push((square, material, transform, animations)));
+        self.entity = Some(world.push((sprite, asset_ref, transform, animations)));
         world.push((Camera::new(768., 768., 10.), Transform::default()));
     }
 
     fn update(&mut self, world: &mut World, resources: &mut Resources) {
         let input_controller = resources.get::<InputsController>().unwrap();
-        if input_controller
-            .keyboard()
-            .keyboard_events()
-            .iter()
-            .filter(|e| e.state.eq(&InputState::Pressed) || e.keycode.eq(&KeyCode::Right))
-            .count()
-            > 0
-        {
+        if input_controller.keyboard().key_pressed(&KeyCode::Right) {
             let mut entity = world.entry_mut(self.entity.unwrap()).unwrap();
             let animations = entity.get_component_mut::<Animations>().unwrap();
-            let result = animations.run_once("MoveRight".to_string());
+            let _result = animations.loop_animation("MoveRight".to_string());
+        } else {
+            let mut entity = world.entry_mut(self.entity.unwrap()).unwrap();
+            let animations = entity.get_component_mut::<Animations>().unwrap();
+            let _result = animations.stop_animation("MoveRight".to_string(), false);
         }
     }
 }

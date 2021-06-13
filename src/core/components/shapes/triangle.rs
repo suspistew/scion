@@ -54,4 +54,10 @@ impl Renderable2D for Triangle {
     fn range(&self) -> Range<u32> {
         0..3 as u32
     }
+
+    fn dirty(&self) -> bool {
+        false
+    }
+
+    fn set_dirty(&mut self, _is_dirty: bool) {}
 }

@@ -12,11 +12,14 @@ use crate::{
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
 /// Renderable Sprite.
+#[derive(Debug)]
 pub struct Sprite {
     /// Desired tile to render for this material.
     tile_number: usize,
     /// Current computed content for vertex
     contents: Option<[TexturedGlVertex; 4]>,
+    /// Flag to keep track of changed tile number
+    dirty: bool,
 }
 
 impl Sprite {
@@ -24,7 +27,14 @@ impl Sprite {
         Self {
             tile_number,
             contents: None,
+            dirty: false,
         }
+    }
+
+    /// Modify the current sprite tile number
+    pub fn set_tile_nb(&mut self, new_tile_nb: usize) {
+        self.tile_number = new_tile_nb;
+        self.dirty = true;
     }
 
     fn uv_refs(&self, tileset: &Tileset) -> [Coordinates; 4] {
@@ -44,7 +54,7 @@ impl Sprite {
 
 impl Renderable2D for Sprite {
     fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor {
-        if self.contents.is_none() && material.is_some() {
+        if (self.dirty || self.contents.is_none()) && material.is_some() {
             if let Material::Tileset(tileset) = material.unwrap() {
                 let a = Coordinates::new(0., 0.);
                 let b = Coordinates::new(0., tileset.tile_size as f32);
@@ -81,5 +91,13 @@ impl Renderable2D for Sprite {
 
     fn range(&self) -> Range<u32> {
         0..INDICES.len() as u32
+    }
+
+    fn dirty(&self) -> bool {
+        self.dirty
+    }
+
+    fn set_dirty(&mut self, is_dirty: bool) {
+        self.dirty = is_dirty;
     }
 }

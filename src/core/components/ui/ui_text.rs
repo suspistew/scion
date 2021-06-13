@@ -57,6 +57,12 @@ impl Renderable2D for UiTextImage {
     fn range(&self) -> Range<u32> {
         self.0.range()
     }
+
+    fn dirty(&self) -> bool {
+        false
+    }
+
+    fn set_dirty(&mut self, _is_dirty: bool) {}
 }
 
 impl RenderableUi for UiTextImage {
