@@ -63,15 +63,20 @@ impl SimpleGameLayer for BombermanLayer {
 
     fn update(&mut self, world: &mut World, resources: &mut Resources) {
         let input_controller = resources.get::<InputsController>().unwrap();
-        if input_controller.keyboard().key_pressed(&KeyCode::Right) {
-            let mut entity = world.entry_mut(self.entity.unwrap()).unwrap();
-            let animations = entity.get_component_mut::<Animations>().unwrap();
-            let _result = animations.loop_animation("MoveRight".to_string());
-        } else {
-            let mut entity = world.entry_mut(self.entity.unwrap()).unwrap();
-            let animations = entity.get_component_mut::<Animations>().unwrap();
-            let _result = animations.stop_animation("MoveRight".to_string(), false);
-        }
+        let mut entity = world.entry_mut(self.entity.unwrap()).unwrap();
+        let animations = entity.get_component_mut::<Animations>().unwrap();
+
+        input_controller
+            .keyboard()
+            .on_key_pressed(KeyCode::Right, || {
+                animations.loop_animation("MoveRight".to_string());
+            });
+
+        input_controller
+            .keyboard()
+            .on_key_released(KeyCode::Right, || {
+                animations.stop_animation("MoveRight".to_string(), false);
+            });
     }
 }
 
