@@ -50,10 +50,8 @@ impl Sprite {
         let d = Coordinates::new(a.x() + unit_column, a.y());
         [a, b, c, d]
     }
-}
 
-impl Renderable2D for Sprite {
-    fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor {
+    pub(crate) fn upsert_content(&mut self, material: Option<&Material>) -> [TexturedGlVertex; 4] {
         if (self.dirty || self.contents.is_none()) && material.is_some() {
             if let Material::Tileset(tileset) = material.unwrap() {
                 let a = Coordinates::new(0., 0.);
@@ -70,6 +68,20 @@ impl Renderable2D for Sprite {
                 self.contents = Some(contents);
             }
         }
+        self.contents
+            .as_ref()
+            .expect("A computed content is missing in Sprite component")
+            .clone()
+    }
+
+    pub(crate) fn indices() -> Vec<u16> {
+        INDICES.to_vec()
+    }
+}
+
+impl Renderable2D for Sprite {
+    fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor {
+        self.upsert_content(material);
         wgpu::util::BufferInitDescriptor {
             label: Some("Sprite Vertex Buffer"),
             contents: bytemuck::cast_slice(

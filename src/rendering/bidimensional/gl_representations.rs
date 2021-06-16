@@ -20,6 +20,14 @@ pub(crate) struct GlVec3 {
     pub z: f32,
 }
 
+impl GlVec3 {
+    pub(crate) fn append_position(&mut self, x: f32, y: f32, z: f32) {
+        self.x += x;
+        self.y += y;
+        self.z += z;
+    }
+}
+
 impl From<&Coordinates> for GlVec3 {
     fn from(position: &Coordinates) -> Self {
         Self {

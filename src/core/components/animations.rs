@@ -18,6 +18,13 @@ impl Animations {
         Animations { animations }
     }
 
+    /// Create a new Animations component with a single animation provided
+    pub fn single(name: String, animation: Animation) -> Self {
+        let mut animations = HashMap::new();
+        animations.insert(name, animation);
+        Animations { animations }
+    }
+
     fn run(&mut self, animation_name: String, status: AnimationStatus) -> bool {
         if self.animations.contains_key(animation_name.as_str()) {
             let mut animation = self

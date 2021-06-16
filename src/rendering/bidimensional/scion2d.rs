@@ -1,6 +1,6 @@
 use std::{collections::HashMap, ops::Range, path::Path};
 
-use legion::{storage::Component, Entity, IntoQuery, Resources, World};
+use legion::{component, storage::Component, Entity, IntoQuery, Resources, World};
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
     BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment,
@@ -14,7 +14,10 @@ use crate::{
         material::{Material, Texture},
         maths::{camera::Camera, transform::Transform},
         shapes::{rectangle::Rectangle, square::Square, triangle::Triangle},
-        tiles::sprite::Sprite,
+        tiles::{
+            sprite::Sprite,
+            tilemap::{Tile, Tilemap},
+        },
         ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
     },
     rendering::{
@@ -58,7 +61,7 @@ impl ScionRenderer for Scion2D {
     fn update(
         &mut self,
         world: &mut World,
-        resources: &mut Resources,
+        _resources: &mut Resources,
         device: &Device,
         sc_desc: &SwapChainDescriptor,
         queue: &mut Queue,
@@ -66,16 +69,13 @@ impl ScionRenderer for Scion2D {
         if world_contains_camera(world) {
             self.update_diffuse_bind_groups(world, device, queue);
             self.update_transforms(world, &device, queue);
-            self.upsert_component_pipeline::<Triangle>(world, resources, &device, &sc_desc);
-            self.upsert_component_pipeline::<Square>(world, resources, &device, &sc_desc);
-            self.upsert_component_pipeline::<Rectangle>(world, resources, &device, &sc_desc);
-            self.upsert_component_pipeline::<Sprite>(world, resources, &device, &sc_desc);
-            self.upsert_ui_component_pipeline::<UiImage>(
-                world, resources, &device, &sc_desc, queue,
-            );
-            self.upsert_ui_component_pipeline::<UiTextImage>(
-                world, resources, &device, &sc_desc, queue,
-            );
+            self.upsert_component_pipeline::<Triangle>(world, &device, &sc_desc);
+            self.upsert_component_pipeline::<Square>(world, &device, &sc_desc);
+            self.upsert_component_pipeline::<Rectangle>(world, &device, &sc_desc);
+            self.upsert_component_pipeline::<Sprite>(world, &device, &sc_desc);
+            self.upsert_tilemaps_pipeline(world, &device, &sc_desc);
+            self.upsert_ui_component_pipeline::<UiImage>(world, &device, &sc_desc, queue);
+            self.upsert_ui_component_pipeline::<UiTextImage>(world, &device, &sc_desc, queue);
         } else {
             log::warn!("No camera has been found in resources");
         }
@@ -105,6 +105,7 @@ impl ScionRenderer for Scion2D {
             rendering_infos.append(&mut self.pre_render_component::<Sprite>(world));
             rendering_infos.append(&mut self.pre_render_ui_component::<UiImage>(world));
             rendering_infos.append(&mut self.pre_render_ui_component::<UiTextImage>(world));
+            rendering_infos.append(&mut self.pre_render_tilemaps(world));
 
             rendering_infos.sort_by(|a, b| b.layer.cmp(&a.layer));
             while let Some(info) = rendering_infos.pop() {
@@ -118,7 +119,6 @@ impl Scion2D {
     fn upsert_component_pipeline<T: Component + Renderable2D>(
         &mut self,
         world: &mut World,
-        _resources: &mut Resources,
         device: &&Device,
         sc_desc: &&SwapChainDescriptor,
     ) {
@@ -159,10 +159,87 @@ impl Scion2D {
         }
     }
 
+    fn upsert_tilemaps_pipeline(
+        &mut self,
+        world: &mut World,
+        device: &&Device,
+        sc_desc: &&SwapChainDescriptor,
+    ) {
+        let mut tilemap_query = <(Entity, &mut Tilemap, &Material, &Transform)>::query();
+        let (mut tilemap_world, mut tile_world) = world.split_for_query(&tilemap_query);
+
+        let mut tiles: Vec<(&Tile, &mut Sprite)> = <(&Tile, &mut Sprite)>::query()
+            .iter_mut(&mut tile_world)
+            .collect();
+
+        for (entity, _, material, _) in tilemap_query.iter_mut(&mut tilemap_world) {
+            let tile_size = Material::tile_size(material).expect("");
+            let mut vertexes = Vec::new();
+            let mut position = 0;
+            let mut indexes = Vec::new();
+            let any_tile_modified = !self.vertex_buffers.contains_key(entity)
+                || tiles
+                    .iter_mut()
+                    .filter(|(tile, sprite)| tile.tilemap == *entity && sprite.dirty())
+                    .count()
+                    > 0;
+            if any_tile_modified {
+                tiles
+                    .iter_mut()
+                    .filter(|(tile, _sprite)| tile.tilemap == *entity)
+                    .for_each(|(tile, sprite)| {
+                        let mut vec = sprite.upsert_content(Some(material)).to_vec();
+                        vec.iter_mut().for_each(|glVertex| {
+                            glVertex.position.append_position(
+                                tile_size as f32 * tile.position.x() as f32,
+                                tile_size as f32 * tile.position.y() as f32,
+                                tile.position.layer() as f32 / 100.,
+                            )
+                        });
+                        vertexes.append(&mut vec);
+                        let sprite_indexes = Sprite::indices();
+                        let mut sprite_indexes: Vec<u16> = sprite_indexes
+                            .iter()
+                            .map(|indice| (*indice as usize + (position * 4)) as u16)
+                            .collect();
+                        indexes.append(&mut sprite_indexes);
+                        position += 1;
+                        sprite.set_dirty(false);
+                    });
+                let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("TileMap Vertex Buffer"),
+                    contents: bytemuck::cast_slice(vertexes.as_slice()),
+                    usage: wgpu::BufferUsage::VERTEX,
+                });
+
+                self.vertex_buffers.insert(*entity, buffer);
+
+                let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("Square Index Buffer"),
+                    contents: bytemuck::cast_slice(&indexes),
+                    usage: wgpu::BufferUsage::INDEX,
+                });
+                self.index_buffers.insert(*entity, index_buffer);
+
+                match material {
+                    Material::Tileset(tileset) => {
+                        self.insert_pipeline_if_not_finded(
+                            device,
+                            sc_desc,
+                            &entity,
+                            &tileset.texture,
+                            any_tile_modified,
+                        )
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
     fn upsert_ui_component_pipeline<T: Component + Renderable2D + RenderableUi>(
         &mut self,
         world: &mut World,
-        _resources: &mut Resources,
         device: &&Device,
         sc_desc: &&SwapChainDescriptor,
         queue: &mut Queue,
@@ -269,7 +346,9 @@ impl Scion2D {
     ) -> Vec<RenderingInfos> {
         let mut render_infos = Vec::new();
         for (entity, component, material, transform) in
-            <(Entity, &mut T, &Material, &Transform)>::query().iter_mut(world)
+            <(Entity, &mut T, &Material, &Transform)>::query()
+                .filter(!component::<Tile>())
+                .iter_mut(world)
         {
             let path = match material {
                 Material::Color(color) => Some(get_path_from_color(&color)),
@@ -279,6 +358,31 @@ impl Scion2D {
             render_infos.push(RenderingInfos {
                 layer: transform.translation().layer(),
                 range: component.range(),
+                entity: *entity,
+                texture_path: path,
+            });
+        }
+        render_infos
+    }
+
+    fn pre_render_tilemaps(&mut self, world: &mut World) -> Vec<RenderingInfos> {
+        let mut render_infos = Vec::new();
+
+        let mut tilemap_query = <(Entity, &mut Tilemap, &Material, &Transform)>::query();
+        let (mut tilemap_world, mut tile_world) = world.split_for_query(&tilemap_query);
+
+        for (entity, _, material, transform) in tilemap_query.iter_mut(&mut tilemap_world) {
+            let tiles_nb = <(&Tile, &mut Sprite)>::query()
+                .iter_mut(&mut tile_world)
+                .filter(|(tile, _sprite)| tile.tilemap == *entity)
+                .count();
+            let path = match material {
+                Material::Tileset(tileset) => Some(tileset.texture.clone()),
+                _ => None,
+            };
+            render_infos.push(RenderingInfos {
+                layer: transform.translation().layer(),
+                range: 0..(tiles_nb * Sprite::indices().len()) as u32,
                 entity: *entity,
                 texture_path: path,
             });
@@ -311,6 +415,7 @@ impl Scion2D {
         self.update_transforms_for_type::<Sprite>(world, &device, queue);
         self.update_transforms_for_type::<UiImage>(world, &device, queue);
         self.update_transforms_for_type::<UiTextImage>(world, &device, queue);
+        self.update_transforms_for_type::<Tilemap>(world, &device, queue);
     }
 
     fn update_transforms_for_type<T: Component + Renderable2D>(
