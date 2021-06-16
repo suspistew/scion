@@ -18,6 +18,17 @@ pub enum Material {
     Tileset(Tileset),
 }
 
+impl Material {
+    /// Returns the tile_size in case of a Tileset Material.
+    pub(crate) fn tile_size(material: &Material) -> Option<usize> {
+        if let Material::Tileset(tileset) = material {
+            Some(tileset.tile_size)
+        } else {
+            None
+        }
+    }
+}
+
 pub(crate) struct Texture {
     pub(crate) bytes: Vec<u8>,
     pub(crate) width: u16,

@@ -1,6 +1,4 @@
-use std::{collections::HashMap, time::Duration};
-
-use legion::{Entity, EntityStore, Resources, World};
+use legion::{Entity, Resources, World};
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
@@ -12,7 +10,11 @@ use scion::{
                 camera::Camera,
                 transform::{Coordinates, Transform},
             },
-            tiles::{sprite::Sprite, tileset::Tileset},
+            tiles::{
+                sprite::Sprite,
+                tilemap::{TileInfos, Tilemap, TilemapInfo},
+                tileset::Tileset,
+            },
             Square,
         },
         game_layer::{GameLayer, SimpleGameLayer},
@@ -21,7 +23,7 @@ use scion::{
             inputs::{inputs_controller::InputsController, keycode::KeyCode, InputState},
         },
     },
-    utils::file::app_base_path,
+    utils::{file::app_base_path, maths::Dimensions},
     Scion,
 };
 
@@ -43,40 +45,13 @@ impl SimpleGameLayer for BombermanLayer {
                 8,
                 64,
             ));
-        let sprite = Sprite::new(78);
-        let transform = Transform::new(Coordinates::new(100., 100.), 1., 0.);
 
-        let move_right_anim = Animation::new(
-            Duration::from_millis(500),
-            vec![
-                AnimationModifier::transform(120, Some(Coordinates::new(64., 0.)), None, None),
-                AnimationModifier::sprite(vec![79, 78, 80, 78, 79], 78),
-            ],
-        );
+        let tilemap_infos =
+            TilemapInfo::new(Dimensions::new(5, 5, 2), Transform::default(), asset_ref);
 
-        let mut animations_map = HashMap::new();
-        animations_map.insert("MoveRight".to_string(), move_right_anim);
-        let animations = Animations::new(animations_map);
-        self.entity = Some(world.push((sprite, asset_ref, transform, animations)));
+        Tilemap::create(tilemap_infos, world, |_p| TileInfos::new(Some(1), None));
+
         world.push((Camera::new(768., 768., 10.), Transform::default()));
-    }
-
-    fn update(&mut self, world: &mut World, resources: &mut Resources) {
-        let input_controller = resources.get::<InputsController>().unwrap();
-        let mut entity = world.entry_mut(self.entity.unwrap()).unwrap();
-        let animations = entity.get_component_mut::<Animations>().unwrap();
-
-        input_controller
-            .keyboard()
-            .on_key_pressed(KeyCode::Right, || {
-                animations.loop_animation("MoveRight".to_string());
-            });
-
-        input_controller
-            .keyboard()
-            .on_key_released(KeyCode::Right, || {
-                animations.stop_animation("MoveRight".to_string(), false);
-            });
     }
 }
 
