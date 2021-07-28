@@ -26,6 +26,7 @@ use scion::{
     utils::{file::app_base_path, maths::Dimensions},
     Scion,
 };
+use std::time::Duration;
 
 #[derive(Default)]
 struct BombermanLayer {
@@ -49,7 +50,14 @@ impl SimpleGameLayer for BombermanLayer {
         let tilemap_infos =
             TilemapInfo::new(Dimensions::new(5, 5, 2), Transform::default(), asset_ref);
 
-        Tilemap::create(tilemap_infos, world, |_p| TileInfos::new(Some(1), None));
+        Tilemap::create(tilemap_infos, world, |p| {
+            if p.y() == 1 && p.x() == 1 {
+                TileInfos::new(Some(1),
+                               Some(Animation::new(Duration::from_secs(2), vec![AnimationModifier::sprite(vec![1,2,3,4,5], 6)], true)))
+            } else {
+                TileInfos::new(Some(1), None)
+            }
+        });
 
         world.push((Camera::new(768., 768., 10.), Transform::default()));
     }
