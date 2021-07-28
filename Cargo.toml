@@ -17,7 +17,7 @@ legion = { version = "0.4", default-features = false, features = ["codegen"] }
 
 # window & rendering
 winit = "0.25"
-wgpu = "0.8"
+wgpu = "0.9"
 futures = "0.3"
 
 # maths

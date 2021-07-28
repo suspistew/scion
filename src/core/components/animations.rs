@@ -98,7 +98,7 @@ pub struct Animation {
 
 impl Animation {
     /// Creates a new animation based on a duration and a list of modifiers
-    pub fn new(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
+    pub fn new(duration: Duration, mut modifiers: Vec<AnimationModifier>, loop_at_start: bool) -> Self {
         if duration.as_millis() != 0 {
             modifiers.iter_mut().for_each(|animation_modifier| {
                 animation_modifier.single_keyframe_duration =
@@ -110,7 +110,11 @@ impl Animation {
         Self {
             _duration: duration,
             modifiers,
-            status: AnimationStatus::STOPPED,
+            status: if loop_at_start {
+                AnimationStatus::LOOPING
+            }else{
+                AnimationStatus::STOPPED
+            },
         }
     }
 
@@ -253,6 +257,7 @@ mod tests {
                     rotation: Some(1.),
                 },
             )],
+            false
         );
 
         let anim_modifier = animation.modifiers.iter().next().unwrap();

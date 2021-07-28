@@ -17,7 +17,7 @@ pub(crate) fn animation_executer(
     #[resource] timers: &mut Timers,
     entity: &Entity,
     animations: &mut Animations,
-    transform: &mut Transform,
+    mut transform: Option<&mut Transform>,
     mut sprite: Option<&mut Sprite>,
 ) {
     animations
@@ -64,18 +64,20 @@ pub(crate) fn animation_executer(
                                     scale,
                                     rotation,
                                 } => {
-                                    for _i in 0..timer_cycle {
-                                        if let Some(coordinates) = coordinates {
-                                            transform.append_translation(
-                                                coordinates.x(),
-                                                coordinates.y(),
-                                            );
-                                        }
-                                        if let Some(scale) = scale {
-                                            transform.set_scale(transform.scale + scale);
-                                        }
-                                        if let Some(rotation) = rotation {
-                                            transform.append_angle(*rotation);
+                                    if let Some(ref mut transform) = transform {
+                                        for _i in 0..timer_cycle {
+                                            if let Some(coordinates) = coordinates {
+                                                transform.append_translation(
+                                                    coordinates.x(),
+                                                    coordinates.y(),
+                                                );
+                                            }
+                                            if let Some(scale) = scale {
+                                                transform.set_scale(transform.scale + scale);
+                                            }
+                                            if let Some(rotation) = rotation {
+                                                transform.append_angle(*rotation);
+                                            }
                                         }
                                     }
                                 }
