@@ -1,3 +1,9 @@
+mod level_reader;
+mod char_animations;
+mod character_control_system;
+mod bomb_animations;
+mod bomb_system;
+
 use legion::{Entity, Resources, World};
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
@@ -26,11 +32,32 @@ use scion::{
     utils::{file::app_base_path, maths::Dimensions},
     Scion,
 };
-use std::time::Duration;
+
+use crate::level_reader::Level;
+use scion::core::resources::asset_manager::AssetRef;
+use character_control_system::controller_system;
+use bomb_system::exposion_system;
 
 #[derive(Default)]
 struct BombermanLayer {
-    entity: Option<Entity>,
+    character: Option<Entity>,
+}
+
+#[derive(Default)]
+pub struct BombermanRefs {
+    tileset: Option<AssetRef<Material>>,
+    tilemap_entity: Option<Entity>
+}
+
+pub struct Bomb{
+    pub pos_x: usize,
+    pub pos_y: usize
+}
+
+#[derive(Default)]
+pub struct BombermanInfos {
+    pub pos_x: usize,
+    pub pos_y: usize
 }
 
 impl SimpleGameLayer for BombermanLayer {
@@ -43,24 +70,34 @@ impl SimpleGameLayer for BombermanLayer {
                     .join("examples/bomberman/assets/sokoban_tilesheet.png")
                     .get(),
                 13,
-                8,
+                9,
                 64,
             ));
 
-        let tilemap_infos =
-            TilemapInfo::new(Dimensions::new(5, 5, 2), Transform::default(), asset_ref);
+        let level = level_reader::read_level("examples/bomberman/assets/test_map.json");
 
-        Tilemap::create(tilemap_infos, world, |p| {
-            if p.y() == 1 && p.x() == 1 {
-                TileInfos::new(Some(1),
-                               Some(Animation::new(Duration::from_secs(2), vec![AnimationModifier::sprite(vec![1,2,3,4,5], 6)], true)))
-            } else {
-                TileInfos::new(Some(1), None)
-            }
+        let tilemap_infos =
+            TilemapInfo::new(Dimensions::new(level.width, level.height, level.tilemap.len()), Transform::default(), asset_ref.clone());
+
+        let tilemap = Tilemap::create(tilemap_infos, world, |p| {
+            TileInfos::new(Some(*level.tilemap.get(p.layer()).unwrap().values.get(p.y()).unwrap().get(p.x()).unwrap()), None)
         });
 
-        world.push((Camera::new(768., 768., 10.), Transform::default()));
+        self.character = Some(world.push(create_char(asset_ref.clone(), &level)));
+        world.push((Camera::new(640., 640., 10.), Transform::default()));
+        resources.insert(level);
+        resources.insert(BombermanRefs { tileset: Some(asset_ref), tilemap_entity: Some(tilemap) })
     }
+}
+
+fn create_char(asset_ref: AssetRef<Material>, level: &Level) -> (Transform, Sprite, AssetRef<Material>, Animations, BombermanInfos) {
+    (
+        Transform::new(Coordinates::new_with_layer((level.character_x * 64) as f32, (level.character_y * 64) as f32, level.tilemap.len() + 2), 1., 0.),
+        Sprite::new(52),
+        asset_ref,
+        Animations::new(char_animations::get_animations()),
+        BombermanInfos { pos_x: level.character_x, pos_y: level.character_y }
+    )
 }
 
 fn main() {
@@ -69,12 +106,13 @@ fn main() {
             .with_window_config(
                 WindowConfigBuilder::new()
                     .with_resizable(false)
-                    .with_dimensions((768, 768))
-                    .with_default_background_color(Some(Color::new_rgb(150, 100, 0)))
+                    .with_dimensions((640, 640))
                     .get(),
             )
             .get(),
     )
     .with_game_layer(GameLayer::strong::<BombermanLayer>("Bomberman"))
+        .with_system(controller_system())
+        .with_system(exposion_system())
     .run();
 }
