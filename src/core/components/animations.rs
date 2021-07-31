@@ -80,6 +80,12 @@ impl Animations {
     pub fn animations_mut(&mut self) -> &mut HashMap<String, Animation> {
         &mut self.animations
     }
+
+    /// Return whether or not any animations is currently running. Useful to avoid double call
+    pub fn any_animation_running(&self) -> bool {
+        self.animations.values()
+            .filter(|v| v.status.eq(&AnimationStatus::RUNNING) || v.status.eq(&AnimationStatus::LOOPING)).count() > 0
+    }
 }
 
 #[derive(Eq, PartialEq)]
@@ -112,7 +118,7 @@ impl Animation {
             modifiers,
             status: if loop_at_start {
                 AnimationStatus::LOOPING
-            }else{
+            } else {
                 AnimationStatus::STOPPED
             },
         }
@@ -257,7 +263,7 @@ mod tests {
                     rotation: Some(1.),
                 },
             )],
-            false
+            false,
         );
 
         let anim_modifier = animation.modifiers.iter().next().unwrap();
@@ -278,5 +284,26 @@ mod tests {
         } else {
             panic!();
         }
+    }
+
+    #[test]
+    fn any_animation_running_test() {
+        let mut h = HashMap::new();
+        h.insert("d".to_string(), Animation {
+            _duration: Default::default(),
+            modifiers: vec![],
+            status: AnimationStatus::RUNNING,
+        });
+        let a = Animations::new(h);
+        assert_eq!(true, a.any_animation_running());
+
+        let mut h = HashMap::new();
+        h.insert("d".to_string(), Animation {
+            _duration: Default::default(),
+            modifiers: vec![],
+            status: AnimationStatus::STOPPED,
+        });
+        let a = Animations::new(h);
+        assert_eq!(false, a.any_animation_running());
     }
 }

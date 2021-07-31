@@ -204,6 +204,7 @@ impl ScionBuilder {
     ///
     /// 1. Using macros (Note that you need to add `legion as dependency to your project`
     /// ```no_run
+    /// use legion::*;
     /// #[system]
     /// fn hello() {
     ///     println!("Heullo world from a system");

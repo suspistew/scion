@@ -189,8 +189,8 @@ impl Scion2D {
                     .filter(|(tile, _sprite)| tile.tilemap == *entity)
                     .for_each(|(tile, sprite)| {
                         let mut vec = sprite.upsert_content(Some(material)).to_vec();
-                        vec.iter_mut().for_each(|glVertex| {
-                            glVertex.position.append_position(
+                        vec.iter_mut().for_each(|gl_vertex| {
+                            gl_vertex.position.append_position(
                                 tile_size as f32 * tile.position.x() as f32,
                                 tile_size as f32 * tile.position.y() as f32,
                                 tile.position.layer() as f32 / 100.,
