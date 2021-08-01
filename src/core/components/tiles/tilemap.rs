@@ -1,6 +1,6 @@
 use std::{collections::HashMap, ops::Range};
 
-use legion::{Entity, World};
+use legion::{Entity, World, EntityStore};
 use wgpu::util::BufferInitDescriptor;
 
 use crate::{
@@ -16,6 +16,7 @@ use crate::{
     rendering::bidimensional::scion2d::Renderable2D,
     utils::maths::{Dimensions, Position},
 };
+use legion::world::SubWorld;
 
 pub(crate) struct Tile {
     pub(crate) position: Position,
@@ -107,6 +108,16 @@ impl Tilemap {
         }
 
         self_entity
+    }
+
+    /// Try to modify the sprite's tile at given position
+    pub fn modify_sprite_tile(&self, tile_position: Position, new_tile_nb: usize, world: &mut SubWorld) {
+        if self.tile_entities.contains_key(&tile_position) {
+            let mut entity = world.entry_mut(*self.tile_entities.get(&tile_position).unwrap()).expect("Unreachable registered entity in tilemap");
+            if let Ok(sprite) = entity.get_component_mut::<Sprite>() {
+                sprite.set_tile_nb(new_tile_nb);
+            }
+        }
     }
 
     fn create_tilemap(
