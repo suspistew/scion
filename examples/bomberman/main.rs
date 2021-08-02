@@ -103,6 +103,7 @@ fn create_char(asset_ref: AssetRef<Material>, level: &Level) -> (Transform, Spri
 fn main() {
     Scion::app_with_config(
         ScionConfigBuilder::new()
+            .with_app_name("Scion's Bomberman".to_string())
             .with_window_config(
                 WindowConfigBuilder::new()
                     .with_resizable(false)

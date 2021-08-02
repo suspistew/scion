@@ -260,7 +260,7 @@ impl ScionBuilder {
             .window_config
             .clone()
             .expect("The window configuration has not been found")
-            .into();
+            .into(&self.config);
         let window = window_builder
             .build(&event_loop)
             .expect("An error occured while building the main game window");
