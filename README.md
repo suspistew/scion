@@ -42,7 +42,7 @@ The choice of it here is made because the main target games of this lib at its s
 
 These are the dependencies this project is relying on. Thanks to these awesome communities, we are able to build this kind of tiny projects. 
 
-- <a href="https://github.com/rust-windowing/winit" target="blank">winit</a> and <a href="https://github.com/gfx-rs/wgpu-rs" target="blank">wgpu</a> (windowing and multi backend rendering)
+- <a href="https://github.com/rust-windowing/winit" target="blank">winit</a> and <a href="https://github.com/gfx-rs/wgpu/tree/master/wgpu" target="blank">wgpu</a> (windowing and multi backend rendering)
 - <a href="https://github.com/amethyst/legion" target="blank">legion</a> (Entity component system)
 - <a href="https://github.com/termhn/ultraviolet" target="blank">ultraviolet</a> (Maths)
 

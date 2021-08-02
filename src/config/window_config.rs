@@ -7,13 +7,12 @@ use winit::{
 };
 
 use crate::core::components::color::Color;
+use crate::config::scion_config::ScionConfig;
 
 /// Main configuration for the game window
 /// Please use [`WindowConfigBuilder`] if you want to build if from code.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WindowConfig {
-    /// Window title
-    pub(crate) title: String,
     /// Enables fullscreen mode
     pub(crate) fullscreen: bool,
     /// Default window width and height in pixels.
@@ -43,7 +42,6 @@ pub struct WindowConfig {
 impl Default for WindowConfig {
     fn default() -> Self {
         Self {
-            title: "Default Scion game".to_string(),
             fullscreen: false,
             dimensions: Some((1024, 768)),
             min_dimensions: Some((500, 480)),
@@ -57,6 +55,29 @@ impl Default for WindowConfig {
             transparent: false,
             default_background_color: None,
         }
+    }
+}
+
+impl WindowConfig {
+    pub(crate) fn into(self, scion_config:  &ScionConfig) -> WindowBuilder {
+        let mut builder = WindowBuilder::new();
+
+        builder.window = WindowAttributes {
+            title: scion_config.app_name.clone(),
+            fullscreen: None,
+            inner_size: self.dimensions.map(|d| d.into()).map(Size::Logical),
+            min_inner_size: self.min_dimensions.map(|d| d.into()).map(Size::Logical),
+            max_inner_size: self.max_dimensions.map(|d| d.into()).map(Size::Logical),
+            visible: self.visibility,
+            window_icon: None,
+            always_on_top: self.always_on_top,
+            decorations: self.decorations,
+            maximized: self.maximized,
+            resizable: self.resizable,
+            transparent: self.transparent,
+            position: None,
+        };
+        builder
     }
 }
 
@@ -88,28 +109,5 @@ impl WindowConfigBuilder {
 
     pub fn get(self) -> WindowConfig {
         self.config
-    }
-}
-
-impl Into<WindowBuilder> for WindowConfig {
-    fn into(self) -> WindowBuilder {
-        let mut builder = WindowBuilder::new();
-
-        builder.window = WindowAttributes {
-            title: self.title.clone(),
-            fullscreen: None,
-            inner_size: self.dimensions.map(|d| d.into()).map(Size::Logical),
-            min_inner_size: self.min_dimensions.map(|d| d.into()).map(Size::Logical),
-            max_inner_size: self.max_dimensions.map(|d| d.into()).map(Size::Logical),
-            visible: self.visibility,
-            window_icon: None,
-            always_on_top: self.always_on_top,
-            decorations: self.decorations,
-            maximized: self.maximized,
-            resizable: self.resizable,
-            transparent: self.transparent,
-            position: None,
-        };
-        builder
     }
 }
