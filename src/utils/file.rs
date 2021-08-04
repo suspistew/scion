@@ -5,6 +5,9 @@ use std::{
     path,
     path::{Path, PathBuf},
 };
+use std::time::SystemTime;
+use std::fs::Metadata;
+use std::io::Error;
 
 pub struct FileReaderError {
     _msg: String,
@@ -12,24 +15,40 @@ pub struct FileReaderError {
 
 /// This will read a file and return it as a byte vec.
 pub fn read_file(path: &Path) -> Result<Vec<u8>, FileReaderError> {
-    let mut file = match File::open(path) {
-        Ok(file) => file,
-        Err(e) => {
-            return Err(FileReaderError {
-                _msg: e.to_string(),
-            })
-        }
-    };
+    let mut file = open_file(path)?;
     let mut buffer = Vec::new();
     let read_result = file.read_to_end(&mut buffer);
-    return match read_result {
+    match read_result {
         Ok(_) => Ok(buffer),
         Err(e) => {
             Err(FileReaderError {
                 _msg: e.to_string(),
             })
         }
-    };
+    }
+}
+
+pub fn read_file_modification_time(path: &Path) -> Result<SystemTime, FileReaderError> {
+    let mut file = open_file(path)?;
+    match file.metadata() {
+        Ok(metadata) => {Ok(metadata.modified().unwrap())}
+        Err(e) => {
+            Err(FileReaderError {
+                _msg: e.to_string(),
+            })
+        }
+    }
+}
+
+fn open_file(path: &Path) -> Result<File, FileReaderError>  {
+    match File::open(path) {
+        Ok(file) => Ok(file),
+        Err(e) => {
+            Err(FileReaderError {
+                _msg: e.to_string(),
+            })
+        }
+    }
 }
 
 /// This will give you the path to the executable (when in build mode) or to the root of the current project.
@@ -44,7 +63,7 @@ pub fn app_base_path() -> PathBuilder {
         Ok(path) => PathBuilder { path_buff: path },
         Err(e) => {
             log::error!(
-                "Error while creating the apbase_path {:?}, will use default.",
+                "Error while creating the app base_path {:?}, will use default.",
                 e
             );
             PathBuilder {

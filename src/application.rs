@@ -43,6 +43,7 @@ use crate::{
     },
     rendering::{renderer_state::RendererState, RendererType},
 };
+use crate::core::resources::time::TimerType;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -110,9 +111,12 @@ impl Scion {
             .create_topic("Inputs", TopicConfiguration::default())
             .expect("Error while creating topic for inputs event");
 
+        let mut timers = Timers::default();
+        timers.add_timer("hot_reload", TimerType::Cyclic, 2.);
+
         self.resources.insert(Time::default());
         self.resources.insert(events);
-        self.resources.insert(Timers::default());
+        self.resources.insert(timers);
         self.resources.insert(AssetManager::default());
         self.resources.insert(InputsController::default());
         self.resources.insert(GameState::default());
