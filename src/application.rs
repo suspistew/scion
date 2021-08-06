@@ -112,7 +112,10 @@ impl Scion {
             .expect("Error while creating topic for inputs event");
 
         let mut timers = Timers::default();
-        timers.add_timer("hot_reload", TimerType::Cyclic, 2.);
+
+        if cfg!(feature = "hot-reload") {
+            timers.add_timer("hot-reload-timer", TimerType::Cyclic, 5.);
+        }
 
         self.resources.insert(Time::default());
         self.resources.insert(events);

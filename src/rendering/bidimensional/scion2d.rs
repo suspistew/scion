@@ -22,6 +22,7 @@ use crate::{
         ScionRenderer,
     },
 };
+use std::cfg;
 use std::time::SystemTime;
 use crate::utils::file::{read_file_modification_time, FileReaderError};
 use crate::core::resources::time::Timers;
@@ -402,7 +403,7 @@ impl Scion2D {
     ) -> Vec<RenderingInfos> {
         let mut render_infos = Vec::new();
         for (entity, component, transform) in
-            <(Entity, &mut T, &Transform)>::query().iter_mut(world)
+        <(Entity, &mut T, &Transform)>::query().iter_mut(world)
         {
             render_infos.push(RenderingInfos {
                 layer: transform.translation().layer(),
@@ -482,9 +483,14 @@ impl Scion2D {
         device: &Device,
         queue: &mut Queue,
     ) {
-        let mut timers = resource.get_mut::<Timers>().expect("Missing mandatory resource : Timers");
-        let hot_reload_timer = timers.get_timer("hot_reload").expect("Missing mandatory timer : hot_reload");
-        let hot_timer_cycle = hot_reload_timer.cycle() > 0;
+        let hot_timer_cycle = if cfg!(feature = "hot-reload") {
+            let mut timers = resource.get_mut::<Timers>().expect("Missing mandatory resource : Timers");
+            let hot_reload_timer = timers.get_timer("hot-reload-timer").expect("Missing mandatory timer : hot_reload");
+            hot_reload_timer.cycle() > 0
+        } else {
+            false
+        };
+
 
         <(Entity, &Material)>::query().for_each(world, |(_entity, material)| {
             match material {
