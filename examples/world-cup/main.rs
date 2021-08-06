@@ -5,7 +5,7 @@ use scion::core::resources::asset_manager::AssetManager;
 use scion::core::components::material::Material;
 use scion::utils::file::app_base_path;
 use scion::core::components::maths::camera::Camera;
-use scion::core::components::maths::transform::{Transform, Coordinates};
+use scion::core::components::maths::transform::{Transform};
 use scion::core::components::tiles::sprite::Sprite;
 use scion::core::components::Square;
 
@@ -21,7 +21,7 @@ impl SimpleGameLayer for WorldCup{
                 .join("examples/world-cup/assets/test.png")
                 .get()));
 
-        world.push((Square::new(500., None), Transform::new(Coordinates::new(100., 100.), 1.0, 0.), asset_ref));
+        world.push((Square::new(500., None), Transform::from_xy(100., 100.), asset_ref));
 
         world.push((Camera::new(1024., 768., 10.), Transform::default()));
 

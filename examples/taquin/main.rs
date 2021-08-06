@@ -4,7 +4,7 @@ use scion::{
         components::{
             maths::{
                 camera::Camera,
-                transform::{Coordinates, Transform},
+                transform::{Transform},
             },
             tiles::{sprite::Sprite, tileset::Tileset},
         },
@@ -15,6 +15,8 @@ use scion::{
     utils::file::app_base_path,
     Scion,
 };
+use scion::core::components::maths::transform::TransformBuilder;
+use scion::core::components::maths::coordinates::Coordinates;
 
 #[derive(Debug)]
 struct Case(Coordinates);
@@ -117,11 +119,7 @@ impl SimpleGameLayer for Layer {
             for column in 0..4 {
                 if !(line == 3 && column == 3) {
                     let square = (
-                        Transform::new(
-                            Coordinates::new(column as f32 * 192., line as f32 * 192.),
-                            1.,
-                            0.,
-                        ),
+                        Transform::from_xy(column as f32 * 192., line as f32 * 192.),
                         tileset_ref.clone(),
                         Sprite::new(line * 4 + column),
                         Case(Coordinates::new(column as f32, line as f32)),

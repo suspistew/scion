@@ -3,7 +3,7 @@ use legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query};
 use crate::core::components::{
     maths::{
         hierarchy::Parent,
-        transform::{Coordinates, Transform},
+        transform::{Transform},
     },
     ui::{
         font::Font,
@@ -12,6 +12,8 @@ use crate::core::components::{
         UiComponent,
     },
 };
+use crate::core::components::maths::coordinates::Coordinates;
+use crate::core::components::maths::transform::TransformBuilder;
 
 /// System responsible to create/delete/update the entities linked to any ui_text with a bitmap font
 #[system]
@@ -65,11 +67,7 @@ pub(crate) fn ui_text_bitmap_update(
                             ),
                         ];
 
-                        let mut char_transform = Transform::new(
-                            Coordinates::new(index as f32 * (width + 1.), 0.),
-                            1.0,
-                            0.,
-                        );
+                        let mut char_transform = Transform::from_xy(index as f32 * (width + 1.), 0.);
                         char_transform.set_layer(transform.translation().layer());
                         cmd.push((
                             UiTextImage(UiImage::new_with_uv_map(

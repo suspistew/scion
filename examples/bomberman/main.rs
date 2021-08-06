@@ -14,7 +14,7 @@ use scion::{
             material::Material,
             maths::{
                 camera::Camera,
-                transform::{Coordinates, Transform},
+                transform::{Transform},
             },
             tiles::{
                 sprite::Sprite,
@@ -92,7 +92,7 @@ impl SimpleGameLayer for BombermanLayer {
 
 fn create_char(asset_ref: AssetRef<Material>, level: &Level) -> (Transform, Sprite, AssetRef<Material>, Animations, BombermanInfos) {
     (
-        Transform::new(Coordinates::new_with_layer((level.character_x * 64) as f32, (level.character_y * 64) as f32, level.tilemap.len() + 2), 1., 0.),
+        Transform::from_xy_with_layer((level.character_x * 64) as f32, (level.character_y * 64) as f32, level.tilemap.len() + 2),
         Sprite::new(52),
         asset_ref,
         Animations::new(char_animations::get_animations()),

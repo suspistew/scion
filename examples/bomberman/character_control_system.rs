@@ -5,7 +5,7 @@ use scion::core::components::animations::Animations;
 use crate::level_reader::Level;
 use scion::core::resources::inputs::keycode::KeyCode;
 use legion::systems::CommandBuffer;
-use scion::core::components::maths::transform::{Transform, Coordinates};
+use scion::core::components::maths::transform::{Transform};
 use scion::core::components::tiles::sprite::Sprite;
 
 #[system(for_each)]
@@ -52,7 +52,7 @@ pub fn controller(
             let mut animations = Animations::single("EXPLODE".to_string(), bomb_animations::explode());
             animations.run_animation("EXPLODE".to_string());
             cmd.push(
-                (Transform::new(Coordinates::new_with_layer((character.pos_x * 64) as f32, (character.pos_y * 64) as f32, level_data.tilemap.len() + 1), 1., 0.),
+                (Transform::from_xy_with_layer((character.pos_x * 64) as f32, (character.pos_y * 64) as f32, level_data.tilemap.len() + 1),
                  animations,
                  Sprite::new(64),
                  refs.tileset.as_ref().unwrap().clone(),

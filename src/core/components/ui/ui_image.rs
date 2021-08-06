@@ -3,12 +3,13 @@ use std::ops::Range;
 use wgpu::util::BufferInitDescriptor;
 
 use crate::{
-    core::components::{material::Material, maths::transform::Coordinates},
+    core::components::{material::Material},
     rendering::bidimensional::{
         gl_representations::TexturedGlVertex,
         scion2d::{Renderable2D, RenderableUi},
     },
 };
+use crate::core::components::maths::coordinates::Coordinates;
 
 /// Renderable 2D Square.
 #[derive(Debug)]

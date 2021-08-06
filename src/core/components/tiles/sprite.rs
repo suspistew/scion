@@ -4,10 +4,11 @@ use wgpu::util::BufferInitDescriptor;
 
 use crate::{
     core::components::{
-        material::Material, maths::transform::Coordinates, tiles::tileset::Tileset,
+        material::Material, tiles::tileset::Tileset,
     },
     rendering::bidimensional::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
 };
+use crate::core::components::maths::coordinates::Coordinates;
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 

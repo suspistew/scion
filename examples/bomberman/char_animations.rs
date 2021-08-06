@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use scion::core::components::animations::{Animation, AnimationModifier};
 use std::time::Duration;
-use scion::core::components::maths::transform::Coordinates;
+use scion::core::components::maths::coordinates::Coordinates;
 
 const MOVE_DURATION: Duration = Duration::from_millis(500);
 
