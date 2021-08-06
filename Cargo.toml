@@ -11,6 +11,7 @@ license = "MIT OR Apache-2.0"
 
 [features]
 parallel = ["legion/parallel"]
+hot-reload = []
 
 [dependencies]
 legion = { version = "0.4", default-features = false, features = ["codegen"] }
