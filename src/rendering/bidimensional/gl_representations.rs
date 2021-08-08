@@ -2,8 +2,9 @@ use ultraviolet::{Mat4, Rotor3, Similarity3, Vec3, Vec4};
 
 use crate::core::components::maths::{
     camera::Camera,
-    transform::{Coordinates, Transform},
+    transform::{Transform},
 };
+use crate::core::components::maths::coordinates::Coordinates;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]

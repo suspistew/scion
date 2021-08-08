@@ -2,7 +2,8 @@ use std::slice::Iter;
 
 use legion::Entity;
 
-use crate::core::components::maths::transform::{Coordinates, Transform};
+use crate::core::components::maths::transform::{Transform};
+use crate::core::components::maths::coordinates::Coordinates;
 
 struct SquareColliderInfo<'a> {
     size: &'a usize,
@@ -143,7 +144,6 @@ impl Collision {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::components::maths::transform::Coordinates;
 
     #[test]
     fn test_can_collide_with() {
@@ -164,9 +164,9 @@ mod tests {
         let bullet = Collider::new(ColliderMask::Bullet, vec![], ColliderType::Square(5));
         let _ship = Collider::new(ColliderMask::Character, vec![], ColliderType::Square(5));
 
-        let bullet_transform = Transform::new(Coordinates::new(4., 4.), 1., 0.);
-        let ship_transform_in = Transform::new(Coordinates::new(5., 5.), 1., 0.);
-        let ship_transform_out = Transform::new(Coordinates::new(50., 50.), 1., 0.);
+        let bullet_transform = Transform::from_xy(4., 4.);
+        let ship_transform_in = Transform::from_xy(5., 5.);
+        let ship_transform_out = Transform::from_xy(50., 50.);
 
         assert_eq!(
             true,

@@ -14,7 +14,7 @@ use scion::{
                 camera::Camera,
                 collider::{Collider, ColliderMask, ColliderType},
                 hierarchy::Parent,
-                transform::{Coordinates, Transform},
+                transform::{Transform},
             },
             shapes::rectangle::Rectangle,
             Square,
@@ -27,6 +27,7 @@ use scion::{
 };
 
 use crate::{character_control_system::move_char_system, collisions_system::collider_system};
+use scion::core::components::maths::transform::TransformBuilder;
 
 pub const MAX_VELOCITY: i32 = 100;
 
@@ -48,7 +49,7 @@ impl SimpleGameLayer for Mario {
         add_background(world);
         self.hero = Some(add_character(world));
         self.map = add_level_data(world);
-        let mut camera_transform = Transform::new(Coordinates::new(-202., -320.), 1.0, 0.);
+        let mut camera_transform = Transform::from_xy(-202., -320.);
         camera_transform.set_global_translation_bounds(Some(0.), Some(2060.), Some(0.), Some(0.));
         world.push((
             Camera::new(500., 640., 10.),
@@ -109,7 +110,7 @@ fn add_level_data(world: &mut World) -> Vec<Vec<usize>> {
         .collect();
     for (i, line) in data.iter().enumerate() {
         for (j, val) in line.iter().enumerate() {
-            let t = Transform::new(Coordinates::new(j as f32 * 64., i as f32 * 64.), 1., 0.);
+            let t = Transform::from_xy(j as f32 * 64., i as f32 * 64.);
             match *val {
                 0 => {
                     world.push((
@@ -156,7 +157,7 @@ fn add_background(world: &mut World) {
                 .join("examples/mario/assets/level.png")
                 .get(),
         ),
-        Transform::new(Coordinates::new_with_layer(0., 0., 1), 1., 0.),
+        Transform::from_xy_with_layer(0., 0., 1),
     );
     world.push(background);
 }
@@ -174,7 +175,7 @@ fn add_character(world: &mut World) -> Entity {
             ColliderType::Square(64),
         ),
         Square::new(64., None),
-        Transform::new(Coordinates::new_with_layer(256., 320., 2), 1., 0.),
+        Transform::from_xy_with_layer(256., 320., 2),
         Material::Color(Color::new_rgb(100, 120, 23)),
     ))
 }

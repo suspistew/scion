@@ -5,8 +5,8 @@ use std::{
     ops::Div,
     time::Duration,
 };
+use crate::core::components::maths::coordinates::Coordinates;
 
-use crate::core::components::maths::transform::Coordinates;
 
 pub struct Animations {
     animations: HashMap<String, Animation>,

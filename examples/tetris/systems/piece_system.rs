@@ -2,7 +2,7 @@ use scion::{
     core::{
         components::{
             material::Material,
-            maths::transform::{Coordinates, Transform},
+            maths::transform::{Transform},
             tiles::sprite::Sprite,
             Square,
         },

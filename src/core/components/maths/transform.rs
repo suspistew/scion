@@ -1,44 +1,4 @@
-/// Convenience struct used in all `Scion` to specify any 2D position.
-#[derive(Default, Debug, Copy, Clone)]
-pub struct Coordinates {
-    x: f32,
-    y: f32,
-    layer: usize,
-}
-
-impl Coordinates {
-    pub fn new(x: f32, y: f32) -> Self {
-        Self { x, y, layer: 0 }
-    }
-
-    pub fn new_with_layer(x: f32, y: f32, layer: usize) -> Self {
-        Self { x, y, layer }
-    }
-
-    pub fn x(&self) -> f32 {
-        self.x
-    }
-
-    pub fn y(&self) -> f32 {
-        self.y
-    }
-
-    pub fn layer(&self) -> usize {
-        self.layer
-    }
-
-    pub fn set_x(&mut self, x: f32) {
-        self.x = x
-    }
-
-    pub fn set_y(&mut self, y: f32) {
-        self.y = y;
-    }
-
-    pub fn set_layer(&mut self, layer: usize) {
-        self.layer = layer;
-    }
-}
+use crate::core::components::maths::coordinates::Coordinates;
 
 /// Component used by the renderer to know where and how to represent an object.
 /// Default is position 0;0 with a scale of 1.0 and no angle.
@@ -88,6 +48,14 @@ impl Transform {
             min_y: None,
             max_y: None,
         }
+    }
+
+    pub fn from_xy(x: f32, y: f32) -> Self {
+        Self::new(Coordinates::new(x,y), 1., 0.)
+    }
+
+    pub fn from_xy_with_layer(x: f32, y: f32, layer: usize) -> Self {
+        Self::new(Coordinates::new_with_layer(x,y, layer), 1., 0.)
     }
 
     /// Append a translation to this transform's position
@@ -223,6 +191,45 @@ impl Transform {
                 self.global_translation.set_y(max_y);
             }
         }
+    }
+}
+
+pub struct TransformBuilder {
+    transform: Transform,
+}
+
+impl TransformBuilder {
+    pub fn new() -> Self {
+        Self {
+            transform: Transform::default()
+        }
+    }
+
+    pub fn with_xy(mut self, x: f32, y: f32) -> Self {
+        let translation = Coordinates::new(x, y);
+        self.transform.local_translation = translation;
+        self.transform.global_translation = translation;
+        self
+    }
+    pub fn with_translation(mut self, x: f32, y: f32, layer: usize) -> Self {
+        let translation = Coordinates::new_with_layer(x, y, layer);
+        self.transform.local_translation = translation;
+        self.transform.global_translation = translation;
+        self
+    }
+
+    pub fn with_scale(mut self, scale: f32) -> Self {
+        self.transform.scale = scale;
+        self
+    }
+
+    pub fn with_angle(mut self, angle: f32) -> Self {
+        self.transform.angle = angle;
+        self
+    }
+
+    pub fn build(self) -> Transform {
+        self.transform
     }
 }
 

@@ -3,9 +3,10 @@ use std::ops::Range;
 use wgpu::util::BufferInitDescriptor;
 
 use crate::{
-    core::components::{material::Material, maths::transform::Coordinates},
+    core::components::{material::Material},
     rendering::bidimensional::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
 };
+use crate::core::components::maths::coordinates::Coordinates;
 
 const INDICES: &[u16] = &[1, 0, 2];
 

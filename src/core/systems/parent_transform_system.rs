@@ -105,7 +105,7 @@ mod tests {
 
     use super::*;
     use crate::core::{
-        components::maths::{hierarchy::Parent, transform::Coordinates},
+        components::maths::{hierarchy::Parent},
         systems::hierarchy_system::*,
     };
 
@@ -121,9 +121,9 @@ mod tests {
             .add_system(dirty_transform_system())
             .build();
 
-        let parent_transform = Transform::new(Coordinates::new(1., 1.), 1., 0.);
-        let child_transform = Transform::new(Coordinates::new(1., 1.), 1., 0.);
-        let child_of_child_transform = Transform::new(Coordinates::new(1., 1.), 1., 0.);
+        let parent_transform = Transform::from_xy(1., 1.);
+        let child_transform = Transform::from_xy(1., 1.);
+        let child_of_child_transform = Transform::from_xy(1., 1.);
         let parent = world.push((parent_transform,));
         let child = world.push((child_transform, Parent(parent)));
         let child_of_child = world.push((child_of_child_transform, Parent(child)));
