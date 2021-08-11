@@ -8,6 +8,9 @@ use crate::core::{
     },
     resources::time::{TimerType, Timers},
 };
+use crate::core::components::animations::{AnimationModifier, ComputedKeyframeModifier};
+use crate::core::components::material::Material;
+use crate::core::components::color::Color;
 
 /// System responsible of applying modifiers data to the dedicated components
 /// It will use timers to keep track of the animation and will merge keyframes in case
@@ -19,6 +22,7 @@ pub(crate) fn animation_executer(
     animations: &mut Animations,
     mut transform: Option<&mut Transform>,
     mut sprite: Option<&mut Sprite>,
+    mut material: Option<&mut Material>,
 ) {
     animations
         .animations_mut()
@@ -54,60 +58,18 @@ pub(crate) fn animation_executer(
                     }
                 };
                 if timer_cycle > 0 || timer_created {
-                    match &modifier.modifier_type {
+                    match modifier.modifier_type.clone() {
                         AnimationModifierType::TransformModifier { .. } => {
-                            match modifier.single_keyframe_modifier.as_ref().expect(
-                                "single keyframe modifier is needed for transform animation",
-                            ) {
-                                AnimationModifierType::TransformModifier {
-                                    vector: coordinates,
-                                    scale,
-                                    rotation,
-                                } => {
-                                    if let Some(ref mut transform) = transform {
-                                        for _i in 0..timer_cycle {
-                                            if let Some(coordinates) = coordinates {
-                                                transform.append_translation(
-                                                    coordinates.x(),
-                                                    coordinates.y(),
-                                                );
-                                            }
-                                            if let Some(scale) = scale {
-                                                transform.set_scale(transform.scale + scale);
-                                            }
-                                            if let Some(rotation) = rotation {
-                                                transform.append_angle(*rotation);
-                                            }
-                                        }
-                                    }
-                                }
-                                _ => {}
-                            }
+                            apply_transform_modifier(transform.as_mut(), modifier, timer_cycle)
                         }
                         AnimationModifierType::SpriteModifier {
                             tile_numbers,
                             end_tile_number,
                         } => {
-                            if let Some(ref mut animation_sprite) = sprite {
-                                if modifier.next_sprite_index.is_none() {
-                                    modifier.next_sprite_index = Some(0);
-                                }
-                                if modifier.current_keyframe == (modifier.number_of_keyframes - 1)
-                                    && animation.status != AnimationStatus::LOOPING
-                                {
-                                    animation_sprite.set_tile_nb(*end_tile_number);
-                                    modifier.next_sprite_index = None;
-                                } else {
-                                    animation_sprite.set_tile_nb(
-                                        *tile_numbers
-                                            .get(modifier.next_sprite_index.unwrap())
-                                            .unwrap(),
-                                    );
-                                    modifier
-                                        .next_sprite_index
-                                        .replace(modifier.next_sprite_index.unwrap() + 1);
-                                }
-                            }
+                            apply_sprite_modifier(sprite.as_mut(), &animation.status, modifier, &tile_numbers, end_tile_number)
+                        }
+                        AnimationModifierType::Color { .. } => {
+                            apply_color_modifier(material.as_mut(), modifier, timer_cycle)
                         }
                     }
                     modifier.current_keyframe += timer_cycle;
@@ -119,4 +81,83 @@ pub(crate) fn animation_executer(
             }
             animation.try_update_status();
         });
+}
+
+fn apply_transform_modifier(mut transform: Option<&mut &mut Transform>, modifier: &mut AnimationModifier, timer_cycle: usize) {
+    match modifier.single_keyframe_modifier.as_ref().expect(
+        "single keyframe modifier is needed for transform animation",
+    ) {
+        ComputedKeyframeModifier::TransformModifier {
+            vector: coordinates,
+            scale,
+            rotation,
+        } => {
+            if let Some(ref mut transform) = transform {
+                for _i in 0..timer_cycle {
+                    if let Some(coordinates) = coordinates {
+                        transform.append_translation(
+                            coordinates.x(),
+                            coordinates.y(),
+                        );
+                    }
+                    if let Some(scale) = scale {
+                        transform.set_scale(transform.scale + scale);
+                    }
+                    if let Some(rotation) = rotation {
+                        transform.append_angle(*rotation);
+                    }
+                }
+            }
+        }
+        _ => {}
+    }
+}
+
+fn apply_sprite_modifier(mut sprite: Option<&mut &mut Sprite>,
+                         status: &AnimationStatus,
+                         modifier: &mut AnimationModifier,
+                         tile_numbers: &Vec<usize>,
+                         end_tile_number: usize) {
+    if let Some(ref mut animation_sprite) = sprite {
+        if modifier.next_sprite_index.is_none() {
+            modifier.next_sprite_index = Some(0);
+        }
+        if modifier.current_keyframe == (modifier.number_of_keyframes - 1)
+            && status != &AnimationStatus::LOOPING
+        {
+            animation_sprite.set_tile_nb(end_tile_number);
+            modifier.next_sprite_index = None;
+        } else {
+            animation_sprite.set_tile_nb(
+                *tile_numbers
+                    .get(modifier.next_sprite_index.unwrap())
+                    .unwrap(),
+            );
+            modifier
+                .next_sprite_index
+                .replace(modifier.next_sprite_index.unwrap() + 1);
+        }
+    }
+}
+
+fn apply_color_modifier(material: Option<&mut &mut Material>, modifier: &mut AnimationModifier, timer_cycle: usize) {
+    if let Some(Material::Color(ref mut color)) = material{
+        if modifier.is_first_frame(){
+            modifier.compute_keyframe_modifier_for_animation(color);
+        }
+        if let Some(ComputedKeyframeModifier::Color{ r, g, b, a }) = &modifier.single_keyframe_modifier {
+            for i in 0..timer_cycle {
+                if modifier.will_be_last_keyframe(i){
+                    if let AnimationModifierType::Color{ target } = &modifier.modifier_type{
+                        color.replace(target.clone())
+                    }
+                }else{
+                    let new_color  = Color::new((r + color.red() as i16) as u8,(g + color.green() as i16) as u8,(b + color.blue() as i16) as u8,a + color.alpha());
+                    color.replace(new_color);
+                }
+
+            }
+        }
+
+    }
 }

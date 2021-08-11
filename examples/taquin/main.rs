@@ -15,7 +15,7 @@ use scion::{
     utils::file::app_base_path,
     Scion,
 };
-use scion::core::components::maths::transform::TransformBuilder;
+
 use scion::core::components::maths::coordinates::Coordinates;
 
 #[derive(Debug)]
