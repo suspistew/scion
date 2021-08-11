@@ -6,8 +6,8 @@ use std::{
     path::{Path, PathBuf},
 };
 use std::time::SystemTime;
-use std::fs::Metadata;
-use std::io::Error;
+
+
 
 pub struct FileReaderError {
     _msg: String,
@@ -29,7 +29,7 @@ pub fn read_file(path: &Path) -> Result<Vec<u8>, FileReaderError> {
 }
 
 pub fn read_file_modification_time(path: &Path) -> Result<SystemTime, FileReaderError> {
-    let mut file = open_file(path)?;
+    let file = open_file(path)?;
     match file.metadata() {
         Ok(metadata) => {Ok(metadata.modified().unwrap())}
         Err(e) => {

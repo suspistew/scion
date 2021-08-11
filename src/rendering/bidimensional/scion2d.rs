@@ -1,7 +1,7 @@
 use std::{collections::HashMap, ops::Range, path::Path};
 
 use legion::{component, storage::Component, Entity, IntoQuery, Resources, World};
-use wgpu::{util::{BufferInitDescriptor, DeviceExt}, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SwapChainDescriptor, SwapChainTexture, TextureView};
+use wgpu::{util::{BufferInitDescriptor, DeviceExt}, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SwapChainDescriptor, SwapChainTexture};
 
 use crate::{
     config::scion_config::ScionConfig,

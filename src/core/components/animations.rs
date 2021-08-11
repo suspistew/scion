@@ -6,6 +6,7 @@ use std::{
     time::Duration,
 };
 use crate::core::components::maths::coordinates::Coordinates;
+use crate::core::components::color::Color;
 
 
 pub struct Animations {
@@ -86,6 +87,8 @@ impl Animations {
         self.animations.values()
             .filter(|v| v.status.eq(&AnimationStatus::RUNNING) || v.status.eq(&AnimationStatus::LOOPING)).count() > 0
     }
+
+
 }
 
 #[derive(Eq, PartialEq)]
@@ -148,7 +151,7 @@ pub struct AnimationModifier {
     pub(crate) current_keyframe: usize,
     pub(crate) modifier_type: AnimationModifierType,
     pub(crate) single_keyframe_duration: Option<Duration>,
-    pub(crate) single_keyframe_modifier: Option<AnimationModifierType>,
+    pub(crate) single_keyframe_modifier: Option<ComputedKeyframeModifier>,
     /// In case of a sprite modifier we need to keep track of the next index position in the vec
     pub(crate) next_sprite_index: Option<usize>,
 }
@@ -192,9 +195,35 @@ impl AnimationModifier {
             },
         )
     }
+
+    pub fn color(number_of_keyframes: usize, target_color: Color) -> Self{
+        AnimationModifier::new(number_of_keyframes, AnimationModifierType::Color {target: target_color})
+    }
+
+    pub(crate) fn compute_keyframe_modifier_for_animation(&mut self, initial_color: &Color) {
+        self.single_keyframe_modifier = match &self.modifier_type{
+            AnimationModifierType::Color { target } => {
+                let r = (target.red() as i16 - initial_color.red() as i16)  / self.number_of_keyframes as i16;
+                let g = (target.green() as i16 - initial_color.green() as i16) / self.number_of_keyframes as i16;
+                let b = (target.blue() as i16 - initial_color.blue() as i16) / self.number_of_keyframes as i16;
+                let a = (target.alpha()  - initial_color.alpha())  / self.number_of_keyframes as f32;
+                Some(ComputedKeyframeModifier::Color {r,g,b,a})
+            },
+            _ => None
+        }
+    }
+
+    pub(crate) fn is_first_frame(&self) -> bool {
+        self.current_keyframe == 0
+    }
+
+    pub(crate) fn will_be_last_keyframe(&self, added_keyframes: usize) -> bool {
+        self.current_keyframe + added_keyframes >= self.number_of_keyframes
+    }
+
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum AnimationModifierType {
     TransformModifier {
         vector: Option<Coordinates>,
@@ -205,6 +234,23 @@ pub enum AnimationModifierType {
         tile_numbers: Vec<usize>,
         end_tile_number: usize,
     },
+    Color {
+        target: Color
+    }
+}
+
+pub(crate) enum ComputedKeyframeModifier {
+    TransformModifier {
+        vector: Option<Coordinates>,
+        scale: Option<f32>,
+        rotation: Option<f32>,
+    },
+    Color {
+        r: i16,
+        g: i16,
+        b: i16,
+        a: f32
+    }
 }
 
 impl Display for AnimationModifier {
@@ -219,6 +265,9 @@ impl Display for AnimationModifier {
                 AnimationModifierType::SpriteModifier { .. } => {
                     "SpriteModifier"
                 }
+                AnimationModifierType::Color { .. } => {
+                    "Color"
+                }
             }
         )
     }
@@ -232,7 +281,7 @@ fn compute_animation_keyframe_modifier(modifier: &mut AnimationModifier) {
             scale,
             rotation,
         } => {
-            Some(AnimationModifierType::TransformModifier {
+            Some(ComputedKeyframeModifier::TransformModifier {
                 vector: coordinates.map_or(None, |coordinates| {
                     Some(Coordinates::new(
                         coordinates.x() / keyframe_nb,
@@ -244,6 +293,10 @@ fn compute_animation_keyframe_modifier(modifier: &mut AnimationModifier) {
             })
         }
         AnimationModifierType::SpriteModifier { .. } => None,
+        AnimationModifierType::Color { .. } => {
+            // We can't compute here because we need the initial color
+            None
+        }
     };
 }
 
@@ -271,7 +324,7 @@ mod tests {
             500,
             anim_modifier.single_keyframe_duration.unwrap().as_millis()
         );
-        if let AnimationModifierType::TransformModifier {
+        if let ComputedKeyframeModifier::TransformModifier {
             vector: coordinates,
             scale,
             rotation,

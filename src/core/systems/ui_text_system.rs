@@ -13,7 +13,7 @@ use crate::core::components::{
     },
 };
 use crate::core::components::maths::coordinates::Coordinates;
-use crate::core::components::maths::transform::TransformBuilder;
+
 
 /// System responsible to create/delete/update the entities linked to any ui_text with a bitmap font
 #[system]
