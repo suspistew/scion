@@ -9,7 +9,7 @@ use scion::{
             tiles::{sprite::Sprite, tileset::Tileset},
         },
         game_layer::{GameLayer, SimpleGameLayer},
-        resources::{asset_manager::AssetManager, inputs::inputs_controller::InputsController},
+        resources::{inputs::inputs_controller::InputsController},
     },
     legion::{system, Resources, World},
     utils::file::app_base_path,
@@ -17,6 +17,7 @@ use scion::{
 };
 
 use scion::core::components::maths::coordinates::Coordinates;
+use scion::core::legion_ext::ScionExtension;
 
 #[derive(Debug)]
 struct Case(Coordinates);
@@ -104,10 +105,7 @@ struct Layer;
 
 impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
-        let tileset_ref = resources
-            .get_mut::<AssetManager>()
-            .expect("AssetManager is mandatory")
-            .register_tileset(Tileset::new(
+        let tileset_ref = resources.assets().register_tileset(Tileset::new(
                 app_base_path()
                     .join("examples/taquin/assets/taquin.png")
                     .get(),
