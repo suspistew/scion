@@ -22,9 +22,6 @@ use scion::{
             },
         },
         game_layer::{GameLayer, SimpleGameLayer},
-        resources::{
-            asset_manager::AssetManager,
-        },
     },
     utils::{file::app_base_path, maths::Dimensions},
     Scion,
@@ -34,6 +31,7 @@ use crate::level_reader::Level;
 use scion::core::resources::asset_manager::AssetRef;
 use character_control_system::controller_system;
 use bomb_system::exposion_system;
+use scion::core::legion_ext::ScionExtension;
 
 #[derive(Default)]
 struct BombermanLayer {
@@ -59,9 +57,7 @@ pub struct BombermanInfos {
 
 impl SimpleGameLayer for BombermanLayer {
     fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
-        let asset_ref = resources
-            .get_mut::<AssetManager>()
-            .expect("Asset Manager is mandatory")
+        let asset_ref = resources.assets()
             .register_tileset(Tileset::new(
                 app_base_path()
                     .join("examples/bomberman/assets/sokoban_tilesheet.png")
@@ -83,7 +79,7 @@ impl SimpleGameLayer for BombermanLayer {
         self.character = Some(world.push(create_char(asset_ref.clone(), &level)));
         world.push((Camera::new(640., 640., 10.), Transform::default()));
         resources.insert(level);
-        resources.insert(BombermanRefs { tileset: Some(asset_ref), tilemap_entity: Some(tilemap) })
+        resources.insert(BombermanRefs { tileset: Some(asset_ref), tilemap_entity: Some(tilemap) });
     }
 }
 

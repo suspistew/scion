@@ -9,13 +9,14 @@ use crate::{
     config::scion_config::ScionConfig,
     core::resources::{
         inputs::{
-            inputs_controller::InputsController, keycode::KeyCode, mouse::MouseButton, InputState,
+            keycode::KeyCode, mouse::MouseButton, InputState,
             KeyboardEvent, MouseEvent,
         },
         window::WindowDimensions,
     },
     rendering::renderer_state::RendererState,
 };
+use crate::core::legion_ext::ScionExtension;
 
 pub(crate) fn handle_event(
     event: Event<()>,
@@ -52,11 +53,7 @@ pub(crate) fn handle_event(
                         .current_monitor()
                         .expect("Missing the monitor")
                         .scale_factor();
-                    resources
-                        .get_mut::<InputsController>()
-                        .expect("Missing mandatory ressource : Inputs")
-                        .mouse_mut()
-                        .set_position(position.x / dpi_factor, position.y / dpi_factor);
+                    resources.inputs().mouse_mut().set_position(position.x / dpi_factor, position.y / dpi_factor);
                 }
                 _ => {}
             }
@@ -84,11 +81,7 @@ fn update_input_events(window_event: &WindowEvent, resources: &mut Resources) {
                     keycode: KeyCode::from(keycode),
                     state: InputState::from(input.state),
                 };
-                resources
-                    .get_mut::<InputsController>()
-                    .expect("Missing mandatory resource : InputsController")
-                    .keyboard_mut()
-                    .add_keyboard_event(k_event.clone());
+                resources.inputs().keyboard_mut().add_keyboard_event(k_event.clone());
             }
         }
         WindowEvent::MouseInput { state, button, .. } => {
@@ -96,10 +89,7 @@ fn update_input_events(window_event: &WindowEvent, resources: &mut Resources) {
                 button: MouseButton::from(*button),
                 state: InputState::from(*state),
             };
-            resources
-                .get_mut::<InputsController>()
-                .expect("Missing mandatory resource : InputsController")
-                .mouse_mut()
+            resources.inputs().mouse_mut()
                 .set_click_event(Some(m_event.clone()));
         }
         _ => {}

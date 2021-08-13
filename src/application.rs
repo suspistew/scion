@@ -44,6 +44,7 @@ use crate::{
     rendering::{renderer_state::RendererState, RendererType},
 };
 use crate::core::resources::time::TimerType;
+use crate::core::legion_ext::ScionExtension;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -157,10 +158,7 @@ impl Scion {
             .get_mut::<Time>()
             .expect("Time is an internal resource and can't be missing")
             .frame();
-        self.resources
-            .get_mut::<Timers>()
-            .expect("Missing mandatory ressource : Timers")
-            .add_delta_duration(frame_duration);
+        self.resources.timers().add_delta_duration(frame_duration);
         self.layer_machine.apply_layers_action(
             LayerAction::Update,
             &mut self.world,
@@ -172,10 +170,7 @@ impl Scion {
             &mut self.world,
             &mut self.resources,
         );
-        self.resources
-            .get_mut::<InputsController>()
-            .expect("Missing mandatory ressource : InputsController")
-            .reset_inputs();
+        self.resources.inputs().reset_inputs();
         self.resources
             .get_mut::<Events>()
             .expect("Missing mandatory ressource : Events")

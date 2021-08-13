@@ -11,10 +11,11 @@ use scion::core::components::Square;
 use scion::core::components::animations::{Animation, AnimationModifier, Animations};
 use std::time::Duration;
 use scion::core::components::color::Color;
-use scion::core::resources::inputs::inputs_controller::InputsController;
+
 use scion::core::resources::inputs::keycode::KeyCode;
 use scion::config::scion_config::{ScionConfigBuilder};
 use scion::config::window_config::WindowConfigBuilder;
+use scion::core::legion_ext::ScionExtension;
 
 #[derive(Default)]
 pub struct WorldCup{
@@ -38,7 +39,7 @@ impl SimpleGameLayer for WorldCup{
     fn update(&mut self, world: &mut World, resources: &mut Resources) {
         let mut entry = world.entry_mut(*self.entity.as_ref().unwrap()).unwrap();
         let animations = entry.get_component_mut::<Animations>().unwrap();
-        resources.get_mut::<InputsController>().unwrap().keyboard_mut().on_key_pressed(KeyCode::P, || {
+        resources.inputs().keyboard_mut().on_key_pressed(KeyCode::P, || {
             animations.run_animation("color".to_string());
         })
     }

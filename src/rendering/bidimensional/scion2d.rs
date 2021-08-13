@@ -25,7 +25,8 @@ use crate::{
 use std::cfg;
 use std::time::SystemTime;
 use crate::utils::file::{read_file_modification_time, FileReaderError};
-use crate::core::resources::time::Timers;
+
+use crate::core::legion_ext::ScionExtension;
 
 pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor;
@@ -479,12 +480,12 @@ impl Scion2D {
     fn update_diffuse_bind_groups(
         &mut self,
         world: &mut World,
-        resource: &mut Resources,
+        resources: &mut Resources,
         device: &Device,
         queue: &mut Queue,
     ) {
         let hot_timer_cycle = if cfg!(feature = "hot-reload") {
-            let mut timers = resource.get_mut::<Timers>().expect("Missing mandatory resource : Timers");
+            let mut timers = resources.timers();
             let hot_reload_timer = timers.get_timer("hot-reload-timer").expect("Missing mandatory timer : hot_reload");
             hot_reload_timer.cycle() > 0
         } else {
