@@ -114,7 +114,7 @@ impl Scion {
         let mut timers = Timers::default();
 
         if cfg!(feature = "hot-reload") {
-            timers.add_timer("hot-reload-timer", TimerType::Cyclic, 5.);
+            let _res = timers.add_timer("hot-reload-timer", TimerType::Cyclic, 5.);
         }
 
         self.resources.insert(Time::default());

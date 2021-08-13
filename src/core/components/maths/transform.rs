@@ -1,4 +1,5 @@
 use crate::core::components::maths::coordinates::Coordinates;
+use crate::core::components::maths::vector::Vector;
 
 /// Component used by the renderer to know where and how to represent an object.
 /// Default is position 0;0 with a scale of 1.0 and no angle.
@@ -66,6 +67,11 @@ impl Transform {
         self.global_translation.y += y;
         self.dirty = true;
         self.handle_bounds();
+    }
+
+    /// Append a translation to this transform's position
+    pub fn append_vector(&mut self, vector: Vector) {
+        self.append_translation(vector.x, vector.y);
     }
 
     /// Appends the x val to the translation's x value

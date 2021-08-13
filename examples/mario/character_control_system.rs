@@ -19,10 +19,10 @@ pub fn move_char(
     query: &mut Query<(&mut Hero, &mut Transform)>,
 ) {
     if !timers.exists("input") {
-        timers.add_timer("input", TimerType::Manual, 0.05);
+        let _r = timers.add_timer("input", TimerType::Manual, 0.05);
     }
     if !timers.exists("gravity") {
-        timers.add_timer("gravity", TimerType::Manual, 0.005);
+       let _r =  timers.add_timer("gravity", TimerType::Manual, 0.005);
     }
 
     let input_velocity = read_velocity(inputs);

@@ -9,8 +9,7 @@ use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
         components::{
-            animations::{Animation, AnimationModifier, Animations},
-            color::Color,
+            animations::{Animations},
             material::Material,
             maths::{
                 camera::Camera,
@@ -21,12 +20,10 @@ use scion::{
                 tilemap::{TileInfos, Tilemap, TilemapInfo},
                 tileset::Tileset,
             },
-            Square,
         },
         game_layer::{GameLayer, SimpleGameLayer},
         resources::{
             asset_manager::AssetManager,
-            inputs::{inputs_controller::InputsController, keycode::KeyCode, InputState},
         },
     },
     utils::{file::app_base_path, maths::Dimensions},

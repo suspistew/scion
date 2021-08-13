@@ -28,59 +28,58 @@ pub(crate) fn ui_text_bitmap_update(
         .iter_mut(&mut world_1)
         .for_each(|(entity, ui_text, transform)| {
             if ui_text.dirty {
-                if let Font::Bitmap {
+                let Font::Bitmap {
                     texture_path,
                     chars,
                     width,
                     height,
                     texture_columns,
                     texture_lines,
-                } = ui_text.font()
-                {
-                    let texture_width = texture_columns * width;
-                    let texture_height = texture_lines * height;
+                } = ui_text.font();
 
-                    query_ui_text_images
-                        .iter(&world_2)
-                        .filter(|(_, _, parent)| parent.0 == *entity)
-                        .for_each(|(e, _, _)| cmd.remove(*e));
-                    for (index, character) in ui_text.text().chars().enumerate() {
-                        let (line, column) =
-                            Font::find_line_and_column(&chars, *texture_columns, character);
+                let texture_width = texture_columns * width;
+                let texture_height = texture_lines * height;
 
-                        let uvs = [
-                            Coordinates::new(
-                                (column * width) / texture_width,
-                                (line * height) / texture_height,
-                            ),
-                            Coordinates::new(
-                                (column * width) / texture_width,
-                                (line * height + height) / texture_height,
-                            ),
-                            Coordinates::new(
-                                (column * width + width) / texture_width,
-                                (line * height + height) / texture_height,
-                            ),
-                            Coordinates::new(
-                                (column * width + width) / texture_width,
-                                (line * height) / texture_height,
-                            ),
-                        ];
+                query_ui_text_images
+                    .iter(&world_2)
+                    .filter(|(_, _, parent)| parent.0 == *entity)
+                    .for_each(|(e, _, _)| cmd.remove(*e));
+                for (index, character) in ui_text.text().chars().enumerate() {
+                    let (line, column) =
+                        Font::find_line_and_column(&chars, *texture_columns, character);
 
-                        let mut char_transform = Transform::from_xy(index as f32 * (width + 1.), 0.);
-                        char_transform.set_layer(transform.translation().layer());
-                        cmd.push((
-                            UiTextImage(UiImage::new_with_uv_map(
-                                *width as f32,
-                                *height as f32,
-                                texture_path.clone(),
-                                uvs,
-                            )),
-                            UiComponent,
-                            char_transform,
-                            Parent(*entity),
-                        ));
-                    }
+                    let uvs = [
+                        Coordinates::new(
+                            (column * width) / texture_width,
+                            (line * height) / texture_height,
+                        ),
+                        Coordinates::new(
+                            (column * width) / texture_width,
+                            (line * height + height) / texture_height,
+                        ),
+                        Coordinates::new(
+                            (column * width + width) / texture_width,
+                            (line * height + height) / texture_height,
+                        ),
+                        Coordinates::new(
+                            (column * width + width) / texture_width,
+                            (line * height) / texture_height,
+                        ),
+                    ];
+
+                    let mut char_transform = Transform::from_xy(index as f32 * (width + 1.), 0.);
+                    char_transform.set_layer(transform.translation().layer());
+                    cmd.push((
+                        UiTextImage(UiImage::new_with_uv_map(
+                            *width as f32,
+                            *height as f32,
+                            texture_path.clone(),
+                            uvs,
+                        )),
+                        UiComponent,
+                        char_transform,
+                        Parent(*entity),
+                    ));
                 }
                 ui_text.dirty = false;
             }
@@ -122,7 +121,7 @@ mod tests {
             .add_system(ui_text_bitmap_update_system())
             .build();
 
-        let _entity = world.push((get_test_ui_text(),));
+        let _entity = world.push((get_test_ui_text(), ));
         schedule.execute(&mut world, &mut resources);
         let vec: Vec<(&Entity, &UiTextImage)> =
             <(Entity, &UiTextImage)>::query().iter(&world).collect();
