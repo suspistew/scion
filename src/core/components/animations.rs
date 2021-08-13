@@ -5,8 +5,8 @@ use std::{
     ops::Div,
     time::Duration,
 };
-use crate::core::components::maths::coordinates::Coordinates;
 use crate::core::components::color::Color;
+use crate::core::components::maths::vector::Vector;
 
 
 pub struct Animations {
@@ -172,7 +172,7 @@ impl AnimationModifier {
     /// Convenience function to directly create an AnimationModifier of type Transform with the needed informations
     pub fn transform(
         number_of_keyframes: usize,
-        vector: Option<Coordinates>,
+        vector: Option<Vector>,
         scale: Option<f32>,
         rotation: Option<f32>,
     ) -> Self {
@@ -226,7 +226,7 @@ impl AnimationModifier {
 #[derive(Debug, Clone)]
 pub enum AnimationModifierType {
     TransformModifier {
-        vector: Option<Coordinates>,
+        vector: Option<Vector>,
         scale: Option<f32>,
         rotation: Option<f32>,
     },
@@ -241,7 +241,7 @@ pub enum AnimationModifierType {
 
 pub(crate) enum ComputedKeyframeModifier {
     TransformModifier {
-        vector: Option<Coordinates>,
+        vector: Option<Vector>,
         scale: Option<f32>,
         rotation: Option<f32>,
     },
@@ -277,15 +277,15 @@ fn compute_animation_keyframe_modifier(modifier: &mut AnimationModifier) {
     let keyframe_nb = modifier.number_of_keyframes as f32;
     modifier.single_keyframe_modifier = match modifier.modifier_type {
         AnimationModifierType::TransformModifier {
-            vector: coordinates,
+            vector,
             scale,
             rotation,
         } => {
             Some(ComputedKeyframeModifier::TransformModifier {
-                vector: coordinates.map_or(None, |coordinates| {
-                    Some(Coordinates::new(
-                        coordinates.x() / keyframe_nb,
-                        coordinates.y() / keyframe_nb,
+                vector: vector.map_or(None, |vector| {
+                    Some(Vector::new(
+                        vector.x() / keyframe_nb,
+                        vector.y() / keyframe_nb,
                     ))
                 }),
                 scale: scale.map_or(None, |scale| Some(scale / keyframe_nb)),
@@ -311,7 +311,7 @@ mod tests {
             vec![AnimationModifier::new(
                 2,
                 AnimationModifierType::TransformModifier {
-                    vector: Some(Coordinates::new(2., 4.)),
+                    vector: Some(Vector::new(2., 4.)),
                     scale: Some(4.),
                     rotation: Some(1.),
                 },
@@ -325,13 +325,13 @@ mod tests {
             anim_modifier.single_keyframe_duration.unwrap().as_millis()
         );
         if let ComputedKeyframeModifier::TransformModifier {
-            vector: coordinates,
+            vector,
             scale,
             rotation,
         } = anim_modifier.single_keyframe_modifier.as_ref().unwrap()
         {
-            assert_eq!(1.0, coordinates.unwrap().x());
-            assert_eq!(2.0, coordinates.unwrap().y());
+            assert_eq!(1.0, vector.unwrap().x());
+            assert_eq!(2.0, vector.unwrap().y());
             assert_eq!(2.0, scale.unwrap());
             assert_eq!(0.5, rotation.unwrap());
         } else {

@@ -25,28 +25,28 @@ pub fn exposion(
         {
             let left = level_data.tilemap.get_mut(2).unwrap().values.get_mut(bomb.pos_y).unwrap().get_mut(bomb.pos_x - 1).unwrap();
             if *left == 4 {
-                std::mem::replace(left,0);
+                let _r = std::mem::replace(left,0);
                 tilemap.modify_sprite_tile(Position::new(bomb.pos_x - 1, bomb.pos_y, 2), 0, &mut other_world);
             }
         }
         {
             let right = level_data.tilemap.get_mut(2).unwrap().values.get_mut(bomb.pos_y).unwrap().get_mut(bomb.pos_x + 1).unwrap();
             if *right == 4 {
-                std::mem::replace(right,0);
+                let _r = std::mem::replace(right,0);
                 tilemap.modify_sprite_tile(Position::new(bomb.pos_x + 1, bomb.pos_y, 2), 0, &mut other_world);
             }
         }
         {
             let top = level_data.tilemap.get_mut(2).unwrap().values.get_mut(bomb.pos_y - 1).unwrap().get_mut(bomb.pos_x).unwrap();
             if *top == 4 {
-                std::mem::replace(top,0);
+                let _r = std::mem::replace(top,0);
                 tilemap.modify_sprite_tile(Position::new(bomb.pos_x, bomb.pos_y - 1, 2), 0, &mut other_world);
             }
         }
         {
             let bottom = level_data.tilemap.get_mut(2).unwrap().values.get_mut(bomb.pos_y + 1).unwrap().get_mut(bomb.pos_x).unwrap();
             if *bottom == 4 {
-                std::mem::replace(bottom,0);
+                let _r = std::mem::replace(bottom,0);
                 tilemap.modify_sprite_tile(Position::new(bomb.pos_x, bomb.pos_y + 1, 2), 0, &mut other_world);
             }
         }

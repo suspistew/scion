@@ -1,10 +1,8 @@
 use scion::{
     core::{
         components::{
-            material::Material,
             maths::transform::{Transform},
             tiles::sprite::Sprite,
-            Square,
         },
         resources::time::Timers,
     },
