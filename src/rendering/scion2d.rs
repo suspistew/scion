@@ -194,7 +194,7 @@ impl Scion2D {
                             gl_vertex.position.append_position(
                                 tile_size as f32 * tile.position.x() as f32,
                                 tile_size as f32 * tile.position.y() as f32,
-                                tile.position.layer() as f32 / 100.,
+                                tile.position.z() as f32 / 100.,
                             )
                         });
                         vertexes.append(&mut vec);
@@ -354,7 +354,7 @@ impl Scion2D {
                 Material::Tileset(tileset) => Some(tileset.texture.clone()),
             };
             render_infos.push(RenderingInfos {
-                layer: transform.translation().layer(),
+                layer: transform.translation().z(),
                 range: component.range(),
                 entity: *entity,
                 texture_path: path,
@@ -380,7 +380,7 @@ impl Scion2D {
                 _ => None,
             };
             render_infos.push(RenderingInfos {
-                layer: transform.translation().layer(),
+                layer: transform.translation().z(),
                 range: 0..(tiles_nb * Sprite::indices().len()) as u32,
                 entity: *entity,
                 texture_path: path,
@@ -399,7 +399,7 @@ impl Scion2D {
             .iter_mut(world)
         {
             render_infos.push(RenderingInfos {
-                layer: transform.translation().layer(),
+                layer: transform.translation().z(),
                 range: component.range(),
                 entity: *entity,
                 texture_path: component.get_texture_path(),

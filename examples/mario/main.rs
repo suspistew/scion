@@ -146,7 +146,7 @@ fn add_background(world: &mut World) {
     let background = (
         Rectangle::new(2560., 640., None),
         Material::Texture(app_base_path().join("examples/mario/assets/level.png").get()),
-        Transform::from_xy_with_layer(0., 0., 1),
+        Transform::from_xyz(0., 0., 1),
     );
     world.push(background);
 }
@@ -160,7 +160,7 @@ fn add_character(world: &mut World) -> Entity {
             ColliderType::Square(64),
         ),
         Square::new(64., None),
-        Transform::from_xy_with_layer(256., 320., 2),
+        Transform::from_xyz(256., 320., 2),
         Material::Color(Color::new_rgb(100, 120, 23)),
     ))
 }

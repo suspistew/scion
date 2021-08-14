@@ -67,7 +67,7 @@ pub fn controller(
                 Animations::single("EXPLODE", bomb_animations::explode());
             animations.run_animation("EXPLODE");
             cmd.push((
-                Transform::from_xy_with_layer(
+                Transform::from_xyz(
                     (character.pos_x * 64) as f32,
                     (character.pos_y * 64) as f32,
                     level_data.tilemap.len() + 1,

@@ -62,14 +62,14 @@ fn add_score_ui(world: &mut World) -> Entity {
     let txt = UiText::new("SCORE".to_string(), font.clone());
     let mut transform = Transform::default();
     transform.append_translation(394., 250.);
-    transform.set_layer(2);
+    transform.set_z(2);
 
     world.push((txt, transform));
 
     let txt = UiText::new("".to_string(), font);
     let mut transform = Transform::default();
     transform.append_translation(394., 290.);
-    transform.set_layer(2);
+    transform.set_z(2);
     world.push((txt, transform))
 }
 
@@ -78,7 +78,7 @@ fn add_main_ui_mask(world: &mut World) {
     let image = UiImage::new(544., 704., path);
 
     let mut t = Transform::default();
-    t.set_layer(0);
+    t.set_z(0);
     world.push((image, t));
 }
 
@@ -87,7 +87,7 @@ fn add_ui_top_overflow(world: &mut World) {
     let image = UiImage::new(324., 32., path);
 
     let mut t = Transform::default();
-    t.set_layer(2);
+    t.set_z(2);
     t.append_translation(32., 0.);
     world.push((image, t));
 }

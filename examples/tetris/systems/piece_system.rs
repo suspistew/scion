@@ -105,7 +105,7 @@ pub fn initialize_bloc(
         coord_x * BLOC_SIZE + offset.0 * BLOC_SIZE,
         coord_y * BLOC_SIZE + offset.1 * BLOC_SIZE,
     );
-    bloc_transform.set_layer(1);
+    bloc_transform.set_z(1);
     let tuple = (
         bloc_transform,
         Sprite::new(if is_next_bloc { tetris.next_piece.color } else { tetris.active_piece.color }),

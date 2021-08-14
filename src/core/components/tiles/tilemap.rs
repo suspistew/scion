@@ -65,8 +65,8 @@ impl Tilemap {
 
         for x in 0..infos.dimensions.width() {
             for y in 0..infos.dimensions.height() {
-                for layer in 0..infos.dimensions.number_of_layers() {
-                    let position = Position::new(x, y, layer);
+                for z in 0..infos.dimensions.depth() {
+                    let position = Position::new(x, y, z);
                     let tile_infos = tile_resolver(&position);
 
                     let entity = world

@@ -52,8 +52,8 @@ impl Transform {
 
     pub fn from_xy(x: f32, y: f32) -> Self { Self::new(Coordinates::new(x, y), 1., 0.) }
 
-    pub fn from_xy_with_layer(x: f32, y: f32, layer: usize) -> Self {
-        Self::new(Coordinates::new_with_layer(x, y, layer), 1., 0.)
+    pub fn from_xyz(x: f32, y: f32, z: usize) -> Self {
+        Self::new(Coordinates::new_with_z(x, y, z), 1., 0.)
     }
 
     /// Append a translation to this transform's position
@@ -105,8 +105,8 @@ impl Transform {
     /// Change the scale value to a new one.
     pub fn set_scale(&mut self, scale: f32) { self.scale = scale }
 
-    /// Change the layer value in the coordinates.
-    pub fn set_layer(&mut self, layer: usize) { self.local_translation.layer = layer }
+    /// Change the z value in the coordinates.
+    pub fn set_z(&mut self, z: usize) { self.local_translation.z = z }
 
     /// Configure the minimum global x position for this transform to be min_x
     pub fn set_min_x(&mut self, min_x: Option<f32>) {
@@ -152,7 +152,7 @@ impl Transform {
         let mut new_global = parent_translation.clone();
         new_global.x += self.local_translation.x;
         new_global.y += self.local_translation.y;
-        new_global.layer = self.local_translation.layer;
+        new_global.z = self.local_translation.z;
         self.global_translation = new_global;
         self.dirty = true;
         self.handle_bounds();
@@ -198,8 +198,8 @@ impl TransformBuilder {
         self.transform.global_translation = translation;
         self
     }
-    pub fn with_translation(mut self, x: f32, y: f32, layer: usize) -> Self {
-        let translation = Coordinates::new_with_layer(x, y, layer);
+    pub fn with_translation(mut self, x: f32, y: f32, z: usize) -> Self {
+        let translation = Coordinates::new_with_z(x, y, z);
         self.transform.local_translation = translation;
         self.transform.global_translation = translation;
         self
