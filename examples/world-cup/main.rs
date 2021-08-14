@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use futures::StreamExt;
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
@@ -7,12 +8,12 @@ use scion::{
             animations::{Animation, AnimationModifier, Animations},
             color::Color,
             material::Material,
-            maths::transform::Transform,
-            Square,
+            maths::{hierarchy::Parent, transform::Transform},
+            Hide, Square,
         },
         game_layer::{GameLayer, SimpleGameLayer},
         legion_ext::{ScionResourcesExtension, ScionWorldExtension},
-        resources::inputs::keycode::KeyCode,
+        resources::{events::PollConfiguration, inputs::keycode::KeyCode},
     },
     legion::{Entity, EntityStore, Resources, World},
     Scion,
@@ -38,7 +39,15 @@ impl SimpleGameLayer for WorldCup {
             Transform::from_xy(100., 100.),
             Material::Color(Color::new(0, 0, 255, 1.0)),
             animations,
+            Hide,
         )));
+
+        world.push((
+            Square::new(500., None),
+            Transform::from_xy(300., 100.),
+            Material::Color(Color::new(0, 0, 255, 1.0)),
+            Parent(self.entity.as_ref().unwrap().clone()),
+        ));
 
         world.add_default_camera();
     }
@@ -48,7 +57,7 @@ impl SimpleGameLayer for WorldCup {
         let animations = entry.get_component_mut::<Animations>().unwrap();
         resources.inputs().keyboard_mut().on_key_pressed(KeyCode::P, || {
             animations.run_animation("color".to_string());
-        })
+        });
     }
 }
 

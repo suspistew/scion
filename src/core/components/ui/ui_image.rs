@@ -4,7 +4,7 @@ use wgpu::util::BufferInitDescriptor;
 
 use crate::{
     core::components::{material::Material, maths::coordinates::Coordinates},
-    rendering::bidimensional::{
+    rendering::{
         gl_representations::TexturedGlVertex,
         scion2d::{Renderable2D, RenderableUi},
     },

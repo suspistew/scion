@@ -36,6 +36,7 @@ use crate::{
             asset_ref_resolver_system::{asset_ref_resolver_system, MaterialAssetResolverFn},
             collider_systems::{colliders_cleaner_system, compute_collisions_system},
             default_camera_system::default_camera_system,
+            hide_propagation_system::{hide_propagated_deletion_system, hide_propagation_system},
             hierarchy_system::children_manager_system,
             missing_ui_component_system::missing_ui_component_system,
             parent_transform_system::{dirty_child_system, dirty_transform_system},
@@ -274,6 +275,9 @@ impl ScionBuilder {
             .add_system(ui_text_bitmap_update_system())
             .flush()
             .add_system(children_manager_system())
+            .add_system(hide_propagated_deletion_system())
+            .flush()
+            .add_system(hide_propagation_system())
             .add_system(missing_ui_component_system::<UiImage>())
             .add_system(missing_ui_component_system::<UiTextImage>())
             .add_system(missing_ui_component_system::<UiText>())

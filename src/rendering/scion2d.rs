@@ -20,11 +20,12 @@ use crate::{
                 tilemap::{Tile, Tilemap},
             },
             ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
+            Hide, HidePropagated,
         },
         legion_ext::ScionResourcesExtension,
     },
     rendering::{
-        bidimensional::gl_representations::{GlUniform, UniformData},
+        gl_representations::{GlUniform, UniformData},
         shaders::pipeline::pipeline,
         ScionRenderer,
     },
@@ -342,7 +343,9 @@ impl Scion2D {
         let mut render_infos = Vec::new();
         for (entity, component, material, transform) in
             <(Entity, &mut T, &Material, &Transform)>::query()
-                .filter(!component::<Tile>())
+                .filter(
+                    !component::<Tile>() & !component::<Hide>() & !component::<HidePropagated>(),
+                )
                 .iter_mut(world)
         {
             let path = match material {
@@ -363,7 +366,8 @@ impl Scion2D {
     fn pre_render_tilemaps(&mut self, world: &mut World) -> Vec<RenderingInfos> {
         let mut render_infos = Vec::new();
 
-        let mut tilemap_query = <(Entity, &mut Tilemap, &Material, &Transform)>::query();
+        let mut tilemap_query = <(Entity, &mut Tilemap, &Material, &Transform)>::query()
+            .filter(!component::<Hide>() & !component::<HidePropagated>());
         let (mut tilemap_world, mut tile_world) = world.split_for_query(&tilemap_query);
 
         for (entity, _, material, transform) in tilemap_query.iter_mut(&mut tilemap_world) {
@@ -390,8 +394,9 @@ impl Scion2D {
         world: &mut World,
     ) -> Vec<RenderingInfos> {
         let mut render_infos = Vec::new();
-        for (entity, component, transform) in
-            <(Entity, &mut T, &Transform)>::query().iter_mut(world)
+        for (entity, component, transform) in <(Entity, &mut T, &Transform)>::query()
+            .filter(!component::<Hide>() & !component::<HidePropagated>())
+            .iter_mut(world)
         {
             render_infos.push(RenderingInfos {
                 layer: transform.translation().layer(),

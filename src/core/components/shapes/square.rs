@@ -4,7 +4,7 @@ use wgpu::util::BufferInitDescriptor;
 
 use crate::{
     core::components::{material::Material, maths::coordinates::Coordinates},
-    rendering::bidimensional::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
+    rendering::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
 };
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];

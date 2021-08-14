@@ -3,7 +3,7 @@ use wgpu::{
     SwapChainDescriptor,
 };
 
-use crate::rendering::bidimensional::gl_representations::TexturedGlVertex;
+use crate::rendering::gl_representations::TexturedGlVertex;
 
 pub fn pipeline(
     device: &Device,

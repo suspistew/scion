@@ -10,7 +10,8 @@ use crate::{
     core::{
         components::maths::camera::DefaultCamera,
         resources::{
-            asset_manager::AssetManager, inputs::inputs_controller::InputsController, time::Timers,
+            asset_manager::AssetManager, events::Events,
+            inputs::inputs_controller::InputsController, time::Timers,
         },
         state::GameState,
     },
@@ -61,6 +62,7 @@ pub trait ScionResourcesExtension {
     fn assets(&mut self) -> AtomicRefMut<AssetManager>;
     fn timers(&mut self) -> AtomicRefMut<Timers>;
     fn inputs(&mut self) -> AtomicRefMut<InputsController>;
+    fn events(&mut self) -> AtomicRefMut<Events>;
 }
 
 impl ScionResourcesExtension for Resources {
@@ -76,6 +78,10 @@ impl ScionResourcesExtension for Resources {
     fn inputs(&mut self) -> AtomicRefMut<InputsController> {
         self.get_mut::<InputsController>()
             .expect("The engine is missing the mandatory inputs controller resource")
+    }
+
+    fn events(&mut self) -> AtomicRefMut<Events> {
+        self.get_mut::<Events>().expect("The engine is missing the mandatory events resource")
     }
 }
 
