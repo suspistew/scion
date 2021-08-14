@@ -4,7 +4,7 @@ use scion::legion::{World, Resources, Entity, EntityStore};
 
 use scion::core::components::material::Material;
 
-use scion::core::components::maths::camera::Camera;
+
 use scion::core::components::maths::transform::{Transform};
 
 use scion::core::components::Square;
@@ -15,7 +15,7 @@ use scion::core::components::color::Color;
 use scion::core::resources::inputs::keycode::KeyCode;
 use scion::config::scion_config::{ScionConfigBuilder};
 use scion::config::window_config::WindowConfigBuilder;
-use scion::core::legion_ext::ScionExtension;
+use scion::core::legion_ext::{ScionResourcesExtension, ScionWorldExtension};
 
 #[derive(Default)]
 pub struct WorldCup{
@@ -32,7 +32,7 @@ impl SimpleGameLayer for WorldCup{
 
         self.entity = Some(world.push((Square::new(500., None), Transform::from_xy(100., 100.), Material::Color(Color::new(0, 0, 255, 1.0)), animations)));
 
-        world.push((Camera::new(1024., 768., 10.), Transform::default()));
+        world.add_default_camera();
 
     }
 

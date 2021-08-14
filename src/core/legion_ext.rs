@@ -5,6 +5,9 @@ use crate::core::resources::asset_manager::AssetManager;
 use atomic_refcell::AtomicRefMut;
 use crate::core::resources::time::Timers;
 use crate::core::resources::inputs::inputs_controller::InputsController;
+use crate::legion::Entity;
+use crate::core::components::maths::camera::{DefaultCamera};
+
 
 pub(crate) struct PausableSystem<S> {
     pub(crate) system: S,
@@ -55,13 +58,13 @@ where
 }
 
 
-pub trait ScionExtension {
+pub trait ScionResourcesExtension {
     fn assets(&mut self) -> AtomicRefMut<AssetManager> ;
     fn timers(&mut self) -> AtomicRefMut<Timers> ;
     fn inputs(&mut self) -> AtomicRefMut<InputsController> ;
 }
 
-impl ScionExtension for Resources {
+impl ScionResourcesExtension for Resources {
     fn assets(&mut self) -> AtomicRefMut<AssetManager> {
         self.get_mut::<AssetManager>().expect("The engine is missing the mandatory asset manager resource")
     }
@@ -72,5 +75,16 @@ impl ScionExtension for Resources {
 
     fn inputs(&mut self) -> AtomicRefMut<InputsController> {
         self.get_mut::<InputsController>().expect("The engine is missing the mandatory inputs controller resource")
+    }
+}
+
+pub trait ScionWorldExtension {
+    fn add_default_camera(&mut self) -> Entity;
+}
+
+impl ScionWorldExtension for World {
+    /// Adds a default camera that will be bind to the window size
+    fn add_default_camera(&mut self) -> Entity {
+        self.push((DefaultCamera,))
     }
 }

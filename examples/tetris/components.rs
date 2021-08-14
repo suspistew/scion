@@ -67,7 +67,7 @@ impl PieceKind {
     }
 
     pub fn get_self_offsets(&self, orientation: &PieceOrientation) -> Vec<(f32, f32)> {
-        PieceKind::get_offsets(self, &orientation)
+        PieceKind::get_offsets(self, orientation)
     }
 
     pub fn get_offsets(kind: &PieceKind, orientation: &PieceOrientation) -> Vec<(f32, f32)> {

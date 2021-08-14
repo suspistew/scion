@@ -10,13 +10,14 @@ use crate::{
     core::resources::{
         inputs::{
             keycode::KeyCode, mouse::MouseButton, InputState,
-            KeyboardEvent, MouseEvent,
+            KeyboardEvent,
         },
         window::WindowDimensions,
     },
     rendering::renderer_state::RendererState,
 };
-use crate::core::legion_ext::ScionExtension;
+use crate::core::legion_ext::ScionResourcesExtension;
+use crate::core::resources::inputs::mouse::MouseEvent;
 
 pub(crate) fn handle_event(
     event: Event<()>,

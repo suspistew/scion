@@ -43,11 +43,11 @@ pub fn score(
                 full_lines.push(*key);
             }
         }
-        full_lines.sort();
+        full_lines.sort_unstable();
         full_lines
     };
 
-    if lines2.len() > 0 {
+    if !lines2.is_empty() {
         for (entity, bloc, transform) in query.iter_mut(world) {
             match bloc.kind {
                 BlocKind::Static => {

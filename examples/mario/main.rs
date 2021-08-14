@@ -101,12 +101,11 @@ fn add_level_data(world: &mut World) -> Vec<Vec<usize>> {
         &app_base_path()
             .join("examples/mario/assets/level.csv")
             .get(),
-    ))
-    .unwrap_or(vec![]);
+    )).unwrap_or_default();
     let csv = from_utf8(file.as_slice()).expect("no");
     let data: Vec<Vec<usize>> = csv
         .split("\r\n")
-        .map(|e| e.split(",").map(|f| f.parse::<usize>().unwrap()).collect())
+        .map(|e| e.split(',').map(|f| f.parse::<usize>().unwrap()).collect())
         .collect();
     for (i, line) in data.iter().enumerate() {
         for (j, val) in line.iter().enumerate() {

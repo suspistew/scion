@@ -44,7 +44,8 @@ use crate::{
     rendering::{renderer_state::RendererState, RendererType},
 };
 use crate::core::resources::time::TimerType;
-use crate::core::legion_ext::ScionExtension;
+use crate::core::legion_ext::ScionResourcesExtension;
+use crate::core::systems::default_camera_system::default_camera_system;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -292,31 +293,25 @@ impl ScionBuilder {
 
     fn init_schedule_with_internal_systems(&mut self) {
         self.schedule_builder
-            .add_system(ui_text_bitmap_update_system());
-        self.schedule_builder.flush();
-        self.schedule_builder.add_system(children_manager_system());
-        self.schedule_builder
-            .add_system(missing_ui_component_system::<UiImage>());
-        self.schedule_builder
-            .add_system(missing_ui_component_system::<UiTextImage>());
-        self.schedule_builder
-            .add_system(missing_ui_component_system::<UiText>());
-        self.schedule_builder
-            .add_system(asset_ref_resolver_system::<Material, MaterialAssetResolverFn>());
-        self.schedule_builder
-            .add_system(animation_executer_system());
-        self.schedule_builder.flush();
-        self.schedule_builder.add_system(dirty_child_system());
-        self.schedule_builder.flush();
-        self.schedule_builder.add_system(dirty_transform_system());
-
-        self.schedule_builder
-            .add_system(compute_collisions_system());
-        self.schedule_builder.flush();
+            .add_system(default_camera_system())
+            .add_system(ui_text_bitmap_update_system())
+            .flush()
+            .add_system(children_manager_system())
+            .add_system(missing_ui_component_system::<UiImage>())
+            .add_system(missing_ui_component_system::<UiTextImage>())
+            .add_system(missing_ui_component_system::<UiText>())
+            .add_system(asset_ref_resolver_system::<Material, MaterialAssetResolverFn>())
+            .add_system(animation_executer_system())
+            .flush()
+            .add_system(dirty_child_system())
+            .flush()
+            .add_system(dirty_transform_system())
+            .add_system(compute_collisions_system())
+            .flush();
     }
 
     fn add_late_internal_systems_to_schedule(&mut self) {
-        self.schedule_builder.flush();
-        self.schedule_builder.add_system(colliders_cleaner_system());
+        self.schedule_builder.flush()
+            .add_system(colliders_cleaner_system());
     }
 }

@@ -12,7 +12,6 @@ use scion::{
             animations::{Animations},
             material::Material,
             maths::{
-                camera::Camera,
                 transform::{Transform},
             },
             tiles::{
@@ -31,7 +30,7 @@ use crate::level_reader::Level;
 use scion::core::resources::asset_manager::AssetRef;
 use character_control_system::controller_system;
 use bomb_system::exposion_system;
-use scion::core::legion_ext::ScionExtension;
+use scion::core::legion_ext::{ScionResourcesExtension, ScionWorldExtension};
 
 #[derive(Default)]
 struct BombermanLayer {
@@ -77,9 +76,18 @@ impl SimpleGameLayer for BombermanLayer {
         });
 
         self.character = Some(world.push(create_char(asset_ref.clone(), &level)));
-        world.push((Camera::new(640., 640., 10.), Transform::default()));
+
+        world.add_default_camera();
+
         resources.insert(level);
         resources.insert(BombermanRefs { tileset: Some(asset_ref), tilemap_entity: Some(tilemap) });
+    }
+
+    fn update(&mut self, _world: &mut World, resources: &mut Resources) {
+
+        resources.inputs().mouse().on_left_click_pressed( |x, y |{
+            log::info!("Left click mouse clicked at {} {}", x, y);
+        });
     }
 }
 

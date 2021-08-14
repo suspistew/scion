@@ -26,7 +26,7 @@ use std::cfg;
 use std::time::SystemTime;
 use crate::utils::file::{read_file_modification_time, FileReaderError};
 
-use crate::core::legion_ext::ScionExtension;
+use crate::core::legion_ext::ScionResourcesExtension;
 
 pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor;

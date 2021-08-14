@@ -3,7 +3,6 @@ use scion::{
     core::{
         components::{
             maths::{
-                camera::Camera,
                 transform::{Transform},
             },
             tiles::{sprite::Sprite, tileset::Tileset},
@@ -17,7 +16,7 @@ use scion::{
 };
 
 use scion::core::components::maths::coordinates::Coordinates;
-use scion::core::legion_ext::ScionExtension;
+use scion::core::legion_ext::{ScionResourcesExtension, ScionWorldExtension};
 
 #[derive(Debug)]
 struct Case(Coordinates);
@@ -69,9 +68,7 @@ fn taquin(
     case: &mut Case,
     transform: &mut Transform,
 ) {
-    if inputs.mouse().click_event().is_some() {
-        let mouse_x = inputs.mouse().x();
-        let mouse_y = inputs.mouse().y();
+    inputs.mouse().on_left_click_pressed(|mouse_x, mouse_y|{
         if mouse_x > (case.0.x() * 192.) as f64
             && mouse_y > (case.0.y() * 192.) as f64
             && mouse_x < (case.0.x() * 192. + 192.) as f64
@@ -97,7 +94,7 @@ fn taquin(
                 MoveDirection::None => {}
             };
         }
-    }
+    })
 }
 
 #[derive(Default)]
@@ -126,7 +123,8 @@ impl SimpleGameLayer for Layer {
                 }
             }
         }
-        world.push((Camera::new(768., 768., 10.), Transform::default()));
+        world.add_default_camera();
+
         resources.insert(Taquin::new());
     }
 }
