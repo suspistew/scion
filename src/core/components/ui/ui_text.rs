@@ -7,7 +7,7 @@ use crate::{
         material::Material,
         ui::{font::Font, ui_image::UiImage},
     },
-    rendering::bidimensional::scion2d::{Renderable2D, RenderableUi},
+    rendering::scion2d::{Renderable2D, RenderableUi},
 };
 
 /// A component representing an Text in the UI.

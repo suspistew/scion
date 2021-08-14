@@ -1,11 +1,13 @@
 //! Everything that is relative to rendering to the window (Like renderable components, camera, transforms..)
 use legion::{Resources, World};
+use scion2d::Scion2D;
 use wgpu::{CommandEncoder, Device, Queue, SwapChainDescriptor, SwapChainTexture};
 
-use crate::{config::scion_config::ScionConfig, rendering::bidimensional::scion2d::Scion2D};
+use crate::config::scion_config::ScionConfig;
 
-pub mod bidimensional;
+pub(crate) mod gl_representations;
 pub(crate) mod renderer_state;
+pub(crate) mod scion2d;
 pub(crate) mod shaders;
 
 /// Trait to implement in order to create a renderer to use in a `Scion` application

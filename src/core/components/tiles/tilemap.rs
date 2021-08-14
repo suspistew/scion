@@ -13,7 +13,7 @@ use crate::{
         },
         resources::asset_manager::AssetRef,
     },
-    rendering::bidimensional::scion2d::Renderable2D,
+    rendering::scion2d::Renderable2D,
     utils::maths::{Dimensions, Position},
 };
 
