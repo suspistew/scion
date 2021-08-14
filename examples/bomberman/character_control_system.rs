@@ -26,7 +26,7 @@ pub fn controller(
                     .get(posx + 1).unwrap() == &0
             {
                 character.pos_x += 1;
-                animations.run_animation("MOVE_RIGHT".to_string());
+                animations.run_animation("MOVE_RIGHT");
             }
         });
         inputs.keyboard_mut().on_key_pressed(KeyCode::Left, || {
@@ -37,7 +37,7 @@ pub fn controller(
                     .get(posx - 1).unwrap() == &0
             {
                 character.pos_x -= 1;
-                animations.run_animation("MOVE_LEFT".to_string());
+                animations.run_animation("MOVE_LEFT");
             }
         });
         inputs.keyboard_mut().on_key_pressed(KeyCode::Up, || {
@@ -48,7 +48,7 @@ pub fn controller(
                     .get(posx).unwrap() == &0
             {
                 character.pos_y -= 1;
-                animations.run_animation("MOVE_TOP".to_string());
+                animations.run_animation("MOVE_TOP");
             }
         });
         inputs.keyboard_mut().on_key_pressed(KeyCode::Down, || {
@@ -59,13 +59,13 @@ pub fn controller(
                     .get(posx).unwrap() == &0
             {
                 character.pos_y += 1;
-                animations.run_animation("MOVE_BOTTOM".to_string());
+                animations.run_animation("MOVE_BOTTOM");
             }
         });
         inputs.keyboard_mut().on_key_pressed(KeyCode::Space, || {
             let mut animations =
-                Animations::single("EXPLODE".to_string(), bomb_animations::explode());
-            animations.run_animation("EXPLODE".to_string());
+                Animations::single("EXPLODE", bomb_animations::explode());
+            animations.run_animation("EXPLODE");
             cmd.push((
                 Transform::from_xy_with_layer(
                     (character.pos_x * 64) as f32,

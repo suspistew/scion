@@ -13,18 +13,22 @@ use crate::core::{
     },
     resources::time::{TimerType, Timers},
 };
+use legion::systems::CommandBuffer;
+use crate::core::components::Hide;
 
 /// System responsible of applying modifiers data to the dedicated components
 /// It will use timers to keep track of the animation and will merge keyframes in case
 /// of long frames.
 #[system(for_each)]
 pub(crate) fn animation_executer(
+    cmd: &mut CommandBuffer,
     #[resource] timers: &mut Timers,
     entity: &Entity,
     animations: &mut Animations,
     mut transform: Option<&mut Transform>,
     mut sprite: Option<&mut Sprite>,
     mut material: Option<&mut Material>,
+    hide: Option<&Hide>
 ) {
     animations
         .animations_mut()
@@ -72,6 +76,9 @@ pub(crate) fn animation_executer(
                         }
                         AnimationModifierType::Color { .. } => {
                             apply_color_modifier(material.as_mut(), modifier, timer_cycle)
+                        }
+                        AnimationModifierType::Blink => {
+                            apply_blink_modifier(cmd, entity, modifier, timer_cycle, hide)
                         }
                     }
                     modifier.current_keyframe += timer_cycle;
@@ -165,6 +172,23 @@ fn apply_color_modifier(
                     color.replace(new_color);
                 }
             }
+        }
+    }
+}
+
+fn apply_blink_modifier(cmd: &mut CommandBuffer,
+                        entity: &Entity,
+                        modifier: &mut AnimationModifier,
+                        timer_cycle: usize,
+                        hide: Option<&Hide>) {
+
+    if timer_cycle > 0 {
+        if modifier.will_be_last_keyframe(timer_cycle) {
+            cmd.remove_component::<Hide>(*entity);
+        } else if hide.is_none(){
+            cmd.add_component(*entity, Hide);
+        } else {
+            cmd.remove_component::<Hide>(*entity);
         }
     }
 }

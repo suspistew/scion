@@ -17,17 +17,17 @@ impl Animations {
     pub fn new(animations: HashMap<String, Animation>) -> Self { Animations { animations } }
 
     /// Create a new Animations component with a single animation provided
-    pub fn single(name: String, animation: Animation) -> Self {
+    pub fn single(name: &str, animation: Animation) -> Self {
         let mut animations = HashMap::new();
-        animations.insert(name, animation);
+        animations.insert(name.to_string(), animation);
         Animations { animations }
     }
 
-    fn run(&mut self, animation_name: String, status: AnimationStatus) -> bool {
-        if self.animations.contains_key(animation_name.as_str()) {
+    fn run(&mut self, animation_name: &str, status: AnimationStatus) -> bool {
+        if self.animations.contains_key(animation_name) {
             let mut animation = self
                 .animations
-                .get_mut(animation_name.as_str())
+                .get_mut(animation_name)
                 .expect("An animation has not been found after the security check");
             if AnimationStatus::STOPPED == animation.status {
                 animation.status = status;
@@ -41,21 +41,21 @@ impl Animations {
     }
 
     /// Runs the animation `name`. Returns true is the animation has been started, false if it does not exist or was already running
-    pub fn run_animation(&mut self, animation_name: String) -> bool {
+    pub fn run_animation(&mut self, animation_name: &str) -> bool {
         self.run(animation_name, AnimationStatus::RUNNING)
     }
 
     /// Runs the animation `name`. Returns true is the animation has been started, false if it does not exist or was already running
-    pub fn loop_animation(&mut self, animation_name: String) -> bool {
+    pub fn loop_animation(&mut self, animation_name: &str) -> bool {
         self.run(animation_name, AnimationStatus::LOOPING)
     }
 
     /// Stops the animation `name`. Returns true is the animation has been stopped, false if it does not exist or was already stopped
-    pub fn stop_animation(&mut self, animation_name: String, force: bool) -> bool {
-        if self.animations.contains_key(animation_name.as_str()) {
+    pub fn stop_animation(&mut self, animation_name: &str, force: bool) -> bool {
+        if self.animations.contains_key(animation_name) {
             let mut animation = self
                 .animations
-                .get_mut(animation_name.as_str())
+                .get_mut(animation_name)
                 .expect("An animation has not been found after the security check");
             if animation.status == AnimationStatus::LOOPING
                 || animation.status == AnimationStatus::RUNNING
@@ -185,11 +185,17 @@ impl AnimationModifier {
         )
     }
 
+    /// Convenience function to create a color animation
     pub fn color(number_of_keyframes: usize, target_color: Color) -> Self {
         AnimationModifier::new(
             number_of_keyframes,
             AnimationModifierType::Color { target: target_color },
         )
+    }
+
+    /// Convenience function to create a blink animation.
+    pub fn blink(number_of_blinks: usize) -> Self {
+        AnimationModifier::new(number_of_blinks * 2, AnimationModifierType::Blink)
     }
 
     pub(crate) fn compute_keyframe_modifier_for_animation(&mut self, initial_color: &Color) {
@@ -220,6 +226,7 @@ pub enum AnimationModifierType {
     TransformModifier { vector: Option<Vector>, scale: Option<f32>, rotation: Option<f32> },
     SpriteModifier { tile_numbers: Vec<usize>, end_tile_number: usize },
     Color { target: Color },
+    Blink
 }
 
 pub(crate) enum ComputedKeyframeModifier {
@@ -242,6 +249,9 @@ impl Display for AnimationModifier {
                 AnimationModifierType::Color { .. } => {
                     "Color"
                 }
+                AnimationModifierType::Blink => {
+                    "Blink"
+                }
             }
         )
     }
@@ -262,6 +272,9 @@ fn compute_animation_keyframe_modifier(modifier: &mut AnimationModifier) {
         AnimationModifierType::SpriteModifier { .. } => None,
         AnimationModifierType::Color { .. } => {
             // We can't compute here because we need the initial color
+            None
+        }
+        AnimationModifierType::Blink => {
             None
         }
     };
