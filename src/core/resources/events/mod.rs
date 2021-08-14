@@ -15,9 +15,7 @@ pub struct PollConfiguration {
 }
 
 impl Default for PollConfiguration {
-    fn default() -> Self {
-        Self { max_messages: 5 }
-    }
+    fn default() -> Self { Self { max_messages: 5 } }
 }
 
 #[derive(Debug)]
@@ -43,18 +41,14 @@ impl Events {
             Err(EventError::TopicAlreadyExist)
         } else {
             let topic_string = topic_name.to_string();
-            self.topics.insert(
-                topic_string.clone(),
-                Topic::new(topic_string, topic_configuration),
-            );
+            self.topics.insert(topic_string.clone(), Topic::new(topic_string, topic_configuration));
             Ok(())
         }
     }
 
     pub fn publish<T>(&mut self, topic_name: &str, message: T) -> Result<(), EventError>
     where
-        T: ser::Serialize,
-    {
+        T: ser::Serialize, {
         if !self.topics.contains_key(topic_name) {
             Err(EventError::TopicDoesNotExist)
         } else {
@@ -94,8 +88,7 @@ impl Events {
 
     pub fn poll<T>(&mut self, subscriber_id: &SubscriberId) -> Result<VecDeque<T>, EventError>
     where
-        T: DeserializeOwned,
-    {
+        T: DeserializeOwned, {
         if self.subscribers.contains_key(subscriber_id) {
             let (topic_name, poll_configuration, cursor) = self
                 .subscribers
@@ -113,10 +106,8 @@ impl Events {
                 *cursor + poll_configuration.max_messages
             };
             let target_slice = &topic.messages[slice_start..slice_end];
-            let polled: VecDeque<T> = target_slice
-                .iter()
-                .filter_map(|message| from_str(message).ok())
-                .collect();
+            let polled: VecDeque<T> =
+                target_slice.iter().filter_map(|message| from_str(message).ok()).collect();
             *cursor += polled.len();
             return Ok(polled);
         }
@@ -130,29 +121,23 @@ impl Events {
 
     fn cleanup_topics_outdated(&mut self) {
         let mut min_cursor_for_topics = HashMap::new();
-        self.subscribers
-            .values_mut()
-            .for_each(|(topic, _, cursor)| {
-                let current = min_cursor_for_topics
-                    .entry(topic.to_string())
-                    .or_insert(*cursor);
-                if current > cursor {
-                    *current = *cursor;
-                }
-            });
+        self.subscribers.values_mut().for_each(|(topic, _, cursor)| {
+            let current = min_cursor_for_topics.entry(topic.to_string()).or_insert(*cursor);
+            if current > cursor {
+                *current = *cursor;
+            }
+        });
 
-        min_cursor_for_topics
-            .iter()
-            .for_each(|(topic, min_cursor)| {
-                self.subscribers
-                    .values_mut()
-                    .filter(|(t, _, _)| t == topic)
-                    .for_each(|(_, _, cursor)| *cursor -= *min_cursor);
-                self.topics
-                    .get_mut(topic)
-                    .expect("A subscriber is referencing a non existing topic")
-                    .cleanup_outdated(*min_cursor);
-            })
+        min_cursor_for_topics.iter().for_each(|(topic, min_cursor)| {
+            self.subscribers
+                .values_mut()
+                .filter(|(t, _, _)| t == topic)
+                .for_each(|(_, _, cursor)| *cursor -= *min_cursor);
+            self.topics
+                .get_mut(topic)
+                .expect("A subscriber is referencing a non existing topic")
+                .cleanup_outdated(*min_cursor);
+        })
     }
 
     fn cleanup_topics_overflow(&mut self) {
@@ -183,15 +168,11 @@ mod event_tests {
         let mut event = Events::default();
         assert_eq!(
             true,
-            event
-                .create_topic("test_topic", TopicConfiguration { limit: 100 })
-                .is_ok()
+            event.create_topic("test_topic", TopicConfiguration { limit: 100 }).is_ok()
         );
         assert_eq!(
             true,
-            event
-                .create_topic("test_topic", TopicConfiguration { limit: 90 })
-                .is_err()
+            event.create_topic("test_topic", TopicConfiguration { limit: 90 }).is_err()
         );
     }
 
@@ -210,12 +191,7 @@ mod event_tests {
     #[test]
     fn subscribe_test() {
         let mut event = Events::default();
-        assert_eq!(
-            true,
-            event
-                .subscribe("test_topic", PollConfiguration::default())
-                .is_err()
-        );
+        assert_eq!(true, event.subscribe("test_topic", PollConfiguration::default()).is_err());
 
         let _r = event.create_topic("test_topic", TopicConfiguration { limit: 100 });
         let subscribe_result = event.subscribe("test_topic", PollConfiguration::default());
@@ -230,9 +206,7 @@ mod event_tests {
     fn poll_test() {
         let mut event = Events::default();
         let _r = event.create_topic("test_topic", TopicConfiguration { limit: 100 });
-        let subscriber_id = event
-            .subscribe("test_topic", PollConfiguration::default())
-            .unwrap();
+        let subscriber_id = event.subscribe("test_topic", PollConfiguration::default()).unwrap();
         let _r = event.publish("test_topic", 42);
 
         let mut poll_result = event.poll::<usize>(&subscriber_id).unwrap();
@@ -256,12 +230,10 @@ mod event_tests {
     fn cleanup_test() {
         let mut event = Events::default();
         let _r = event.create_topic("test_topic", TopicConfiguration { limit: 3 });
-        let subscriber_id = event
-            .subscribe("test_topic", PollConfiguration { max_messages: 2 })
-            .unwrap();
-        let subscriber_id2 = event
-            .subscribe("test_topic", PollConfiguration { max_messages: 1 })
-            .unwrap();
+        let subscriber_id =
+            event.subscribe("test_topic", PollConfiguration { max_messages: 2 }).unwrap();
+        let subscriber_id2 =
+            event.subscribe("test_topic", PollConfiguration { max_messages: 1 }).unwrap();
 
         let _r = event.publish("test_topic", 4);
         let _r = event.publish("test_topic", 8);

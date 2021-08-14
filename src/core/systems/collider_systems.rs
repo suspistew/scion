@@ -6,9 +6,7 @@ use crate::core::components::maths::{
 };
 
 #[system(for_each)]
-pub(crate) fn colliders_cleaner(collider: &mut Collider) {
-    collider.clear_collisions()
-}
+pub(crate) fn colliders_cleaner(collider: &mut Collider) { collider.clear_collisions() }
 
 #[system]
 pub(crate) fn compute_collisions(
@@ -68,9 +66,7 @@ mod tests {
     fn clear_collision_system_test() {
         let mut world = World::default();
         let mut resources = Resources::default();
-        let mut schedule = Schedule::builder()
-            .add_system(colliders_cleaner_system())
-            .build();
+        let mut schedule = Schedule::builder().add_system(colliders_cleaner_system()).build();
 
         let mut t = Transform::default();
         t.append_x(1.0);
@@ -99,9 +95,7 @@ mod tests {
     fn compute_collision_system_test() {
         let mut world = World::default();
         let mut resources = Resources::default();
-        let mut schedule = Schedule::builder()
-            .add_system(compute_collisions_system())
-            .build();
+        let mut schedule = Schedule::builder().add_system(compute_collisions_system()).build();
         let mut t = Transform::default();
         t.append_x(1.0);
         let mut t2 = Transform::default();

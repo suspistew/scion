@@ -1,10 +1,8 @@
 use ultraviolet::{Mat4, Rotor3, Similarity3, Vec3, Vec4};
 
 use crate::core::components::maths::{
-    camera::Camera,
-    transform::{Transform},
+    camera::Camera, coordinates::Coordinates, transform::Transform,
 };
-use crate::core::components::maths::coordinates::Coordinates;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -30,13 +28,7 @@ impl GlVec3 {
 }
 
 impl From<&Coordinates> for GlVec3 {
-    fn from(position: &Coordinates) -> Self {
-        Self {
-            x: position.x(),
-            y: position.y(),
-            z: 0.,
-        }
-    }
+    fn from(position: &Coordinates) -> Self { Self { x: position.x(), y: position.y(), z: 0. } }
 }
 
 #[repr(C)]
@@ -58,14 +50,7 @@ pub(crate) struct GlVec4 {
 }
 
 impl From<Vec4> for GlVec4 {
-    fn from(vec: Vec4) -> Self {
-        GlVec4 {
-            x: vec.x,
-            y: vec.y,
-            z: vec.z,
-            w: vec.w,
-        }
-    }
+    fn from(vec: Vec4) -> Self { GlVec4 { x: vec.x, y: vec.y, z: vec.z, w: vec.w } }
 }
 
 #[repr(C)]
@@ -128,15 +113,8 @@ impl TexturedGlVertex {
 impl From<(&Coordinates, &Coordinates)> for TexturedGlVertex {
     fn from(positions: (&Coordinates, &Coordinates)) -> Self {
         TexturedGlVertex {
-            position: GlVec3 {
-                x: positions.0.x(),
-                y: positions.0.y(),
-                z: 0.0,
-            },
-            tex_translation: GlVec2 {
-                x: positions.1.x(),
-                y: positions.1.y(),
-            },
+            position: GlVec3 { x: positions.0.x(), y: positions.0.y(), z: 0.0 },
+            tex_translation: GlVec2 { x: positions.1.x(), y: positions.1.y() },
         }
     }
 }
@@ -165,9 +143,7 @@ pub(crate) fn create_glmat4(t: &mut Mat4) -> [[f32; 4]; 4] {
     result
 }
 
-pub(crate) fn create_glmat(t: &Vec4) -> [f32; 4] {
-    [t.x, t.y, t.z, t.w]
-}
+pub(crate) fn create_glmat(t: &Vec4) -> [f32; 4] { [t.x, t.y, t.z, t.w] }
 
 pub(crate) struct UniformData<'a> {
     pub transform: &'a Transform,

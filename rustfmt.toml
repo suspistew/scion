@@ -4,3 +4,7 @@ merge_imports = true
 group_imports = "StdExternalCrate"
 force_multiline_blocks = true
 format_code_in_doc_comments = true
+brace_style = "PreferSameLine"
+fn_single_line = true
+use_small_heuristics = "Max"
+chain_width = 200

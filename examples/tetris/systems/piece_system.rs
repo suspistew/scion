@@ -1,9 +1,6 @@
 use scion::{
     core::{
-        components::{
-            maths::transform::{Transform},
-            tiles::sprite::Sprite,
-        },
+        components::{maths::transform::Transform, tiles::sprite::Sprite},
         resources::time::Timers,
     },
     legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query},
@@ -23,9 +20,8 @@ pub fn piece_update(
     query: &mut Query<(&mut Bloc, &mut Transform)>,
     query2: &mut Query<(Entity, &NextBloc)>,
 ) {
-    let timer = timers
-        .get_timer("piece")
-        .expect("Missing a mandatory timer in the game : piece timer");
+    let timer =
+        timers.get_timer("piece").expect("Missing a mandatory timer in the game : piece timer");
     if timer.cycle() > 0 {
         match tetris.state {
             TetrisState::WAITING => {
@@ -112,11 +108,7 @@ pub fn initialize_bloc(
     bloc_transform.set_layer(1);
     let tuple = (
         bloc_transform,
-        Sprite::new(if is_next_bloc {
-            tetris.next_piece.color
-        } else {
-            tetris.active_piece.color
-        }),
+        Sprite::new(if is_next_bloc { tetris.next_piece.color } else { tetris.active_piece.color }),
         tetris.asset.as_ref().unwrap().clone(),
     );
 

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use winit::event::ElementState;
 
-use crate::core::resources::inputs::{keycode::KeyCode, mouse::MouseButton};
+use crate::core::resources::inputs::keycode::KeyCode;
 
 pub mod inputs_controller;
 pub mod keyboard;
@@ -26,11 +26,5 @@ impl From<ElementState> for InputState {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct KeyboardEvent {
     pub keycode: KeyCode,
-    pub state: InputState,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct MouseEvent {
-    pub button: MouseButton,
     pub state: InputState,
 }

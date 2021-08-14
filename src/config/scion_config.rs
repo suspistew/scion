@@ -35,11 +35,7 @@ pub struct ScionConfigBuilder {
 }
 
 impl ScionConfigBuilder {
-    pub fn new() -> Self {
-        Self {
-            config: Default::default(),
-        }
-    }
+    pub fn new() -> Self { Self { config: Default::default() } }
 
     pub fn with_app_name(mut self, app_name: String) -> Self {
         self.config.app_name = app_name;
@@ -56,9 +52,7 @@ impl ScionConfigBuilder {
         self
     }
 
-    pub fn get(self) -> ScionConfig {
-        self.config
-    }
+    pub fn get(self) -> ScionConfig { self.config }
 }
 
 pub(crate) struct ScionConfigReader;

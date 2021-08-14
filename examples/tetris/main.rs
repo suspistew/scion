@@ -35,14 +35,9 @@ fn app_config() -> ScionConfig {
     ScionConfigBuilder::new()
         .with_app_name("Tetris".to_string())
         .with_window_config(
-            WindowConfigBuilder::new()
-                .with_dimensions((544, 704))
-                .with_resizable(true)
-                .get(),
+            WindowConfigBuilder::new().with_dimensions((544, 704)).with_resizable(true).get(),
         )
         .get()
 }
 
-pub fn asset_path() -> PathBuilder {
-    app_base_path().join("examples/tetris/assets/")
-}
+pub fn asset_path() -> PathBuilder { app_base_path().join("examples/tetris/assets/") }

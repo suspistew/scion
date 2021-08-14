@@ -10,21 +10,13 @@ pub struct InputsController {
 }
 
 impl InputsController {
-    pub fn mouse(&self) -> &Mouse {
-        &self.mouse
-    }
+    pub fn mouse(&self) -> &Mouse { &self.mouse }
 
-    pub fn mouse_mut(&mut self) -> &mut Mouse {
-        &mut self.mouse
-    }
+    pub fn mouse_mut(&mut self) -> &mut Mouse { &mut self.mouse }
 
-    pub fn keyboard(&self) -> &Keyboard {
-        &self.keyboard
-    }
+    pub fn keyboard(&self) -> &Keyboard { &self.keyboard }
 
-    pub fn keyboard_mut(&mut self) -> &mut Keyboard {
-        &mut self.keyboard
-    }
+    pub fn keyboard_mut(&mut self) -> &mut Keyboard { &mut self.keyboard }
 
     pub(crate) fn reset_inputs(&mut self) {
         self.mouse.set_click_event(None);

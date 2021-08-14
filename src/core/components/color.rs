@@ -18,17 +18,12 @@ pub struct Color {
 impl Color {
     /// Creates a new color using RGBA values
     pub fn new(r: u8, g: u8, b: u8, a: f32) -> Self {
-        assert!(
-            a <= 1. && a >= 0.,
-            "Alpha value must be between 0.0 and 1.0"
-        );
+        assert!(a <= 1. && a >= 0., "Alpha value must be between 0.0 and 1.0");
         Self { r, g, b, a }
     }
 
     /// Create a new color using RGB. Will create an RGBA with Alpha = 1.0
-    pub fn new_rgb(r: u8, g: u8, b: u8) -> Self {
-        Color::new(r, g, b, 1.0)
-    }
+    pub fn new_rgb(r: u8, g: u8, b: u8) -> Self { Color::new(r, g, b, 1.0) }
 
     pub fn replace(&mut self, color: Color) {
         self.r = color.r;
@@ -37,21 +32,13 @@ impl Color {
         self.a = color.a;
     }
 
-    pub fn red(&self) -> u8 {
-        self.r
-    }
+    pub fn red(&self) -> u8 { self.r }
 
-    pub fn green(&self) -> u8 {
-        self.g
-    }
+    pub fn green(&self) -> u8 { self.g }
 
-    pub fn blue(&self) -> u8 {
-        self.b
-    }
+    pub fn blue(&self) -> u8 { self.b }
 
-    pub fn alpha(&self) -> f32 {
-        self.a
-    }
+    pub fn alpha(&self) -> f32 { self.a }
 }
 
 impl Into<GlColor> for &Color {

@@ -3,10 +3,9 @@ use std::ops::Range;
 use wgpu::util::BufferInitDescriptor;
 
 use crate::{
-    core::components::{material::Material},
+    core::components::{material::Material, maths::coordinates::Coordinates},
     rendering::bidimensional::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
 };
-use crate::core::components::maths::coordinates::Coordinates;
 
 const INDICES: &[u16] = &[1, 0, 2];
 
@@ -19,19 +18,13 @@ pub struct Triangle {
 
 impl Triangle {
     pub fn new(vertices: [Coordinates; 3], uvs: Option<[Coordinates; 3]>) -> Self {
-        let uvs_ref = uvs
-            .as_ref()
-            .expect("Uvs are currently mandatory, this need to be fixed");
+        let uvs_ref = uvs.as_ref().expect("Uvs are currently mandatory, this need to be fixed");
         let contents = [
             TexturedGlVertex::from((&vertices[0], &uvs_ref[0])),
             TexturedGlVertex::from((&vertices[1], &uvs_ref[1])),
             TexturedGlVertex::from((&vertices[2], &uvs_ref[2])),
         ];
-        Self {
-            vertices,
-            uvs,
-            contents,
-        }
+        Self { vertices, uvs, contents }
     }
 }
 
@@ -52,13 +45,9 @@ impl Renderable2D for Triangle {
         }
     }
 
-    fn range(&self) -> Range<u32> {
-        0..3 as u32
-    }
+    fn range(&self) -> Range<u32> { 0..3 as u32 }
 
-    fn dirty(&self) -> bool {
-        false
-    }
+    fn dirty(&self) -> bool { false }
 
     fn set_dirty(&mut self, _is_dirty: bool) {}
 }

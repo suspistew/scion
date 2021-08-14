@@ -49,18 +49,9 @@ impl Texture {
 
     pub fn from_color(color: &Color) -> Texture {
         let img = ImageBuffer::from_fn(1, 1, |_x, _y| {
-            image::Rgba([
-                color.red(),
-                color.green(),
-                color.blue(),
-                (color.alpha() * 255.) as u8,
-            ])
+            image::Rgba([color.red(), color.green(), color.blue(), (color.alpha() * 255.) as u8])
         });
-        Texture {
-            bytes: img.into_raw(),
-            width: 1,
-            height: 1,
-        }
+        Texture { bytes: img.into_raw(), width: 1, height: 1 }
     }
 
     fn fallback_texture() -> Texture {
@@ -76,10 +67,6 @@ impl Texture {
         let height = image.height() as u16;
         let bytes = image.into_raw();
 
-        Texture {
-            bytes,
-            width,
-            height,
-        }
+        Texture { bytes, width, height }
     }
 }

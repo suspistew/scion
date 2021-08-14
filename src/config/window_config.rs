@@ -6,8 +6,7 @@ use winit::{
     window::{WindowAttributes, WindowBuilder},
 };
 
-use crate::core::components::color::Color;
-use crate::config::scion_config::ScionConfig;
+use crate::{config::scion_config::ScionConfig, core::components::color::Color};
 
 /// Main configuration for the game window
 /// Please use [`WindowConfigBuilder`] if you want to build if from code.
@@ -59,7 +58,7 @@ impl Default for WindowConfig {
 }
 
 impl WindowConfig {
-    pub(crate) fn into(self, scion_config:  &ScionConfig) -> WindowBuilder {
+    pub(crate) fn into(self, scion_config: &ScionConfig) -> WindowBuilder {
         let mut builder = WindowBuilder::new();
 
         builder.window = WindowAttributes {
@@ -86,11 +85,7 @@ pub struct WindowConfigBuilder {
 }
 
 impl WindowConfigBuilder {
-    pub fn new() -> Self {
-        Self {
-            config: Default::default(),
-        }
-    }
+    pub fn new() -> Self { Self { config: Default::default() } }
 
     pub fn with_dimensions(mut self, dimensions: (u32, u32)) -> Self {
         self.config.dimensions = Some(dimensions);
@@ -107,7 +102,5 @@ impl WindowConfigBuilder {
         self
     }
 
-    pub fn get(self) -> WindowConfig {
-        self.config
-    }
+    pub fn get(self) -> WindowConfig { self.config }
 }

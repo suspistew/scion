@@ -17,9 +17,7 @@
 //!     println!("Hello world from a system");
 //! }
 //!
-//! fn main() {
-//!     Scion::app().with_system(hello_system()).run();
-//! }
+//! fn main() { Scion::app().with_system(hello_system()).run(); }
 //! ```
 
 // Convenience reexport

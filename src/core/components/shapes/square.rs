@@ -3,10 +3,9 @@ use std::ops::Range;
 use wgpu::util::BufferInitDescriptor;
 
 use crate::{
-    core::components::{material::Material},
+    core::components::{material::Material, maths::coordinates::Coordinates},
     rendering::bidimensional::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
 };
-use crate::core::components::maths::coordinates::Coordinates;
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
@@ -30,11 +29,7 @@ impl Square {
             TexturedGlVertex::from((&c, &uvs_ref[2])),
             TexturedGlVertex::from((&d, &uvs_ref[3])),
         ];
-        Self {
-            vertices: [a, b, c, d],
-            uvs,
-            contents,
-        }
+        Self { vertices: [a, b, c, d], uvs, contents }
     }
 }
 
@@ -64,13 +59,9 @@ impl Renderable2D for Square {
         }
     }
 
-    fn range(&self) -> Range<u32> {
-        0..INDICES.len() as u32
-    }
+    fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
 
-    fn dirty(&self) -> bool {
-        false
-    }
+    fn dirty(&self) -> bool { false }
 
     fn set_dirty(&mut self, _is_dirty: bool) {}
 }

@@ -18,11 +18,12 @@ pub(crate) fn asset_ref_resolver<T: Component, F: AssetResolverFn<T>>(
     cmd: &mut CommandBuffer,
     #[resource] asset_manager: &mut AssetManager,
 ) {
-    <(Entity, &AssetRef<T>)>::query()
-        .filter(!component::<T>())
-        .for_each(world, |(e, asset_ref)| {
+    <(Entity, &AssetRef<T>)>::query().filter(!component::<T>()).for_each(
+        world,
+        |(e, asset_ref)| {
             cmd.add_component(*e, F::resolve(asset_manager, asset_ref));
-        });
+        },
+    );
 }
 
 pub(crate) struct MaterialAssetResolverFn;
@@ -56,16 +57,10 @@ mod tests {
             .build();
 
         let e = world.push((1, asset_ref.clone()));
-        assert_eq!(
-            true,
-            world.entry(e).unwrap().get_component::<Material>().is_err()
-        );
+        assert_eq!(true, world.entry(e).unwrap().get_component::<Material>().is_err());
 
         schedule.execute(&mut world, &mut resources);
 
-        assert_eq!(
-            true,
-            world.entry(e).unwrap().get_component::<Material>().is_ok()
-        );
+        assert_eq!(true, world.entry(e).unwrap().get_component::<Material>().is_ok());
     }
 }

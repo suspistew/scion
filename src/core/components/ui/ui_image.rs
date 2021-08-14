@@ -3,13 +3,12 @@ use std::ops::Range;
 use wgpu::util::BufferInitDescriptor;
 
 use crate::{
-    core::components::{material::Material},
+    core::components::{material::Material, maths::coordinates::Coordinates},
     rendering::bidimensional::{
         gl_representations::TexturedGlVertex,
         scion2d::{Renderable2D, RenderableUi},
     },
 };
-use crate::core::components::maths::coordinates::Coordinates;
 
 /// Renderable 2D Square.
 #[derive(Debug)]
@@ -48,10 +47,7 @@ impl UiImage {
             TexturedGlVertex::from((&c, &uvs[2])),
             TexturedGlVertex::from((&d, &uvs[3])),
         ];
-        Self {
-            image_path,
-            contents,
-        }
+        Self { image_path, contents }
     }
 }
 
@@ -72,19 +68,13 @@ impl Renderable2D for UiImage {
         }
     }
 
-    fn range(&self) -> Range<u32> {
-        0..INDICES.len() as u32
-    }
+    fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
 
-    fn dirty(&self) -> bool {
-        false
-    }
+    fn dirty(&self) -> bool { false }
 
     fn set_dirty(&mut self, _is_dirty: bool) {}
 }
 
 impl RenderableUi for UiImage {
-    fn get_texture_path(&self) -> Option<String> {
-        Some(self.image_path.clone())
-    }
+    fn get_texture_path(&self) -> Option<String> { Some(self.image_path.clone()) }
 }

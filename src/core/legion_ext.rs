@@ -1,10 +1,21 @@
-use legion::{storage::ComponentTypeId, systems::{CommandBuffer, ResourceSet, ResourceTypeId, Runnable, SystemId, UnsafeResources}, world::{ArchetypeAccess, WorldId}, Read, World, Resources};
-
-use crate::core::state::GameState;
-use crate::core::resources::asset_manager::AssetManager;
 use atomic_refcell::AtomicRefMut;
-use crate::core::resources::time::Timers;
-use crate::core::resources::inputs::inputs_controller::InputsController;
+use legion::{
+    storage::ComponentTypeId,
+    systems::{CommandBuffer, ResourceSet, ResourceTypeId, Runnable, SystemId, UnsafeResources},
+    world::{ArchetypeAccess, WorldId},
+    Read, Resources, World,
+};
+
+use crate::{
+    core::{
+        components::maths::camera::DefaultCamera,
+        resources::{
+            asset_manager::AssetManager, inputs::inputs_controller::InputsController, time::Timers,
+        },
+        state::GameState,
+    },
+    legion::Entity,
+};
 
 pub(crate) struct PausableSystem<S> {
     pub(crate) system: S,
@@ -16,26 +27,18 @@ impl<S> Runnable for PausableSystem<S>
 where
     S: Runnable,
 {
-    fn name(&self) -> Option<&SystemId> {
-        self.system.name()
-    }
+    fn name(&self) -> Option<&SystemId> { self.system.name() }
 
     fn reads(&self) -> (&[ResourceTypeId], &[ComponentTypeId]) {
         let (_, components) = self.system.reads();
         (&self.resource_reads[..], components)
     }
 
-    fn writes(&self) -> (&[ResourceTypeId], &[ComponentTypeId]) {
-        self.system.writes()
-    }
+    fn writes(&self) -> (&[ResourceTypeId], &[ComponentTypeId]) { self.system.writes() }
 
-    fn prepare(&mut self, world: &World) {
-        self.system.prepare(world)
-    }
+    fn prepare(&mut self, world: &World) { self.system.prepare(world) }
 
-    fn accesses_archetypes(&self) -> &ArchetypeAccess {
-        self.system.accesses_archetypes()
-    }
+    fn accesses_archetypes(&self) -> &ArchetypeAccess { self.system.accesses_archetypes() }
 
     unsafe fn run_unsafe(&mut self, world: &World, resources: &UnsafeResources) {
         let resources_static = &*(resources as *const UnsafeResources);
@@ -54,16 +57,16 @@ where
     }
 }
 
-
-pub trait ScionExtension {
-    fn assets(&mut self) -> AtomicRefMut<AssetManager> ;
-    fn timers(&mut self) -> AtomicRefMut<Timers> ;
-    fn inputs(&mut self) -> AtomicRefMut<InputsController> ;
+pub trait ScionResourcesExtension {
+    fn assets(&mut self) -> AtomicRefMut<AssetManager>;
+    fn timers(&mut self) -> AtomicRefMut<Timers>;
+    fn inputs(&mut self) -> AtomicRefMut<InputsController>;
 }
 
-impl ScionExtension for Resources {
+impl ScionResourcesExtension for Resources {
     fn assets(&mut self) -> AtomicRefMut<AssetManager> {
-        self.get_mut::<AssetManager>().expect("The engine is missing the mandatory asset manager resource")
+        self.get_mut::<AssetManager>()
+            .expect("The engine is missing the mandatory asset manager resource")
     }
 
     fn timers(&mut self) -> AtomicRefMut<Timers> {
@@ -71,6 +74,16 @@ impl ScionExtension for Resources {
     }
 
     fn inputs(&mut self) -> AtomicRefMut<InputsController> {
-        self.get_mut::<InputsController>().expect("The engine is missing the mandatory inputs controller resource")
+        self.get_mut::<InputsController>()
+            .expect("The engine is missing the mandatory inputs controller resource")
     }
+}
+
+pub trait ScionWorldExtension {
+    fn add_default_camera(&mut self) -> Entity;
+}
+
+impl ScionWorldExtension for World {
+    /// Adds a default camera that will be bind to the window size
+    fn add_default_camera(&mut self) -> Entity { self.push((DefaultCamera,)) }
 }

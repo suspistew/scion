@@ -5,9 +5,8 @@ use std::{
     ops::Div,
     time::Duration,
 };
-use crate::core::components::color::Color;
-use crate::core::components::maths::vector::Vector;
 
+use crate::core::components::{color::Color, maths::vector::Vector};
 
 pub struct Animations {
     animations: HashMap<String, Animation>,
@@ -15,9 +14,7 @@ pub struct Animations {
 
 impl Animations {
     /// Creates a new Animations component
-    pub fn new(animations: HashMap<String, Animation>) -> Self {
-        Animations { animations }
-    }
+    pub fn new(animations: HashMap<String, Animation>) -> Self { Animations { animations } }
 
     /// Create a new Animations component with a single animation provided
     pub fn single(name: String, animation: Animation) -> Self {
@@ -78,17 +75,18 @@ impl Animations {
     }
 
     /// Returns the mutable animations
-    pub fn animations_mut(&mut self) -> &mut HashMap<String, Animation> {
-        &mut self.animations
-    }
+    pub fn animations_mut(&mut self) -> &mut HashMap<String, Animation> { &mut self.animations }
 
     /// Return whether or not any animations is currently running. Useful to avoid double call
     pub fn any_animation_running(&self) -> bool {
-        self.animations.values()
-            .filter(|v| v.status.eq(&AnimationStatus::RUNNING) || v.status.eq(&AnimationStatus::LOOPING)).count() > 0
+        self.animations
+            .values()
+            .filter(|v| {
+                v.status.eq(&AnimationStatus::RUNNING) || v.status.eq(&AnimationStatus::LOOPING)
+            })
+            .count()
+            > 0
     }
-
-
 }
 
 #[derive(Eq, PartialEq)]
@@ -107,7 +105,11 @@ pub struct Animation {
 
 impl Animation {
     /// Creates a new animation based on a duration and a list of modifiers
-    pub fn new(duration: Duration, mut modifiers: Vec<AnimationModifier>, loop_at_start: bool) -> Self {
+    pub fn new(
+        duration: Duration,
+        mut modifiers: Vec<AnimationModifier>,
+        loop_at_start: bool,
+    ) -> Self {
         if duration.as_millis() != 0 {
             modifiers.iter_mut().for_each(|animation_modifier| {
                 animation_modifier.single_keyframe_duration =
@@ -119,11 +121,7 @@ impl Animation {
         Self {
             _duration: duration,
             modifiers,
-            status: if loop_at_start {
-                AnimationStatus::LOOPING
-            } else {
-                AnimationStatus::STOPPED
-            },
+            status: if loop_at_start { AnimationStatus::LOOPING } else { AnimationStatus::STOPPED },
         }
     }
 
@@ -136,9 +134,7 @@ impl Animation {
             .count()
             == self.modifiers.len()
         {
-            self.modifiers
-                .iter_mut()
-                .for_each(|modifier| modifier.current_keyframe = 0);
+            self.modifiers.iter_mut().for_each(|modifier| modifier.current_keyframe = 0);
             if self.status == AnimationStatus::RUNNING || self.status == AnimationStatus::STOPPING {
                 self.status = AnimationStatus::STOPPED;
             }
@@ -178,79 +174,57 @@ impl AnimationModifier {
     ) -> Self {
         AnimationModifier::new(
             number_of_keyframes,
-            AnimationModifierType::TransformModifier {
-                vector,
-                scale,
-                rotation,
-            },
+            AnimationModifierType::TransformModifier { vector, scale, rotation },
         )
     }
     /// Convenience function to directly create an AnimationModifier of type Sprite with the needed informations
     pub fn sprite(tile_numbers: Vec<usize>, end_tile_number: usize) -> Self {
         AnimationModifier::new(
             tile_numbers.len() - 1,
-            AnimationModifierType::SpriteModifier {
-                tile_numbers,
-                end_tile_number,
-            },
+            AnimationModifierType::SpriteModifier { tile_numbers, end_tile_number },
         )
     }
 
-    pub fn color(number_of_keyframes: usize, target_color: Color) -> Self{
-        AnimationModifier::new(number_of_keyframes, AnimationModifierType::Color {target: target_color})
+    pub fn color(number_of_keyframes: usize, target_color: Color) -> Self {
+        AnimationModifier::new(
+            number_of_keyframes,
+            AnimationModifierType::Color { target: target_color },
+        )
     }
 
     pub(crate) fn compute_keyframe_modifier_for_animation(&mut self, initial_color: &Color) {
-        self.single_keyframe_modifier = match &self.modifier_type{
+        self.single_keyframe_modifier = match &self.modifier_type {
             AnimationModifierType::Color { target } => {
-                let r = (target.red() as i16 - initial_color.red() as i16)  / self.number_of_keyframes as i16;
-                let g = (target.green() as i16 - initial_color.green() as i16) / self.number_of_keyframes as i16;
-                let b = (target.blue() as i16 - initial_color.blue() as i16) / self.number_of_keyframes as i16;
-                let a = (target.alpha()  - initial_color.alpha())  / self.number_of_keyframes as f32;
-                Some(ComputedKeyframeModifier::Color {r,g,b,a})
-            },
-            _ => None
+                let r = (target.red() as i16 - initial_color.red() as i16)
+                    / self.number_of_keyframes as i16;
+                let g = (target.green() as i16 - initial_color.green() as i16)
+                    / self.number_of_keyframes as i16;
+                let b = (target.blue() as i16 - initial_color.blue() as i16)
+                    / self.number_of_keyframes as i16;
+                let a = (target.alpha() - initial_color.alpha()) / self.number_of_keyframes as f32;
+                Some(ComputedKeyframeModifier::Color { r, g, b, a })
+            }
+            _ => None,
         }
     }
 
-    pub(crate) fn is_first_frame(&self) -> bool {
-        self.current_keyframe == 0
-    }
+    pub(crate) fn is_first_frame(&self) -> bool { self.current_keyframe == 0 }
 
     pub(crate) fn will_be_last_keyframe(&self, added_keyframes: usize) -> bool {
         self.current_keyframe + added_keyframes >= self.number_of_keyframes
     }
-
 }
 
 #[derive(Debug, Clone)]
 pub enum AnimationModifierType {
-    TransformModifier {
-        vector: Option<Vector>,
-        scale: Option<f32>,
-        rotation: Option<f32>,
-    },
-    SpriteModifier {
-        tile_numbers: Vec<usize>,
-        end_tile_number: usize,
-    },
-    Color {
-        target: Color
-    }
+    TransformModifier { vector: Option<Vector>, scale: Option<f32>, rotation: Option<f32> },
+    SpriteModifier { tile_numbers: Vec<usize>, end_tile_number: usize },
+    Color { target: Color },
 }
 
 pub(crate) enum ComputedKeyframeModifier {
-    TransformModifier {
-        vector: Option<Vector>,
-        scale: Option<f32>,
-        rotation: Option<f32>,
-    },
-    Color {
-        r: i16,
-        g: i16,
-        b: i16,
-        a: f32
-    }
+    TransformModifier { vector: Option<Vector>, scale: Option<f32>, rotation: Option<f32> },
+    Color { r: i16, g: i16, b: i16, a: f32 },
 }
 
 impl Display for AnimationModifier {
@@ -276,17 +250,10 @@ impl Display for AnimationModifier {
 fn compute_animation_keyframe_modifier(modifier: &mut AnimationModifier) {
     let keyframe_nb = modifier.number_of_keyframes as f32;
     modifier.single_keyframe_modifier = match modifier.modifier_type {
-        AnimationModifierType::TransformModifier {
-            vector,
-            scale,
-            rotation,
-        } => {
+        AnimationModifierType::TransformModifier { vector, scale, rotation } => {
             Some(ComputedKeyframeModifier::TransformModifier {
                 vector: vector.map_or(None, |vector| {
-                    Some(Vector::new(
-                        vector.x() / keyframe_nb,
-                        vector.y() / keyframe_nb,
-                    ))
+                    Some(Vector::new(vector.x() / keyframe_nb, vector.y() / keyframe_nb))
                 }),
                 scale: scale.map_or(None, |scale| Some(scale / keyframe_nb)),
                 rotation: rotation.map_or(None, |rotation| Some(rotation / keyframe_nb)),
@@ -320,15 +287,9 @@ mod tests {
         );
 
         let anim_modifier = animation.modifiers.iter().next().unwrap();
-        assert_eq!(
-            500,
-            anim_modifier.single_keyframe_duration.unwrap().as_millis()
-        );
-        if let ComputedKeyframeModifier::TransformModifier {
-            vector,
-            scale,
-            rotation,
-        } = anim_modifier.single_keyframe_modifier.as_ref().unwrap()
+        assert_eq!(500, anim_modifier.single_keyframe_duration.unwrap().as_millis());
+        if let ComputedKeyframeModifier::TransformModifier { vector, scale, rotation } =
+            anim_modifier.single_keyframe_modifier.as_ref().unwrap()
         {
             assert_eq!(1.0, vector.unwrap().x());
             assert_eq!(2.0, vector.unwrap().y());
@@ -342,20 +303,26 @@ mod tests {
     #[test]
     fn any_animation_running_test() {
         let mut h = HashMap::new();
-        h.insert("d".to_string(), Animation {
-            _duration: Default::default(),
-            modifiers: vec![],
-            status: AnimationStatus::RUNNING,
-        });
+        h.insert(
+            "d".to_string(),
+            Animation {
+                _duration: Default::default(),
+                modifiers: vec![],
+                status: AnimationStatus::RUNNING,
+            },
+        );
         let a = Animations::new(h);
         assert_eq!(true, a.any_animation_running());
 
         let mut h = HashMap::new();
-        h.insert("d".to_string(), Animation {
-            _duration: Default::default(),
-            modifiers: vec![],
-            status: AnimationStatus::STOPPED,
-        });
+        h.insert(
+            "d".to_string(),
+            Animation {
+                _duration: Default::default(),
+                modifiers: vec![],
+                status: AnimationStatus::STOPPED,
+            },
+        );
         let a = Animations::new(h);
         assert_eq!(false, a.any_animation_running());
     }

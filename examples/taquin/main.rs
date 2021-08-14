@@ -2,22 +2,17 @@ use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
         components::{
-            maths::{
-                camera::Camera,
-                transform::{Transform},
-            },
+            maths::{coordinates::Coordinates, transform::Transform},
             tiles::{sprite::Sprite, tileset::Tileset},
         },
         game_layer::{GameLayer, SimpleGameLayer},
-        resources::{inputs::inputs_controller::InputsController},
+        legion_ext::{ScionResourcesExtension, ScionWorldExtension},
+        resources::inputs::inputs_controller::InputsController,
     },
     legion::{system, Resources, World},
     utils::file::app_base_path,
     Scion,
 };
-
-use scion::core::components::maths::coordinates::Coordinates;
-use scion::core::legion_ext::ScionExtension;
 
 #[derive(Debug)]
 struct Case(Coordinates);
@@ -69,9 +64,7 @@ fn taquin(
     case: &mut Case,
     transform: &mut Transform,
 ) {
-    if inputs.mouse().click_event().is_some() {
-        let mouse_x = inputs.mouse().x();
-        let mouse_y = inputs.mouse().y();
+    inputs.mouse().on_left_click_pressed(|mouse_x, mouse_y| {
         if mouse_x > (case.0.x() * 192.) as f64
             && mouse_y > (case.0.y() * 192.) as f64
             && mouse_x < (case.0.x() * 192. + 192.) as f64
@@ -97,7 +90,7 @@ fn taquin(
                 MoveDirection::None => {}
             };
         }
-    }
+    })
 }
 
 #[derive(Default)]
@@ -106,13 +99,11 @@ struct Layer;
 impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
         let tileset_ref = resources.assets().register_tileset(Tileset::new(
-                app_base_path()
-                    .join("examples/taquin/assets/taquin.png")
-                    .get(),
-                4,
-                4,
-                192,
-            ));
+            app_base_path().join("examples/taquin/assets/taquin.png").get(),
+            4,
+            4,
+            192,
+        ));
         for line in 0..4 {
             for column in 0..4 {
                 if !(line == 3 && column == 3) {
@@ -126,7 +117,8 @@ impl SimpleGameLayer for Layer {
                 }
             }
         }
-        world.push((Camera::new(768., 768., 10.), Transform::default()));
+        world.add_default_camera();
+
         resources.insert(Taquin::new());
     }
 }
@@ -135,10 +127,7 @@ fn main() {
     Scion::app_with_config(
         ScionConfigBuilder::new()
             .with_window_config(
-                WindowConfigBuilder::new()
-                    .with_resizable(false)
-                    .with_dimensions((768, 768))
-                    .get(),
+                WindowConfigBuilder::new().with_resizable(false).with_dimensions((768, 768)).get(),
             )
             .get(),
     )

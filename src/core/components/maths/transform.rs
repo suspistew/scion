@@ -1,5 +1,4 @@
-use crate::core::components::maths::coordinates::Coordinates;
-use crate::core::components::maths::vector::Vector;
+use crate::core::components::maths::{coordinates::Coordinates, vector::Vector};
 
 /// Component used by the renderer to know where and how to represent an object.
 /// Default is position 0;0 with a scale of 1.0 and no angle.
@@ -51,12 +50,10 @@ impl Transform {
         }
     }
 
-    pub fn from_xy(x: f32, y: f32) -> Self {
-        Self::new(Coordinates::new(x,y), 1., 0.)
-    }
+    pub fn from_xy(x: f32, y: f32) -> Self { Self::new(Coordinates::new(x, y), 1., 0.) }
 
     pub fn from_xy_with_layer(x: f32, y: f32, layer: usize) -> Self {
-        Self::new(Coordinates::new_with_layer(x,y, layer), 1., 0.)
+        Self::new(Coordinates::new_with_layer(x, y, layer), 1., 0.)
     }
 
     /// Append a translation to this transform's position
@@ -70,9 +67,7 @@ impl Transform {
     }
 
     /// Append a translation to this transform's position
-    pub fn append_vector(&mut self, vector: Vector) {
-        self.append_translation(vector.x, vector.y);
-    }
+    pub fn append_vector(&mut self, vector: Vector) { self.append_translation(vector.x, vector.y); }
 
     /// Appends the x val to the translation's x value
     pub fn append_x(&mut self, x: f32) {
@@ -99,29 +94,19 @@ impl Transform {
     }
 
     /// Append an angle to this transform's angle
-    pub fn append_angle(&mut self, angle: f32) {
-        self.angle += angle;
-    }
+    pub fn append_angle(&mut self, angle: f32) { self.angle += angle; }
 
     /// Get the transform's coordinates
-    pub fn translation(&self) -> &Coordinates {
-        &self.local_translation
-    }
+    pub fn translation(&self) -> &Coordinates { &self.local_translation }
 
     /// Get the global transform's translation
-    pub fn global_translation(&self) -> &Coordinates {
-        &self.global_translation
-    }
+    pub fn global_translation(&self) -> &Coordinates { &self.global_translation }
 
     /// Change the scale value to a new one.
-    pub fn set_scale(&mut self, scale: f32) {
-        self.scale = scale
-    }
+    pub fn set_scale(&mut self, scale: f32) { self.scale = scale }
 
     /// Change the layer value in the coordinates.
-    pub fn set_layer(&mut self, layer: usize) {
-        self.local_translation.layer = layer
-    }
+    pub fn set_layer(&mut self, layer: usize) { self.local_translation.layer = layer }
 
     /// Configure the minimum global x position for this transform to be min_x
     pub fn set_min_x(&mut self, min_x: Option<f32>) {
@@ -205,11 +190,7 @@ pub struct TransformBuilder {
 }
 
 impl TransformBuilder {
-    pub fn new() -> Self {
-        Self {
-            transform: Transform::default()
-        }
-    }
+    pub fn new() -> Self { Self { transform: Transform::default() } }
 
     pub fn with_xy(mut self, x: f32, y: f32) -> Self {
         let translation = Coordinates::new(x, y);
@@ -234,9 +215,7 @@ impl TransformBuilder {
         self
     }
 
-    pub fn build(self) -> Transform {
-        self.transform
-    }
+    pub fn build(self) -> Transform { self.transform }
 }
 
 #[cfg(test)]

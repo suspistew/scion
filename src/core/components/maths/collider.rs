@@ -2,8 +2,7 @@ use std::slice::Iter;
 
 use legion::Entity;
 
-use crate::core::components::maths::transform::{Transform};
-use crate::core::components::maths::coordinates::Coordinates;
+use crate::core::components::maths::{coordinates::Coordinates, transform::Transform};
 
 struct SquareColliderInfo<'a> {
     size: &'a usize,
@@ -11,9 +10,7 @@ struct SquareColliderInfo<'a> {
 }
 
 impl<'a> SquareColliderInfo<'a> {
-    fn of(size: &'a usize, transform: &'a Transform) -> Self {
-        Self { size, transform }
-    }
+    fn of(size: &'a usize, transform: &'a Transform) -> Self { Self { size, transform } }
 }
 
 /// `ColliderMask` will serve as a 'mask' to allow filter while collisions happen
@@ -48,32 +45,19 @@ impl Collider {
         collision_filter: Vec<ColliderMask>,
         collider_type: ColliderType,
     ) -> Self {
-        Collider {
-            collider_mask,
-            collider_type,
-            collision_filter,
-            collisions: vec![],
-        }
+        Collider { collider_mask, collider_type, collision_filter, collisions: vec![] }
     }
 
     /// Return whether or not this collider colliding to any other collider ?
-    pub fn is_colliding(&self) -> bool {
-        !self.collisions.is_empty()
-    }
+    pub fn is_colliding(&self) -> bool { !self.collisions.is_empty() }
 
-    pub fn collisions(&self) -> Iter<'_, Collision> {
-        self.collisions.iter()
-    }
-    pub fn mask(&self) -> &ColliderMask {
-        &self.collider_mask
-    }
+    pub fn collisions(&self) -> Iter<'_, Collision> { self.collisions.iter() }
+    pub fn mask(&self) -> &ColliderMask { &self.collider_mask }
     pub(crate) fn passive(&self) -> bool {
         self.collision_filter.len() == 1 && self.collision_filter.contains(&ColliderMask::None)
     }
 
-    pub(crate) fn clear_collisions(&mut self) {
-        self.collisions.clear();
-    }
+    pub(crate) fn clear_collisions(&mut self) { self.collisions.clear(); }
 
     pub(crate) fn can_collide_with(&self, other: &Collider) -> bool {
         return self.collision_filter.is_empty()
@@ -129,16 +113,10 @@ pub struct Collision {
 }
 
 impl Collision {
-    pub fn entity(&self) -> &Entity {
-        &self.entity
-    }
+    pub fn entity(&self) -> &Entity { &self.entity }
 
-    pub fn mask(&self) -> &ColliderMask {
-        &self.mask
-    }
-    pub fn coordinates(&self) -> &Coordinates {
-        &self.coordinates
-    }
+    pub fn mask(&self) -> &ColliderMask { &self.mask }
+    pub fn coordinates(&self) -> &Coordinates { &self.coordinates }
 }
 
 #[cfg(test)]
@@ -168,13 +146,7 @@ mod tests {
         let ship_transform_in = Transform::from_xy(5., 5.);
         let ship_transform_out = Transform::from_xy(50., 50.);
 
-        assert_eq!(
-            true,
-            bullet.collides_with(&ship_transform_in, &bullet, &bullet_transform)
-        );
-        assert_eq!(
-            false,
-            bullet.collides_with(&ship_transform_out, &bullet, &bullet_transform)
-        );
+        assert_eq!(true, bullet.collides_with(&ship_transform_in, &bullet, &bullet_transform));
+        assert_eq!(false, bullet.collides_with(&ship_transform_out, &bullet, &bullet_transform));
     }
 }
