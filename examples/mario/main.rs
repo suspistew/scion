@@ -14,7 +14,7 @@ use scion::{
                 camera::Camera,
                 collider::{Collider, ColliderMask, ColliderType},
                 hierarchy::Parent,
-                transform::{Transform},
+                transform::Transform,
             },
             shapes::rectangle::Rectangle,
             Square,
@@ -27,7 +27,6 @@ use scion::{
 };
 
 use crate::{character_control_system::move_char_system, collisions_system::collider_system};
-
 
 pub const MAX_VELOCITY: i32 = 100;
 
@@ -58,12 +57,10 @@ impl SimpleGameLayer for Mario {
         ));
     }
     fn late_update(&mut self, world: &mut World, _resources: &mut Resources) {
-        let hero = <(&mut Hero, &mut Transform)>::query()
-            .get_mut(world, self.hero.unwrap())
-            .unwrap();
+        let hero =
+            <(&mut Hero, &mut Transform)>::query().get_mut(world, self.hero.unwrap()).unwrap();
         if hero.0.velocity != 0 {
-            hero.1
-                .append_x(hero.0.velocity as f32 / MAX_VELOCITY as f32 * 2.5);
+            hero.1.append_x(hero.0.velocity as f32 / MAX_VELOCITY as f32 * 2.5);
         }
 
         if hero.0.gravity != 0 {
@@ -97,11 +94,8 @@ impl SimpleGameLayer for Mario {
 }
 
 fn add_level_data(world: &mut World) -> Vec<Vec<usize>> {
-    let file = read_file(Path::new(
-        &app_base_path()
-            .join("examples/mario/assets/level.csv")
-            .get(),
-    )).unwrap_or_default();
+    let file = read_file(Path::new(&app_base_path().join("examples/mario/assets/level.csv").get()))
+        .unwrap_or_default();
     let csv = from_utf8(file.as_slice()).expect("no");
     let data: Vec<Vec<usize>> = csv
         .split("\r\n")
@@ -151,11 +145,7 @@ fn add_level_data(world: &mut World) -> Vec<Vec<usize>> {
 fn add_background(world: &mut World) {
     let background = (
         Rectangle::new(2560., 640., None),
-        Material::Texture(
-            app_base_path()
-                .join("examples/mario/assets/level.png")
-                .get(),
-        ),
+        Material::Texture(app_base_path().join("examples/mario/assets/level.png").get()),
         Transform::from_xy_with_layer(0., 0., 1),
     );
     world.push(background);
@@ -163,11 +153,7 @@ fn add_background(world: &mut World) {
 
 fn add_character(world: &mut World) -> Entity {
     world.push((
-        Hero {
-            velocity: 0,
-            gravity: 1,
-            landed: false,
-        },
+        Hero { velocity: 0, gravity: 1, landed: false },
         Collider::new(
             ColliderMask::Character,
             vec![ColliderMask::Landscape, ColliderMask::Death],
@@ -183,10 +169,7 @@ fn main() {
     Scion::app_with_config(
         ScionConfigBuilder::new()
             .with_window_config(
-                WindowConfigBuilder::new()
-                    .with_dimensions((500, 640))
-                    .with_resizable(false)
-                    .get(),
+                WindowConfigBuilder::new().with_dimensions((500, 640)).with_resizable(false).get(),
             )
             .get(),
     )

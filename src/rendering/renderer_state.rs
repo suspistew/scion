@@ -33,7 +33,7 @@ impl RendererState {
                     limits: wgpu::Limits::default(),
                     label: None,
                 },
-                None, // Trace path
+                None, /* Trace path */
             )
             .await
             .unwrap();
@@ -47,15 +47,7 @@ impl RendererState {
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
-        Self {
-            surface,
-            device,
-            queue,
-            sc_desc,
-            swap_chain,
-            size,
-            scion_renderer,
-        }
+        Self { surface, device, queue, sc_desc, swap_chain, size, scion_renderer }
     }
 
     pub(crate) fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -71,13 +63,7 @@ impl RendererState {
     }
 
     pub(crate) fn update(&mut self, world: &mut World, resources: &mut Resources) {
-        self.scion_renderer.update(
-            world,
-            resources,
-            &self.device,
-            &self.sc_desc,
-            &mut self.queue,
-        );
+        self.scion_renderer.update(world, resources, &self.device, &self.sc_desc, &mut self.queue);
     }
 
     pub(crate) fn render(
@@ -86,14 +72,11 @@ impl RendererState {
         config: &ScionConfig,
     ) -> Result<(), wgpu::SwapChainError> {
         let frame = self.swap_chain.get_current_frame()?.output;
-        let mut encoder = self
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("Render Encoder"),
-            });
+        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("Render Encoder"),
+        });
 
-        self.scion_renderer
-            .render(world, config, &frame, &mut encoder);
+        self.scion_renderer.render(world, config, &frame, &mut encoder);
         self.queue.submit(std::iter::once(encoder.finish()));
 
         Ok(())

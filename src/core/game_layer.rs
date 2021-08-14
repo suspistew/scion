@@ -81,10 +81,8 @@ impl GameLayerMachine {
         let layers_len = self.game_layers.len();
         if layers_len > 0 {
             for layer_index in (0..layers_len).rev() {
-                let current_layer = self
-                    .game_layers
-                    .get_mut(layer_index)
-                    .expect("We just checked the len");
+                let current_layer =
+                    self.game_layers.get_mut(layer_index).expect("We just checked the len");
                 match &mut current_layer.layer {
                     GameLayerType::Strong(simple_layer) | GameLayerType::Weak(simple_layer) => {
                         match action {
@@ -154,10 +152,7 @@ impl GameLayerMachine {
     }
 
     fn find_layer_and_index_to_replace(&mut self, name: String) -> Option<(usize, Box<GameLayer>)> {
-        if let Some(index) = self
-            .game_layers
-            .iter()
-            .position(|layer| layer.name.eq(name.as_str()))
+        if let Some(index) = self.game_layers.iter().position(|layer| layer.name.eq(name.as_str()))
         {
             Some((index, self.game_layers.remove(index)))
         } else {
@@ -188,17 +183,12 @@ impl GameLayerController {
 
     /// Pop the top pile layer from the pile. If no layer exists, won't do anything. Note that the
     /// layer's stop will happen at the end of the frame.
-    pub fn pop_layer(&mut self) {
-        self.actions.push(GameLayerTrans::Pop);
-    }
+    pub fn pop_layer(&mut self) { self.actions.push(GameLayerTrans::Pop); }
 
     /// Replace the layer with the name `layer_to_replace` with the layer `new_game_layer`. (Useful for level switching).
     /// If no layer exists with this name, won't do anything. Note that the layer's stop will happen at the end of the frame.
     pub fn replace_layer(&mut self, layer_to_replace: &str, new_game_layer: Box<GameLayer>) {
-        self.actions.push(GameLayerTrans::Replace(
-            layer_to_replace.to_string(),
-            new_game_layer,
-        ));
+        self.actions.push(GameLayerTrans::Replace(layer_to_replace.to_string(), new_game_layer));
     }
 }
 
@@ -230,21 +220,11 @@ mod tests {
         let mut resources = Resources::default();
         resources.insert(GameLayerController::default());
 
-        let game_layers = vec![
-            GameLayer::weak::<A>("A"),
-            GameLayer::weak::<B>("B"),
-            GameLayer::weak::<C>("C"),
-        ];
+        let game_layers =
+            vec![GameLayer::weak::<A>("A"), GameLayer::weak::<B>("B"), GameLayer::weak::<C>("C")];
         let mut machine = GameLayerMachine { game_layers };
 
-        assert_eq!(
-            1,
-            machine
-                .game_layers
-                .iter()
-                .position(|l| l.name.eq("B"))
-                .unwrap()
-        );
+        assert_eq!(1, machine.game_layers.iter().position(|l| l.name.eq("B")).unwrap());
 
         resources
             .get_mut::<GameLayerController>()
@@ -252,13 +232,6 @@ mod tests {
             .replace_layer("B", GameLayer::weak::<D>("D"));
         machine.apply_layers_action(LayerAction::EndFrame, &mut world, &mut resources);
 
-        assert_eq!(
-            1,
-            machine
-                .game_layers
-                .iter()
-                .position(|l| l.name.eq("D"))
-                .unwrap()
-        );
+        assert_eq!(1, machine.game_layers.iter().position(|l| l.name.eq("D")).unwrap());
     }
 }

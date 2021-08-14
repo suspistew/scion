@@ -39,9 +39,7 @@ pub enum RendererType {
 }
 
 impl Default for RendererType {
-    fn default() -> Self {
-        RendererType::Scion2D
-    }
+    fn default() -> Self { RendererType::Scion2D }
 }
 
 impl RendererType {

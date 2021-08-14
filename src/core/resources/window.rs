@@ -8,10 +8,7 @@ pub struct WindowDimensions {
 
 impl WindowDimensions {
     pub fn new(screen_size: (u32, u32)) -> Self {
-        Self {
-            width: screen_size.0,
-            height: screen_size.1,
-        }
+        Self { width: screen_size.0, height: screen_size.1 }
     }
 
     pub fn set(&mut self, width: u32, height: u32) {
@@ -19,15 +16,9 @@ impl WindowDimensions {
         self.height = height;
     }
 
-    pub fn get(self) -> (u32, u32) {
-        (self.width, self.height)
-    }
+    pub fn get(self) -> (u32, u32) { (self.width, self.height) }
 
-    pub fn width(self) -> u32 {
-        self.width
-    }
+    pub fn width(self) -> u32 { self.width }
 
-    pub fn height(self) -> u32 {
-        self.height
-    }
+    pub fn height(self) -> u32 { self.height }
 }

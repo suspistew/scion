@@ -1,4 +1,5 @@
 use std::path::Path;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -8,13 +9,13 @@ pub struct Level {
     pub tilemap: Vec<LevelData>,
     pub character_x: usize,
     pub character_y: usize,
-    pub pathing: Vec<Vec<usize>>
+    pub pathing: Vec<Vec<usize>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct LevelData{
+pub struct LevelData {
     pub name: String,
-    pub values: Vec<Vec<usize>>
+    pub values: Vec<Vec<usize>>,
 }
 
 pub fn read_level(name: &str) -> Level {

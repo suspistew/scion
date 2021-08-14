@@ -9,11 +9,9 @@ use crate::core::components::ui::UiComponent;
 #[system]
 #[write_component(T)]
 pub(crate) fn missing_ui_component<T: Component>(world: &mut SubWorld, cmd: &mut CommandBuffer) {
-    <(Entity, &T)>::query()
-        .filter(!component::<UiComponent>())
-        .for_each(world, |(e, _t)| {
-            cmd.add_component(*e, UiComponent);
-        });
+    <(Entity, &T)>::query().filter(!component::<UiComponent>()).for_each(world, |(e, _t)| {
+        cmd.add_component(*e, UiComponent);
+    });
 }
 
 #[cfg(test)]
@@ -27,9 +25,8 @@ mod tests {
     fn missing_ui_comp_system_test() {
         let mut world = World::default();
         let mut resources = Resources::default();
-        let mut schedule = Schedule::builder()
-            .add_system(missing_ui_component_system::<UiImage>())
-            .build();
+        let mut schedule =
+            Schedule::builder().add_system(missing_ui_component_system::<UiImage>()).build();
 
         let e = world.push((UiImage::new(1., 1., "".to_string()),));
 

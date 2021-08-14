@@ -22,12 +22,12 @@ use crate::{
         },
         event_handler::handle_event,
         game_layer::{GameLayer, GameLayerController, GameLayerMachine, LayerAction},
-        legion_ext::PausableSystem,
+        legion_ext::{PausableSystem, ScionResourcesExtension},
         resources::{
             asset_manager::AssetManager,
             events::{topic::TopicConfiguration, Events},
             inputs::inputs_controller::InputsController,
-            time::{Time, Timers},
+            time::{Time, TimerType, Timers},
             window::WindowDimensions,
         },
         state::GameState,
@@ -35,6 +35,7 @@ use crate::{
             animations_system::animation_executer_system,
             asset_ref_resolver_system::{asset_ref_resolver_system, MaterialAssetResolverFn},
             collider_systems::{colliders_cleaner_system, compute_collisions_system},
+            default_camera_system::default_camera_system,
             hierarchy_system::children_manager_system,
             missing_ui_component_system::missing_ui_component_system,
             parent_transform_system::{dirty_child_system, dirty_transform_system},
@@ -43,9 +44,6 @@ use crate::{
     },
     rendering::{renderer_state::RendererState, RendererType},
 };
-use crate::core::resources::time::TimerType;
-use crate::core::legion_ext::ScionResourcesExtension;
-use crate::core::systems::default_camera_system::default_camera_system;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -83,10 +81,7 @@ impl Scion {
     /// The application will use the provided configuration.
     pub fn app_with_config(app_config: ScionConfig) -> ScionBuilder {
         crate::utils::logger::Logger::init_logging(app_config.logger_config.clone());
-        info!(
-            "Launching Scion application with the following configuration: {:?}",
-            app_config
-        );
+        info!("Launching Scion application with the following configuration: {:?}", app_config);
         ScionBuilder::new(app_config)
     }
 
@@ -100,13 +95,8 @@ impl Scion {
     }
 
     fn initialize_internal_resources(&mut self) {
-        let inner_size = self
-            .window
-            .as_ref()
-            .expect("No window found during setup")
-            .inner_size();
-        self.resources
-            .insert(WindowDimensions::new((inner_size.width, inner_size.height)));
+        let inner_size = self.window.as_ref().expect("No window found during setup").inner_size();
+        self.resources.insert(WindowDimensions::new((inner_size.width, inner_size.height)));
 
         let mut events = Events::default();
         events
@@ -134,12 +124,8 @@ impl Scion {
             handle_event(
                 event,
                 control_flow,
-                self.window
-                    .as_mut()
-                    .expect("A window is mandatory to run this game !"),
-                self.renderer
-                    .as_mut()
-                    .expect("A renderer is mandatory to run this game !"),
+                self.window.as_mut().expect("A window is mandatory to run this game !"),
+                self.renderer.as_mut().expect("A renderer is mandatory to run this game !"),
                 &mut self.world,
                 &mut self.resources,
                 &self.config,
@@ -172,10 +158,7 @@ impl Scion {
             &mut self.resources,
         );
         self.resources.inputs().reset_inputs();
-        self.resources
-            .get_mut::<Events>()
-            .expect("Missing mandatory ressource : Events")
-            .cleanup();
+        self.resources.get_mut::<Events>().expect("Missing mandatory ressource : Events").cleanup();
     }
 }
 
@@ -234,11 +217,7 @@ impl ScionBuilder {
             .chain(std::iter::once(ResourceTypeId::of::<GameState>()))
             .collect::<Vec<_>>();
         let boxed_condition = Box::new(condition);
-        let pausable_system = PausableSystem {
-            system,
-            decider: boxed_condition,
-            resource_reads,
-        };
+        let pausable_system = PausableSystem { system, decider: boxed_condition, resource_reads };
         self.schedule_builder.add_system(pausable_system);
         self
     }
@@ -280,9 +259,7 @@ impl ScionBuilder {
             world: Default::default(),
             resources: Default::default(),
             schedule: self.schedule_builder.build(),
-            layer_machine: GameLayerMachine {
-                game_layers: self.game_layers,
-            },
+            layer_machine: GameLayerMachine { game_layers: self.game_layers },
             window: Some(window),
             renderer: Some(renderer_state),
         };
@@ -311,7 +288,6 @@ impl ScionBuilder {
     }
 
     fn add_late_internal_systems_to_schedule(&mut self) {
-        self.schedule_builder.flush()
-            .add_system(colliders_cleaner_system());
+        self.schedule_builder.flush().add_system(colliders_cleaner_system());
     }
 }

@@ -4,11 +4,10 @@ use wgpu::util::BufferInitDescriptor;
 
 use crate::{
     core::components::{
-        material::Material, tiles::tileset::Tileset,
+        material::Material, maths::coordinates::Coordinates, tiles::tileset::Tileset,
     },
     rendering::bidimensional::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
 };
-use crate::core::components::maths::coordinates::Coordinates;
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
@@ -24,13 +23,7 @@ pub struct Sprite {
 }
 
 impl Sprite {
-    pub fn new(tile_number: usize) -> Self {
-        Self {
-            tile_number,
-            contents: None,
-            dirty: false,
-        }
-    }
+    pub fn new(tile_number: usize) -> Self { Self { tile_number, contents: None, dirty: false } }
 
     /// Modify the current sprite tile number
     pub fn set_tile_nb(&mut self, new_tile_nb: usize) {
@@ -69,15 +62,10 @@ impl Sprite {
                 self.contents = Some(contents);
             }
         }
-        self.contents
-            .as_ref()
-            .expect("A computed content is missing in Sprite component")
-            .clone()
+        self.contents.as_ref().expect("A computed content is missing in Sprite component").clone()
     }
 
-    pub(crate) fn indices() -> Vec<u16> {
-        INDICES.to_vec()
-    }
+    pub(crate) fn indices() -> Vec<u16> { INDICES.to_vec() }
 }
 
 impl Renderable2D for Sprite {
@@ -86,9 +74,7 @@ impl Renderable2D for Sprite {
         wgpu::util::BufferInitDescriptor {
             label: Some("Sprite Vertex Buffer"),
             contents: bytemuck::cast_slice(
-                self.contents
-                    .as_ref()
-                    .expect("A computed content is missing in Sprite component"),
+                self.contents.as_ref().expect("A computed content is missing in Sprite component"),
             ),
             usage: wgpu::BufferUsage::VERTEX,
         }
@@ -102,15 +88,9 @@ impl Renderable2D for Sprite {
         }
     }
 
-    fn range(&self) -> Range<u32> {
-        0..INDICES.len() as u32
-    }
+    fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
 
-    fn dirty(&self) -> bool {
-        self.dirty
-    }
+    fn dirty(&self) -> bool { self.dirty }
 
-    fn set_dirty(&mut self, is_dirty: bool) {
-        self.dirty = is_dirty;
-    }
+    fn set_dirty(&mut self, is_dirty: bool) { self.dirty = is_dirty; }
 }

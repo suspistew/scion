@@ -69,9 +69,7 @@ mod tests {
     fn children_manager_system_test_children_delete() {
         let mut world = World::default();
         let mut resources = Resources::default();
-        let mut schedule = Schedule::builder()
-            .add_system(children_manager_system())
-            .build();
+        let mut schedule = Schedule::builder().add_system(children_manager_system()).build();
 
         let parent = world.push((1,));
         let child = world.push((Parent(parent),));
@@ -94,9 +92,7 @@ mod tests {
     fn children_manager_system_test_parent_clean() {
         let mut world = World::default();
         let mut resources = Resources::default();
-        let mut schedule = Schedule::builder()
-            .add_system(children_manager_system())
-            .build();
+        let mut schedule = Schedule::builder().add_system(children_manager_system()).build();
 
         let child = world.push((1,));
         let parent = world.push((2, Children(vec![child])));
@@ -104,27 +100,12 @@ mod tests {
         // We check that we have the child
         assert_eq!(
             true,
-            world
-                .entry(parent)
-                .unwrap()
-                .get_component::<Children>()
-                .unwrap()
-                .0
-                .contains(&child)
+            world.entry(parent).unwrap().get_component::<Children>().unwrap().0.contains(&child)
         );
         world.remove(child);
 
         // we delete the child and then we execute the schedule and test that we have the good result
         schedule.execute(&mut world, &mut resources);
-        assert_eq!(
-            0,
-            world
-                .entry(parent)
-                .unwrap()
-                .get_component::<Children>()
-                .unwrap()
-                .0
-                .len()
-        );
+        assert_eq!(0, world.entry(parent).unwrap().get_component::<Children>().unwrap().0.len());
     }
 }

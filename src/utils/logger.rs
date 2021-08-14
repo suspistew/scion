@@ -26,19 +26,15 @@ impl Logger {
                 ))
             })
             .level(config.level_filter)
-            .chain(
-                fern::Dispatch::new()
-                    .chain(io::stdout())
-                    .format(move |out, message, record| {
-                        let color = color_config.get_color(&record.level());
-                        out.finish(format_args!(
-                            "{color}{message}{color_reset}",
-                            color = format!("\x1B[{}m", color.to_fg_str()),
-                            message = message,
-                            color_reset = "\x1B[0m",
-                        ))
-                    }),
-            )
+            .chain(fern::Dispatch::new().chain(io::stdout()).format(move |out, message, record| {
+                let color = color_config.get_color(&record.level());
+                out.finish(format_args!(
+                    "{color}{message}{color_reset}",
+                    color = format!("\x1B[{}m", color.to_fg_str()),
+                    message = message,
+                    color_reset = "\x1B[0m",
+                ))
+            }))
             .apply()
             .unwrap_or_else(|_| debug!("Logger can be set only ont time, skipping."));
     }

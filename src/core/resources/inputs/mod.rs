@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use winit::event::ElementState;
 
-use crate::core::resources::inputs::{keycode::KeyCode};
+use crate::core::resources::inputs::keycode::KeyCode;
 
 pub mod inputs_controller;
 pub mod keyboard;

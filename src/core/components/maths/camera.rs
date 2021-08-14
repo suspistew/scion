@@ -13,13 +13,6 @@ pub struct Camera {
 impl Camera {
     /// Creates a camera with a viewport of size (width;height;depth). In general the same width and height of the window.
     pub fn new(width: f32, height: f32, depth: f32) -> Self {
-        Self {
-            left: 0.,
-            right: width,
-            top: 0.,
-            bottom: -1. * height,
-            near: 0.0,
-            far: depth,
-        }
+        Self { left: 0., right: width, top: 0., bottom: -1. * height, near: 0.0, far: depth }
     }
 }

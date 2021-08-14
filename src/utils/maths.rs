@@ -7,21 +7,13 @@ pub struct Position {
 }
 
 impl Position {
-    pub fn new(x: usize, y: usize, layer: usize) -> Self {
-        Self { x, y, layer }
-    }
+    pub fn new(x: usize, y: usize, layer: usize) -> Self { Self { x, y, layer } }
 
-    pub fn x(&self) -> usize {
-        self.x
-    }
+    pub fn x(&self) -> usize { self.x }
 
-    pub fn y(&self) -> usize {
-        self.y
-    }
+    pub fn y(&self) -> usize { self.y }
 
-    pub fn layer(&self) -> usize {
-        self.layer
-    }
+    pub fn layer(&self) -> usize { self.layer }
 }
 
 /// The standard way to communicate 3D sizes in `Scion`
@@ -33,22 +25,12 @@ pub struct Dimensions {
 
 impl Dimensions {
     pub fn new(width: usize, height: usize, number_of_layers: usize) -> Self {
-        Self {
-            width,
-            height,
-            number_of_layers,
-        }
+        Self { width, height, number_of_layers }
     }
 
-    pub fn width(&self) -> usize {
-        self.width
-    }
+    pub fn width(&self) -> usize { self.width }
 
-    pub fn height(&self) -> usize {
-        self.height
-    }
+    pub fn height(&self) -> usize { self.height }
 
-    pub fn number_of_layers(&self) -> usize {
-        self.number_of_layers
-    }
+    pub fn number_of_layers(&self) -> usize { self.number_of_layers }
 }

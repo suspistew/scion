@@ -30,10 +30,7 @@ pub(crate) fn dirty_child(
 
     let mut parents_transform = HashMap::new();
     for (_, parent) in parent_to_check.iter() {
-        if let Ok(parent_transform) = world
-            .entry_ref(*parent)
-            .unwrap()
-            .get_component::<Transform>()
+        if let Ok(parent_transform) = world.entry_ref(*parent).unwrap().get_component::<Transform>()
         {
             parents_transform.insert(*parent, parent_transform.clone());
         }
@@ -104,10 +101,7 @@ mod tests {
     use legion::{IntoQuery, Resources, Schedule, World};
 
     use super::*;
-    use crate::core::{
-        components::maths::{hierarchy::Parent},
-        systems::hierarchy_system::*,
-    };
+    use crate::core::{components::maths::hierarchy::Parent, systems::hierarchy_system::*};
 
     #[test]
     fn dirty_parent_transform_test() {

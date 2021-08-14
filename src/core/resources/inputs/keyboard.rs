@@ -9,18 +9,13 @@ pub struct Keyboard {
 }
 
 impl Keyboard {
-    pub fn key_pressed(&self, key: &KeyCode) -> bool {
-        self.pressed_keys.contains(key)
-    }
+    pub fn key_pressed(&self, key: &KeyCode) -> bool { self.pressed_keys.contains(key) }
 
-    pub fn keyboard_events(&self) -> &Vec<KeyboardEvent> {
-        &self.keyboard_events
-    }
+    pub fn keyboard_events(&self) -> &Vec<KeyboardEvent> { &self.keyboard_events }
 
     pub fn on_key_pressed<Body>(&self, key: KeyCode, mut action: Body)
     where
-        Body: FnMut(),
-    {
+        Body: FnMut(), {
         if self
             .keyboard_events
             .iter()
@@ -34,8 +29,7 @@ impl Keyboard {
 
     pub fn on_key_released<Body>(&self, key: KeyCode, mut action: Body)
     where
-        Body: FnMut(),
-    {
+        Body: FnMut(), {
         if self
             .keyboard_events
             .iter()
@@ -47,9 +41,7 @@ impl Keyboard {
         }
     }
 
-    pub fn clear_events(&mut self) {
-        self.keyboard_events.clear();
-    }
+    pub fn clear_events(&mut self) { self.keyboard_events.clear(); }
 
     pub fn add_keyboard_event(&mut self, keyboard_event: KeyboardEvent) {
         if match &keyboard_event {

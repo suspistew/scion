@@ -5,7 +5,5 @@
 pub struct GameState {}
 
 impl GameState {
-    pub fn test(&self) -> bool {
-        true
-    }
+    pub fn test(&self) -> bool { true }
 }

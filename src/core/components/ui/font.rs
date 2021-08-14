@@ -41,9 +41,6 @@ mod tests {
 
     #[test]
     fn find_indexes() {
-        assert_eq!(
-            (1., 0.),
-            Font::find_line_and_column(&"abcdef".to_string(), 3., 'd')
-        )
+        assert_eq!((1., 0.), Font::find_line_and_column(&"abcdef".to_string(), 3., 'd'))
     }
 }

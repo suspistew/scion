@@ -22,7 +22,7 @@ pub fn move_char(
         let _r = timers.add_timer("input", TimerType::Manual, 0.05);
     }
     if !timers.exists("gravity") {
-       let _r =  timers.add_timer("gravity", TimerType::Manual, 0.005);
+        let _r = timers.add_timer("gravity", TimerType::Manual, 0.005);
     }
 
     let input_velocity = read_velocity(inputs);
@@ -71,9 +71,7 @@ pub fn move_char(
             }
         });
     } else {
-        let timer = timers
-            .get_timer("gravity")
-            .expect("Missing timer : gravity");
+        let timer = timers.get_timer("gravity").expect("Missing timer : gravity");
         query.for_each_mut(world, |(hero, _t)| {
             if !hero.landed {
                 if timer.ended() {

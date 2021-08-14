@@ -2,21 +2,17 @@ use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
         components::{
-            maths::{
-                transform::{Transform},
-            },
+            maths::{coordinates::Coordinates, transform::Transform},
             tiles::{sprite::Sprite, tileset::Tileset},
         },
         game_layer::{GameLayer, SimpleGameLayer},
-        resources::{inputs::inputs_controller::InputsController},
+        legion_ext::{ScionResourcesExtension, ScionWorldExtension},
+        resources::inputs::inputs_controller::InputsController,
     },
     legion::{system, Resources, World},
     utils::file::app_base_path,
     Scion,
 };
-
-use scion::core::components::maths::coordinates::Coordinates;
-use scion::core::legion_ext::{ScionResourcesExtension, ScionWorldExtension};
 
 #[derive(Debug)]
 struct Case(Coordinates);
@@ -68,7 +64,7 @@ fn taquin(
     case: &mut Case,
     transform: &mut Transform,
 ) {
-    inputs.mouse().on_left_click_pressed(|mouse_x, mouse_y|{
+    inputs.mouse().on_left_click_pressed(|mouse_x, mouse_y| {
         if mouse_x > (case.0.x() * 192.) as f64
             && mouse_y > (case.0.y() * 192.) as f64
             && mouse_x < (case.0.x() * 192. + 192.) as f64
@@ -103,13 +99,11 @@ struct Layer;
 impl SimpleGameLayer for Layer {
     fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
         let tileset_ref = resources.assets().register_tileset(Tileset::new(
-                app_base_path()
-                    .join("examples/taquin/assets/taquin.png")
-                    .get(),
-                4,
-                4,
-                192,
-            ));
+            app_base_path().join("examples/taquin/assets/taquin.png").get(),
+            4,
+            4,
+            192,
+        ));
         for line in 0..4 {
             for column in 0..4 {
                 if !(line == 3 && column == 3) {
@@ -133,10 +127,7 @@ fn main() {
     Scion::app_with_config(
         ScionConfigBuilder::new()
             .with_window_config(
-                WindowConfigBuilder::new()
-                    .with_resizable(false)
-                    .with_dimensions((768, 768))
-                    .get(),
+                WindowConfigBuilder::new().with_resizable(false).with_dimensions((768, 768)).get(),
             )
             .get(),
     )

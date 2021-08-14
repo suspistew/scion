@@ -35,7 +35,7 @@ pub enum KeyCode {
     X,
     Y,
     Z,
-    Space
+    Space,
 }
 
 impl From<VirtualKeyCode> for KeyCode {

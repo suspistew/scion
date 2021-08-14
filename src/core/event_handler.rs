@@ -7,17 +7,19 @@ use winit::{
 
 use crate::{
     config::scion_config::ScionConfig,
-    core::resources::{
-        inputs::{
-            keycode::KeyCode, mouse::MouseButton, InputState,
-            KeyboardEvent,
+    core::{
+        legion_ext::ScionResourcesExtension,
+        resources::{
+            inputs::{
+                keycode::KeyCode,
+                mouse::{MouseButton, MouseEvent},
+                InputState, KeyboardEvent,
+            },
+            window::WindowDimensions,
         },
-        window::WindowDimensions,
     },
     rendering::renderer_state::RendererState,
 };
-use crate::core::legion_ext::ScionResourcesExtension;
-use crate::core::resources::inputs::mouse::MouseEvent;
 
 pub(crate) fn handle_event(
     event: Event<()>,
@@ -29,10 +31,7 @@ pub(crate) fn handle_event(
     config: &ScionConfig,
 ) {
     match event {
-        Event::WindowEvent {
-            ref event,
-            window_id,
-        } if window_id == window.id() => {
+        Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
             match event {
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                 WindowEvent::Resized(physical_size) => {
@@ -45,16 +44,13 @@ pub(crate) fn handle_event(
                 WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                     renderer.resize(**new_inner_size);
                 }
-                WindowEvent::CursorMoved {
-                    device_id: _,
-                    position,
-                    ..
-                } => {
-                    let dpi_factor = window
-                        .current_monitor()
-                        .expect("Missing the monitor")
-                        .scale_factor();
-                    resources.inputs().mouse_mut().set_position(position.x / dpi_factor, position.y / dpi_factor);
+                WindowEvent::CursorMoved { device_id: _, position, .. } => {
+                    let dpi_factor =
+                        window.current_monitor().expect("Missing the monitor").scale_factor();
+                    resources
+                        .inputs()
+                        .mouse_mut()
+                        .set_position(position.x / dpi_factor, position.y / dpi_factor);
                 }
                 _ => {}
             }
@@ -86,12 +82,9 @@ fn update_input_events(window_event: &WindowEvent, resources: &mut Resources) {
             }
         }
         WindowEvent::MouseInput { state, button, .. } => {
-            let m_event = MouseEvent {
-                button: MouseButton::from(*button),
-                state: InputState::from(*state),
-            };
-            resources.inputs().mouse_mut()
-                .set_click_event(Some(m_event.clone()));
+            let m_event =
+                MouseEvent { button: MouseButton::from(*button), state: InputState::from(*state) };
+            resources.inputs().mouse_mut().set_click_event(Some(m_event.clone()));
         }
         _ => {}
     };

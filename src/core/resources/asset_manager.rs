@@ -26,8 +26,7 @@ impl AssetManager {
 
     pub fn register_tileset(&mut self, tileset: Tileset) -> AssetRef<Material> {
         let next_ref = AssetRef(self.materials.keys().count(), PhantomData::default());
-        self.materials
-            .insert(next_ref.0, Material::Tileset(tileset));
+        self.materials.insert(next_ref.0, Material::Tileset(tileset));
         next_ref
     }
 }

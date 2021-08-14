@@ -12,11 +12,6 @@ pub struct Tileset {
 
 impl Tileset {
     pub fn new(texture_path: String, length: usize, height: usize, tile_size: usize) -> Self {
-        Self {
-            length,
-            height,
-            tile_size,
-            texture: texture_path,
-        }
+        Self { length, height, tile_size, texture: texture_path }
     }
 }

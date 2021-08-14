@@ -16,9 +16,7 @@ pub struct Bloc {
 pub struct NextBloc;
 
 impl Bloc {
-    pub fn new(k: BlocKind) -> Bloc {
-        Bloc { kind: k }
-    }
+    pub fn new(k: BlocKind) -> Bloc { Bloc { kind: k } }
 }
 
 #[derive(Debug, Clone)]
@@ -146,20 +144,14 @@ pub struct Piece {
 
 impl Piece {
     pub fn new(o: PieceOrientation, k: PieceKind, c: usize) -> Piece {
-        Piece {
-            orientation: o,
-            kind: k,
-            color: c,
-        }
+        Piece { orientation: o, kind: k, color: c }
     }
 
     pub fn get_current_offsets(&self) -> Vec<(f32, f32)> {
         self.kind.get_self_offsets(&self.orientation)
     }
 
-    pub fn rotate(&mut self) {
-        self.orientation = self.orientation.next_orientation();
-    }
+    pub fn rotate(&mut self) { self.orientation = self.orientation.next_orientation(); }
 
     pub fn random_new() -> Piece {
         let random_piece_nb: u8 = thread_rng().gen_range(0..7);

@@ -7,35 +7,19 @@ pub struct Coordinates {
 }
 
 impl Coordinates {
-    pub fn new(x: f32, y: f32) -> Self {
-        Self { x, y, layer: 0 }
-    }
+    pub fn new(x: f32, y: f32) -> Self { Self { x, y, layer: 0 } }
 
-    pub fn new_with_layer(x: f32, y: f32, layer: usize) -> Self {
-        Self { x, y, layer }
-    }
+    pub fn new_with_layer(x: f32, y: f32, layer: usize) -> Self { Self { x, y, layer } }
 
-    pub fn x(&self) -> f32 {
-        self.x
-    }
+    pub fn x(&self) -> f32 { self.x }
 
-    pub fn y(&self) -> f32 {
-        self.y
-    }
+    pub fn y(&self) -> f32 { self.y }
 
-    pub fn layer(&self) -> usize {
-        self.layer
-    }
+    pub fn layer(&self) -> usize { self.layer }
 
-    pub fn set_x(&mut self, x: f32) {
-        self.x = x
-    }
+    pub fn set_x(&mut self, x: f32) { self.x = x }
 
-    pub fn set_y(&mut self, y: f32) {
-        self.y = y;
-    }
+    pub fn set_y(&mut self, y: f32) { self.y = y; }
 
-    pub fn set_layer(&mut self, layer: usize) {
-        self.layer = layer;
-    }
+    pub fn set_layer(&mut self, layer: usize) { self.layer = layer; }
 }

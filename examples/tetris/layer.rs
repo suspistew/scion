@@ -6,15 +6,13 @@ use scion::{
             ui::{font::Font, ui_image::UiImage, ui_text::UiText},
         },
         game_layer::SimpleGameLayer,
-        resources::{
-            time::{TimerType},
-        },
+        legion_ext::ScionResourcesExtension,
+        resources::time::TimerType,
     },
     legion::{Entity, Resources, World},
 };
 
 use crate::{asset_path, resources::TetrisResource};
-use scion::core::legion_ext::ScionResourcesExtension;
 
 #[derive(Default)]
 pub struct TetrisLayer {
@@ -28,16 +26,14 @@ impl SimpleGameLayer for TetrisLayer {
         self.score = Some(add_score_ui(world));
         world.push((Camera::new(544., 704., 10.), Transform::default()));
         let _r = resources.timers().add_timer("piece", TimerType::Cyclic, 0.5);
-        let _r = resources.timers().add_timer(
-            "action_reset_timer",
-            TimerType::Manual,
-            0.2,
-        );
+        let _r = resources.timers().add_timer("action_reset_timer", TimerType::Manual, 0.2);
         let mut tetris = TetrisResource::default();
-        tetris.asset = Some(
-            resources.assets()
-                .register_tileset(Tileset::new(asset_path().join("blocs.png").get(), 8, 1, 32)),
-        );
+        tetris.asset = Some(resources.assets().register_tileset(Tileset::new(
+            asset_path().join("blocs.png").get(),
+            8,
+            1,
+            32,
+        )));
         resources.insert(tetris);
     }
 

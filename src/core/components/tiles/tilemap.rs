@@ -1,6 +1,6 @@
 use std::{collections::HashMap, ops::Range};
 
-use legion::{Entity, World, EntityStore};
+use legion::{world::SubWorld, Entity, EntityStore, World};
 use wgpu::util::BufferInitDescriptor;
 
 use crate::{
@@ -16,7 +16,6 @@ use crate::{
     rendering::bidimensional::scion2d::Renderable2D,
     utils::maths::{Dimensions, Position},
 };
-use legion::world::SubWorld;
 
 pub(crate) struct Tile {
     pub(crate) position: Position,
@@ -54,19 +53,14 @@ impl TilemapInfo {
         transform: Transform,
         tileset_ref: AssetRef<Material>,
     ) -> Self {
-        Self {
-            dimensions,
-            transform,
-            tileset_ref,
-        }
+        Self { dimensions, transform, tileset_ref }
     }
 }
 
 impl Tilemap {
     pub fn create<F>(infos: TilemapInfo, world: &mut World, mut tile_resolver: F) -> Entity
     where
-        F: FnMut(&Position) -> TileInfos,
-    {
+        F: FnMut(&Position) -> TileInfos, {
         let self_entity = Tilemap::create_tilemap(world, infos.tileset_ref, infos.transform);
 
         for x in 0..infos.dimensions.width() {
@@ -75,26 +69,18 @@ impl Tilemap {
                     let position = Position::new(x, y, layer);
                     let tile_infos = tile_resolver(&position);
 
-                    let entity = world.push((Tile {
-                        position: position.clone(),
-                        tilemap: self_entity.clone(),
-                    },));
+                    let entity = world
+                        .push((Tile { position: position.clone(), tilemap: self_entity.clone() },));
 
                     if let Some(tile_nb) = tile_infos.tile_nb {
-                        world
-                            .entry(entity)
-                            .unwrap()
-                            .add_component(Sprite::new(tile_nb));
+                        world.entry(entity).unwrap().add_component(Sprite::new(tile_nb));
                     }
 
                     if let Some(animation) = tile_infos.animation {
-                        world
-                            .entry(entity)
-                            .unwrap()
-                            .add_component(Animations::single(
-                                "TileAnimation".to_string(),
-                                animation,
-                            ));
+                        world.entry(entity).unwrap().add_component(Animations::single(
+                            "TileAnimation".to_string(),
+                            animation,
+                        ));
                     }
                     world
                         .entry(self_entity)
@@ -111,9 +97,16 @@ impl Tilemap {
     }
 
     /// Try to modify the sprite's tile at given position
-    pub fn modify_sprite_tile(&self, tile_position: Position, new_tile_nb: usize, world: &mut SubWorld) {
+    pub fn modify_sprite_tile(
+        &self,
+        tile_position: Position,
+        new_tile_nb: usize,
+        world: &mut SubWorld,
+    ) {
         if self.tile_entities.contains_key(&tile_position) {
-            let mut entity = world.entry_mut(*self.tile_entities.get(&tile_position).unwrap()).expect("Unreachable registered entity in tilemap");
+            let mut entity = world
+                .entry_mut(*self.tile_entities.get(&tile_position).unwrap())
+                .expect("Unreachable registered entity in tilemap");
             if let Ok(sprite) = entity.get_component_mut::<Sprite>() {
                 sprite.set_tile_nb(new_tile_nb);
             }
@@ -134,19 +127,11 @@ impl Renderable2D for Tilemap {
         todo!()
     }
 
-    fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
-        todo!()
-    }
+    fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor { todo!() }
 
-    fn range(&self) -> Range<u32> {
-        todo!()
-    }
+    fn range(&self) -> Range<u32> { todo!() }
 
-    fn dirty(&self) -> bool {
-        todo!()
-    }
+    fn dirty(&self) -> bool { todo!() }
 
-    fn set_dirty(&mut self, _is_dirty: bool) {
-        todo!()
-    }
+    fn set_dirty(&mut self, _is_dirty: bool) { todo!() }
 }
