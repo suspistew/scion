@@ -61,7 +61,7 @@ pub(crate) fn ui_text_bitmap_update(
                 ];
 
                 let mut char_transform = Transform::from_xy(index as f32 * (width + 1.), 0.);
-                char_transform.set_layer(transform.translation().layer());
+                char_transform.set_z(transform.translation().z());
                 cmd.push((
                     UiTextImage(UiImage::new_with_uv_map(
                         *width as f32,

@@ -158,7 +158,7 @@ impl From<UniformData<'_>> for GlUniform {
         model_trans.append_translation(Vec3 {
             x: uniform_data.transform.global_translation.x(),
             y: uniform_data.transform.global_translation.y(),
-            z: uniform_data.transform.global_translation.layer() as f32,
+            z: uniform_data.transform.global_translation.z() as f32,
         });
         if !uniform_data.is_ui_component {
             model_trans.append_translation(Vec3 {

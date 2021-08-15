@@ -3,34 +3,34 @@
 pub struct Position {
     x: usize,
     y: usize,
-    layer: usize,
+    z: usize,
 }
 
 impl Position {
-    pub fn new(x: usize, y: usize, layer: usize) -> Self { Self { x, y, layer } }
+    pub fn new(x: usize, y: usize, z: usize) -> Self { Self { x, y, z } }
 
     pub fn x(&self) -> usize { self.x }
 
     pub fn y(&self) -> usize { self.y }
 
-    pub fn layer(&self) -> usize { self.layer }
+    pub fn z(&self) -> usize { self.z }
 }
 
 /// The standard way to communicate 3D sizes in `Scion`
 pub struct Dimensions {
     width: usize,
     height: usize,
-    number_of_layers: usize,
+    depth: usize,
 }
 
 impl Dimensions {
-    pub fn new(width: usize, height: usize, number_of_layers: usize) -> Self {
-        Self { width, height, number_of_layers }
+    pub fn new(width: usize, height: usize, depth: usize) -> Self {
+        Self { width, height, depth }
     }
 
     pub fn width(&self) -> usize { self.width }
 
     pub fn height(&self) -> usize { self.height }
 
-    pub fn number_of_layers(&self) -> usize { self.number_of_layers }
+    pub fn depth(&self) -> usize { self.depth }
 }

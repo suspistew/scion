@@ -74,7 +74,7 @@ impl SimpleGameLayer for BombermanLayer {
                 Some(
                     *level
                         .tilemap
-                        .get(p.layer())
+                        .get(p.z())
                         .unwrap()
                         .values
                         .get(p.y())
@@ -106,7 +106,7 @@ fn create_char(
     level: &Level,
 ) -> (Transform, Sprite, AssetRef<Material>, Animations, BombermanInfos) {
     (
-        Transform::from_xy_with_layer(
+        Transform::from_xyz(
             (level.character_x * 64) as f32,
             (level.character_y * 64) as f32,
             level.tilemap.len() + 2,
