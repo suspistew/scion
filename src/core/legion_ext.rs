@@ -11,7 +11,7 @@ use crate::{
         components::maths::camera::DefaultCamera,
         resources::{
             asset_manager::AssetManager, events::Events,
-            inputs::inputs_controller::InputsController, time::Timers,
+            inputs::inputs_controller::InputsController, sound::AudioPlayer, time::Timers,
         },
         state::GameState,
     },
@@ -63,25 +63,36 @@ pub trait ScionResourcesExtension {
     fn timers(&mut self) -> AtomicRefMut<Timers>;
     fn inputs(&mut self) -> AtomicRefMut<InputsController>;
     fn events(&mut self) -> AtomicRefMut<Events>;
+    fn audio(&mut self) -> AtomicRefMut<AudioPlayer>;
 }
 
 impl ScionResourcesExtension for Resources {
+    /// retrieves the asset manager from the resources.
     fn assets(&mut self) -> AtomicRefMut<AssetManager> {
         self.get_mut::<AssetManager>()
             .expect("The engine is missing the mandatory asset manager resource")
     }
 
+    /// retrieves the timers resource from the resources.
     fn timers(&mut self) -> AtomicRefMut<Timers> {
         self.get_mut::<Timers>().expect("The engine is missing the mandatory timers resource")
     }
 
+    /// retrieves the inputs resource from the resources
     fn inputs(&mut self) -> AtomicRefMut<InputsController> {
         self.get_mut::<InputsController>()
             .expect("The engine is missing the mandatory inputs controller resource")
     }
 
+    /// retrieves the events resource from the resources
     fn events(&mut self) -> AtomicRefMut<Events> {
         self.get_mut::<Events>().expect("The engine is missing the mandatory events resource")
+    }
+
+    /// retrieves the audio player from the resources
+    fn audio(&mut self) -> AtomicRefMut<AudioPlayer> {
+        self.get_mut::<AudioPlayer>()
+            .expect("The engine is missing the mandatory audio player resource")
     }
 }
 

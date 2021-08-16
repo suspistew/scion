@@ -248,7 +248,7 @@ pub enum AnimationModifierType {
     TransformModifier { vector: Option<Vector>, scale: Option<f32>, rotation: Option<f32> },
     SpriteModifier { tile_numbers: Vec<usize>, end_tile_number: usize },
     Color { target: Color },
-    Blink
+    Blink,
 }
 
 pub(crate) enum ComputedKeyframeModifier {
@@ -296,9 +296,7 @@ fn compute_animation_keyframe_modifier(modifier: &mut AnimationModifier) {
             // We can't compute here because we need the initial color
             None
         }
-        AnimationModifierType::Blink => {
-            None
-        }
+        AnimationModifierType::Blink => None,
     };
 }
 

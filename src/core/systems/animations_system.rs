@@ -1,4 +1,4 @@
-use legion::*;
+use legion::{systems::CommandBuffer, *};
 
 use crate::core::{
     components::{
@@ -10,11 +10,10 @@ use crate::core::{
         material::Material,
         maths::transform::Transform,
         tiles::sprite::Sprite,
+        Hide,
     },
     resources::time::{TimerType, Timers},
 };
-use legion::systems::CommandBuffer;
-use crate::core::components::Hide;
 
 /// System responsible of applying modifiers data to the dedicated components
 /// It will use timers to keep track of the animation and will merge keyframes in case
@@ -28,7 +27,7 @@ pub(crate) fn animation_executer(
     mut transform: Option<&mut Transform>,
     mut sprite: Option<&mut Sprite>,
     mut material: Option<&mut Material>,
-    hide: Option<&Hide>
+    hide: Option<&Hide>,
 ) {
     animations
         .animations_mut()
@@ -176,16 +175,17 @@ fn apply_color_modifier(
     }
 }
 
-fn apply_blink_modifier(cmd: &mut CommandBuffer,
-                        entity: &Entity,
-                        modifier: &mut AnimationModifier,
-                        timer_cycle: usize,
-                        hide: Option<&Hide>) {
-
+fn apply_blink_modifier(
+    cmd: &mut CommandBuffer,
+    entity: &Entity,
+    modifier: &mut AnimationModifier,
+    timer_cycle: usize,
+    hide: Option<&Hide>,
+) {
     if timer_cycle > 0 {
         if modifier.will_be_last_keyframe(timer_cycle) {
             cmd.remove_component::<Hide>(*entity);
-        } else if hide.is_none(){
+        } else if hide.is_none() {
             cmd.add_component(*entity, Hide);
         } else {
             cmd.remove_component::<Hide>(*entity);

@@ -44,7 +44,6 @@ These are the dependencies this project is relying on. Thanks to these awesome c
 - <a href="https://github.com/rust-windowing/winit" target="blank">winit</a> and <a href="https://github.com/gfx-rs/wgpu/tree/master/wgpu" target="blank">wgpu</a> (windowing and multi backend rendering)
 - <a href="https://github.com/amethyst/legion" target="blank">legion</a> (Entity component system)
 - <a href="https://github.com/termhn/ultraviolet" target="blank">ultraviolet</a> (Maths)
-
 ## Showcase
 
 <img src="./examples/taquin/taquin.gif" alt="Taquin" style="width:300px"/>

@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use futures::StreamExt;
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
@@ -13,9 +12,14 @@ use scion::{
         },
         game_layer::{GameLayer, SimpleGameLayer},
         legion_ext::{ScionResourcesExtension, ScionWorldExtension},
-        resources::{events::PollConfiguration, inputs::keycode::KeyCode},
+        resources::{
+            events::PollConfiguration,
+            inputs::keycode::KeyCode,
+            sound::{Sound, SoundLoadingType},
+        },
     },
     legion::{Entity, EntityStore, Resources, World},
+    utils::file::app_base_path,
     Scion,
 };
 
@@ -25,7 +29,7 @@ pub struct WorldCup {
 }
 
 impl SimpleGameLayer for WorldCup {
-    fn on_start(&mut self, world: &mut World, _resources: &mut Resources) {
+    fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
         let animation = Animation::new(
             Duration::from_millis(500),
             vec![AnimationModifier::blink(1)],
@@ -48,18 +52,37 @@ impl SimpleGameLayer for WorldCup {
         ));
 
         world.add_default_camera();
+        resources.audio().register_sound(
+            "test",
+            Sound::new(
+                app_base_path().join("examples/world-cup/assets/test.ogg").get(),
+                SoundLoadingType::KeepAfterUse,
+            ),
+        );
+        resources.audio().play("test", Default::default());
     }
 
     fn update(&mut self, world: &mut World, resources: &mut Resources) {
         let mut entry = world.entry_mut(*self.entity.as_ref().unwrap()).unwrap();
         let animations = entry.get_component_mut::<Animations>().unwrap();
+        let mut play_sound = false;
+        let mut stop_sound = false;
         resources.inputs().keyboard_mut().on_key_pressed(KeyCode::P, || {
             if animations.any_animation_running() {
-                animations.stop_animation("color",false);
-            }else{
+                animations.stop_animation("color", false);
+                stop_sound = true;
+            } else {
                 animations.loop_animation("color");
+                play_sound = true;
             }
         });
+
+        if play_sound {
+            resources.audio().play("test", Default::default());
+        }
+        if stop_sound {
+            resources.audio().stop("test");
+        }
     }
 }
 

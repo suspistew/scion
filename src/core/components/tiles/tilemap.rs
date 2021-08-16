@@ -77,10 +77,10 @@ impl Tilemap {
                     }
 
                     if let Some(animation) = tile_infos.animation {
-                        world.entry(entity).unwrap().add_component(Animations::single(
-                            "TileAnimation",
-                            animation,
-                        ));
+                        world
+                            .entry(entity)
+                            .unwrap()
+                            .add_component(Animations::single("TileAnimation", animation));
                     }
                     world
                         .entry(self_entity)
