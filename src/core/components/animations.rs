@@ -105,23 +105,45 @@ pub struct Animation {
 
 impl Animation {
     /// Creates a new animation based on a duration and a list of modifiers
-    pub fn new(
-        duration: Duration,
-        mut modifiers: Vec<AnimationModifier>,
-        loop_at_start: bool,
-    ) -> Self {
+    pub fn new(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
+        Animation::InitialiseAnimation(duration, &mut modifiers);
+
+        Self {
+            _duration: duration,
+            modifiers,
+            status: AnimationStatus::STOPPED,
+        }
+    }
+
+    /// Creates a new animation with the status running
+    pub fn running(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
+        Animation::InitialiseAnimation(duration, &mut modifiers);
+
+        Self {
+            _duration: duration,
+            modifiers,
+            status: AnimationStatus::RUNNING,
+        }
+    }
+
+    ///Creates a new animation with the status looping
+    pub fn looping(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
+        Animation::InitialiseAnimation(duration, &mut modifiers);
+
+        Self {
+            _duration: duration,
+            modifiers,
+            status: AnimationStatus::LOOPING,
+        }
+    }
+
+    fn InitialiseAnimation(duration: Duration, modifiers: &mut Vec<AnimationModifier>) {
         if duration.as_millis() != 0 {
             modifiers.iter_mut().for_each(|animation_modifier| {
                 animation_modifier.single_keyframe_duration =
                     Some(duration.div(animation_modifier.number_of_keyframes as u32));
                 compute_animation_keyframe_modifier(animation_modifier);
             });
-        }
-
-        Self {
-            _duration: duration,
-            modifiers,
-            status: if loop_at_start { AnimationStatus::LOOPING } else { AnimationStatus::STOPPED },
         }
     }
 
