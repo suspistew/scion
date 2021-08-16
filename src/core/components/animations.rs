@@ -106,7 +106,7 @@ pub struct Animation {
 impl Animation {
     /// Creates a new animation based on a duration and a list of modifiers
     pub fn new(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
-        Animation::InitialiseAnimation(duration, &mut modifiers);
+        Animation::initialise_animation(duration, &mut modifiers);
 
         Self {
             _duration: duration,
@@ -117,7 +117,7 @@ impl Animation {
 
     /// Creates a new animation with the status running
     pub fn running(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
-        Animation::InitialiseAnimation(duration, &mut modifiers);
+        Animation::initialise_animation(duration, &mut modifiers);
 
         Self {
             _duration: duration,
@@ -128,7 +128,7 @@ impl Animation {
 
     ///Creates a new animation with the status looping
     pub fn looping(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
-        Animation::InitialiseAnimation(duration, &mut modifiers);
+        Animation::initialise_animation(duration, &mut modifiers);
 
         Self {
             _duration: duration,
@@ -137,7 +137,7 @@ impl Animation {
         }
     }
 
-    fn InitialiseAnimation(duration: Duration, modifiers: &mut Vec<AnimationModifier>) {
+    fn initialise_animation(duration: Duration, modifiers: &mut Vec<AnimationModifier>) {
         if duration.as_millis() != 0 {
             modifiers.iter_mut().for_each(|animation_modifier| {
                 animation_modifier.single_keyframe_duration =
