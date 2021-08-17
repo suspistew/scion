@@ -29,7 +29,6 @@ impl SimpleGameLayer for WorldCup {
         let animation = Animation::new(
             Duration::from_millis(500),
             vec![AnimationModifier::blink(1)],
-            false,
         );
 
         let animations = Animations::single("color", animation);

@@ -23,7 +23,6 @@ fn move_right() -> Animation {
             AnimationModifier::transform(30, Some(Vector::new(64., 0.)), None, None),
             AnimationModifier::sprite(vec![78, 79, 80, 79, 78, 79, 80, 79], 78),
         ],
-        false,
     )
 }
 
@@ -34,7 +33,6 @@ fn move_left() -> Animation {
             AnimationModifier::transform(30, Some(Vector::new(-64., 0.)), None, None),
             AnimationModifier::sprite(vec![81, 82, 83, 82, 81, 82, 83, 82], 81),
         ],
-        false,
     )
 }
 
@@ -45,7 +43,6 @@ fn move_top() -> Animation {
             AnimationModifier::transform(30, Some(Vector::new(0., -64.)), None, None),
             AnimationModifier::sprite(vec![55, 56, 57, 56, 55, 56, 57, 56], 55),
         ],
-        false,
     )
 }
 
@@ -56,6 +53,5 @@ fn move_bottom() -> Animation {
             AnimationModifier::transform(30, Some(Vector::new(0., 64.)), None, None),
             AnimationModifier::sprite(vec![52, 53, 54, 53, 52, 53, 54, 53], 52),
         ],
-        false,
     )
 }
