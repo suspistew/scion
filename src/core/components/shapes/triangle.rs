@@ -17,6 +17,8 @@ pub struct Triangle {
 }
 
 impl Triangle {
+    /// Creates a new square using `length`.
+    /// uvs are mandatory but this will be updated
     pub fn new(vertices: [Coordinates; 3], uvs: Option<[Coordinates; 3]>) -> Self {
         let uvs_ref = uvs.as_ref().expect("Uvs are currently mandatory, this need to be fixed");
         let contents = [

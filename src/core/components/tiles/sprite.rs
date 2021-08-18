@@ -23,6 +23,8 @@ pub struct Sprite {
 }
 
 impl Sprite {
+    /// Creates a new sprite that will use the `tile_number` from the tileset associated in the same
+    /// entity
     pub fn new(tile_number: usize) -> Self { Self { tile_number, contents: None, dirty: false } }
 
     /// Modify the current sprite tile number

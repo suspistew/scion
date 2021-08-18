@@ -51,8 +51,12 @@ impl Collider {
     /// Return whether or not this collider colliding to any other collider ?
     pub fn is_colliding(&self) -> bool { !self.collisions.is_empty() }
 
+    /// Returns an iterator of current collisions
     pub fn collisions(&self) -> Iter<'_, Collision> { self.collisions.iter() }
+
+    /// The mask of this collision
     pub fn mask(&self) -> &ColliderMask { &self.collider_mask }
+
     pub(crate) fn passive(&self) -> bool {
         self.collision_filter.len() == 1 && self.collision_filter.contains(&ColliderMask::None)
     }

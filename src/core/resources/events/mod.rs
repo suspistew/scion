@@ -10,7 +10,9 @@ use crate::core::resources::events::topic::{Topic, TopicConfiguration};
 pub type SubscriberId = usize;
 pub type Cursor = usize;
 
+/// `PollConfiguration` represents the configuration of a subscriber when subscribing to a topic
 pub struct PollConfiguration {
+    /// Maximum number of messages a single poll can retrieve
     max_messages: usize,
 }
 
@@ -18,6 +20,7 @@ impl Default for PollConfiguration {
     fn default() -> Self { Self { max_messages: 5 } }
 }
 
+/// `EventError` represents the different error that any event Result can return
 #[derive(Debug)]
 pub enum EventError {
     TopicAlreadyExist,
@@ -25,6 +28,7 @@ pub enum EventError {
     SubscriberIdDoesNotExist,
 }
 
+/// `Events` is a convenience resource to help communicate between systems/resources/layers through events
 #[derive(Default)]
 pub struct Events {
     topics: HashMap<String, Topic>,
@@ -32,6 +36,7 @@ pub struct Events {
 }
 
 impl Events {
+    /// Creates a new topic using provided `topic_name` and `topic_configuration`
     pub fn create_topic(
         &mut self,
         topic_name: &str,
@@ -46,13 +51,14 @@ impl Events {
         }
     }
 
-    pub fn publish<T>(&mut self, topic_name: &str, message: T) -> Result<(), EventError>
+    /// Publish an event into the topic `topic_name`
+    pub fn publish<T>(&mut self, topic_name: &str, event: T) -> Result<(), EventError>
     where
         T: ser::Serialize, {
         if !self.topics.contains_key(topic_name) {
             Err(EventError::TopicDoesNotExist)
         } else {
-            let message = to_string(&message).unwrap();
+            let message = to_string(&event).unwrap();
             self.topics
                 .get_mut(topic_name)
                 .expect("A topic is missing, but is identified as existing")
@@ -61,6 +67,7 @@ impl Events {
         }
     }
 
+    /// Creates a subscription to the topic `topic_name` using `poll_configuration`
     pub fn subscribe(
         &mut self,
         topic_name: &str,
@@ -86,6 +93,7 @@ impl Events {
         }
     }
 
+    /// Retrieves a list of events using `subscriber_id` subscription to a topic
     pub fn poll<T>(&mut self, subscriber_id: &SubscriberId) -> Result<VecDeque<T>, EventError>
     where
         T: DeserializeOwned, {

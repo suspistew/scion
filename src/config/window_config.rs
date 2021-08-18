@@ -80,27 +80,33 @@ impl WindowConfig {
     }
 }
 
+/// `WindowConfigBuilder` is a convenience builder to create a `WindowConfig` from code.
 pub struct WindowConfigBuilder {
     config: WindowConfig,
 }
 
 impl WindowConfigBuilder {
+    /// Create a new `WindowConfigBuilder` builder
     pub fn new() -> Self { Self { config: Default::default() } }
 
+    /// Dimension of the window
     pub fn with_dimensions(mut self, dimensions: (u32, u32)) -> Self {
         self.config.dimensions = Some(dimensions);
         self
     }
 
+    /// Whether or not the window should be resizable
     pub fn with_resizable(mut self, resizable: bool) -> Self {
         self.config.resizable = resizable;
         self
     }
 
+    /// When rendering to the window, which color to use as default
     pub fn with_default_background_color(mut self, color: Option<Color>) -> Self {
         self.config.default_background_color = color;
         self
     }
 
+    /// Retrieves the configuration built
     pub fn get(self) -> WindowConfig { self.config }
 }

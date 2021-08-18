@@ -6,6 +6,7 @@ use crate::{
     core::components::{material::Material, maths::coordinates::Coordinates},
     rendering::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
 };
+use crate::core::components::maths::Pivot;
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
@@ -14,11 +15,28 @@ pub struct Square {
     pub vertices: [Coordinates; 4],
     pub uvs: Option<[Coordinates; 4]>,
     contents: [TexturedGlVertex; 4],
+    length: f32
 }
 
 impl Square {
+    /// Creates a new square using `length`.
+    /// When rendering using a texture, you can customize uvs map using `uvs`. By default it will
+    /// use 0 to 1 uvs
     pub fn new(length: f32, uvs: Option<[Coordinates; 4]>) -> Self {
-        let a = Coordinates::new(0., 0.);
+        Square::new_with_offset(length, uvs, 0.)
+    }
+
+    /// Sets the pivot point of the square and returns it
+    pub fn pivot(mut self, pivot: Pivot) -> Self {
+        let offset = match pivot {
+            Pivot::TopLeft => 0.,
+            Pivot::Center => self.length / 2.
+        };
+        Square::new_with_offset(self.length, self.uvs, offset)
+    }
+
+    fn new_with_offset(length: f32, uvs: Option<[Coordinates; 4]>, offset: f32) -> Self{
+        let a = Coordinates::new(0. - offset, 0. -offset);
         let b = Coordinates::new(a.x(), a.y() + length);
         let c = Coordinates::new(a.x() + length, a.y() + length);
         let d = Coordinates::new(a.x() + length, a.y());
@@ -29,7 +47,7 @@ impl Square {
             TexturedGlVertex::from((&c, &uvs_ref[2])),
             TexturedGlVertex::from((&d, &uvs_ref[3])),
         ];
-        Self { vertices: [a, b, c, d], uvs, contents }
+        Self { vertices: [a, b, c, d], uvs, contents, length }
     }
 }
 

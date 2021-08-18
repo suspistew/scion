@@ -30,28 +30,34 @@ impl Default for ScionConfig {
     }
 }
 
+/// `ScionConfigBuilder` is a convenience builder to create a `ScionConfig` from code.
 pub struct ScionConfigBuilder {
     config: ScionConfig,
 }
 
 impl ScionConfigBuilder {
+    /// Create a new `ScionConfigBuilder` builder
     pub fn new() -> Self { Self { config: Default::default() } }
 
+    /// Sets the app name for scion. Will also be used for the window name
     pub fn with_app_name(mut self, app_name: String) -> Self {
         self.config.app_name = app_name;
         self
     }
 
+    /// Sets the logger configuration for the application
     pub fn with_logger_config(mut self, logger_config: LoggerConfig) -> Self {
         self.config.logger_config = Some(logger_config);
         self
     }
 
+    /// Sets the main window configuration. `WindowConfig` can be built using `WindowConfigBuilder`
     pub fn with_window_config(mut self, window_config: WindowConfig) -> Self {
         self.config.window_config = Some(window_config);
         self
     }
 
+    /// Retrieves the configuration built
     pub fn get(self) -> ScionConfig { self.config }
 }
 
