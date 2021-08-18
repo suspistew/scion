@@ -12,6 +12,5 @@ pub fn explode() -> Animation {
             ],
             12,
         )],
-        false,
     )
 }
