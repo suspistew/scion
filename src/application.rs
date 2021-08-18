@@ -27,6 +27,7 @@ use crate::{
             asset_manager::AssetManager,
             events::{topic::TopicConfiguration, Events},
             inputs::inputs_controller::InputsController,
+            sound::AudioPlayer,
             time::{Time, TimerType, Timers},
             window::WindowDimensions,
         },
@@ -117,6 +118,7 @@ impl Scion {
         self.resources.insert(InputsController::default());
         self.resources.insert(GameState::default());
         self.resources.insert(GameLayerController::default());
+        self.resources.insert(AudioPlayer::default());
     }
 
     fn run(mut self, event_loop: EventLoop<()>) {
@@ -137,6 +139,7 @@ impl Scion {
                 &mut self.world,
                 &mut self.resources,
             );
+            self.resources.audio().system_ready();
         });
     }
 

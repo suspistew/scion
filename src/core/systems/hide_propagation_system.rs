@@ -5,7 +5,7 @@ use crate::{
         maths::hierarchy::{Children, Parent},
         Hide, HidePropagated,
     },
-    legion::{world::SubWorld, Entity, EntityStore, Query, *},
+    legion::{world::SubWorld, Entity, EntityStore, *},
 };
 
 #[system(for_each)]
@@ -62,7 +62,7 @@ mod tests {
         let mut schedule = Schedule::builder().add_system(hide_propagation_system()).build();
 
         let child = world.push((2,));
-        let parent = world.push((1, Hide, Children(vec![child])));
+        let _parent = world.push((1, Hide, Children(vec![child])));
 
         assert_eq!(true, world.entry(child).unwrap().get_component::<HidePropagated>().is_err());
 
