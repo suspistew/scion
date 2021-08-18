@@ -318,7 +318,6 @@ mod tests {
                     rotation: Some(1.),
                 },
             )],
-            false,
         );
 
         let anim_modifier = animation.modifiers.iter().next().unwrap();
