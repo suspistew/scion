@@ -25,6 +25,7 @@ impl Color {
     /// Create a new color using RGB. Will create an RGBA with Alpha = 1.0
     pub fn new_rgb(r: u8, g: u8, b: u8) -> Self { Color::new(r, g, b, 1.0) }
 
+    /// Replaces the current color with the given one
     pub fn replace(&mut self, color: Color) {
         self.r = color.r;
         self.g = color.g;
@@ -32,12 +33,16 @@ impl Color {
         self.a = color.a;
     }
 
+    /// Red value
     pub fn red(&self) -> u8 { self.r }
 
+    /// Green value
     pub fn green(&self) -> u8 { self.g }
 
+    /// Blue value
     pub fn blue(&self) -> u8 { self.b }
 
+    /// Alpha value
     pub fn alpha(&self) -> f32 { self.a }
 }
 

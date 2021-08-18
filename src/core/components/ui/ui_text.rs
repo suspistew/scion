@@ -18,15 +18,19 @@ pub struct UiText {
 }
 
 impl UiText {
+    /// Creates a new `UiText` with `text` as default content and `font`
     pub fn new(text: String, font: Font) -> Self { Self { text, font, dirty: true } }
 
+    /// retrieves the content of this `UiText`
     pub fn text(&self) -> &String { &self.text }
 
+    /// sets the content of this `UiText`
     pub fn set_text(&mut self, text: String) {
         self.text = text;
         self.dirty = true;
     }
 
+    /// retrieve the font of this `UiText`
     pub fn font(&self) -> &Font { &self.font }
 }
 

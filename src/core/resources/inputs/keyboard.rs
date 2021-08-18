@@ -3,16 +3,20 @@ use std::collections::HashSet;
 use crate::core::resources::inputs::{keycode::KeyCode, InputState, KeyboardEvent};
 
 #[derive(Default)]
+/// Convenience resource used to keep track of keyboard inputs
 pub struct Keyboard {
     pressed_keys: HashSet<KeyCode>,
     keyboard_events: Vec<KeyboardEvent>,
 }
 
 impl Keyboard {
+    /// Whether or not `key` is currently pressed
     pub fn key_pressed(&self, key: &KeyCode) -> bool { self.pressed_keys.contains(key) }
 
+    /// Keyboard events of the current frame
     pub fn keyboard_events(&self) -> &Vec<KeyboardEvent> { &self.keyboard_events }
 
+    /// convenient function to run `action` if `key` is pressed during the current frame
     pub fn on_key_pressed<Body>(&self, key: KeyCode, mut action: Body)
     where
         Body: FnMut(), {
@@ -27,6 +31,7 @@ impl Keyboard {
         }
     }
 
+    /// convenient function to run `action` if `key` is released during the current frame
     pub fn on_key_released<Body>(&self, key: KeyCode, mut action: Body)
     where
         Body: FnMut(), {
@@ -41,9 +46,9 @@ impl Keyboard {
         }
     }
 
-    pub fn clear_events(&mut self) { self.keyboard_events.clear(); }
+    pub(crate) fn clear_events(&mut self) { self.keyboard_events.clear(); }
 
-    pub fn add_keyboard_event(&mut self, keyboard_event: KeyboardEvent) {
+    pub(crate) fn add_keyboard_event(&mut self, keyboard_event: KeyboardEvent) {
         if match &keyboard_event {
             KeyboardEvent { keycode, state } => {
                 match state {

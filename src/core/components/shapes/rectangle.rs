@@ -17,6 +17,9 @@ pub struct Rectangle {
 }
 
 impl Rectangle {
+    /// Creates a new rectangle using `length` and `height`.
+    /// When rendering using a texture, you can customize uvs map using `uvs`. By default it will
+    /// use 0 to 1 uvs
     pub fn new(length: f32, height: f32, uvs: Option<[Coordinates; 4]>) -> Self {
         let a = Coordinates::new(0., 0.);
         let b = Coordinates::new(a.x(), a.y() + height);

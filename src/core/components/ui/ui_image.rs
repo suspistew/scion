@@ -10,7 +10,7 @@ use crate::{
     },
 };
 
-/// Renderable 2D Square.
+/// Renderable 2D UIImage
 #[derive(Debug)]
 pub struct UiImage {
     image_path: String,
@@ -20,6 +20,7 @@ pub struct UiImage {
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
 impl UiImage {
+    /// Creates a ui_image with `width` and `height` using image at `image_path`
     pub fn new(width: f32, height: f32, image_path: String) -> Self {
         let uvs = [
             Coordinates::new(0., 0.),
@@ -30,6 +31,8 @@ impl UiImage {
         UiImage::new_with_uv_map(width, height, image_path, uvs)
     }
 
+    /// Creates a ui_image with `width` and `height` using image at `image_path`
+    /// and customising uv_map
     pub fn new_with_uv_map(
         width: f32,
         height: f32,

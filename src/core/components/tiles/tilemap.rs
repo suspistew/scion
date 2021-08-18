@@ -37,10 +37,12 @@ impl TileInfos {
 }
 
 #[derive(Default)]
+/// `Tilemap` is `Scion` convenience component to create a full multi layered tilemap.
 pub struct Tilemap {
     tile_entities: HashMap<Position, Entity>,
 }
 
+/// `TilemapInfo` regroups all the needed informations that a Tilemap needs to be created
 pub struct TilemapInfo {
     dimensions: Dimensions,
     transform: Transform,
@@ -58,6 +60,9 @@ impl TilemapInfo {
 }
 
 impl Tilemap {
+    /// Convenience fn to create a tilemap and add it to the world.
+    /// tile_resolver is a function taking a 3D position as parameter and a `TileInfos`
+    /// as a return. This way, the tilemap knows exactly what to add at which coordinates.
     pub fn create<F>(infos: TilemapInfo, world: &mut World, mut tile_resolver: F) -> Entity
     where
         F: FnMut(&Position) -> TileInfos, {
@@ -96,7 +101,7 @@ impl Tilemap {
         self_entity
     }
 
-    /// Try to modify the sprite's tile at given position
+    /// Try to modify the sprite's tile at a given position
     pub fn modify_sprite_tile(
         &self,
         tile_position: Position,

@@ -52,6 +52,7 @@ pub fn app_base_path() -> PathBuilder {
     };
 }
 
+/// Utils to help to build path and get them as String
 pub struct PathBuilder {
     path_buff: PathBuf,
 }
