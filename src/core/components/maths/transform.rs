@@ -1,5 +1,14 @@
 use crate::core::components::maths::{coordinates::Coordinates, vector::Vector};
 
+/// represents the bounds for a Transoform with min and max values
+#[derive(Default, Debug, Copy, Clone)]
+struct Bounds {
+    pub(crate) min_x: Option<f32>,
+    pub(crate) max_x: Option<f32>,
+    pub(crate) min_y: Option<f32>,
+    pub(crate) max_y: Option<f32>,
+}
+
 /// Component used by the renderer to know where and how to represent an object.
 /// Default is position 0;0 with a scale of 1.0 and no angle.
 #[derive(Debug, Copy, Clone)]
@@ -10,10 +19,7 @@ pub struct Transform {
     pub(crate) angle: f32,
     pub(crate) dirty: bool,
     pub(crate) dirty_child: bool,
-    pub(crate) min_x: Option<f32>,
-    pub(crate) max_x: Option<f32>,
-    pub(crate) min_y: Option<f32>,
-    pub(crate) max_y: Option<f32>,
+    bounds: Bounds
 }
 
 impl Default for Transform {
@@ -25,10 +31,7 @@ impl Default for Transform {
             angle: 0.0,
             dirty: false,
             dirty_child: true,
-            min_x: None,
-            max_x: None,
-            min_y: None,
-            max_y: None,
+            bounds: Default::default()
         }
     }
 }
@@ -43,15 +46,14 @@ impl Transform {
             angle,
             dirty: false,
             dirty_child: true,
-            min_x: None,
-            max_x: None,
-            min_y: None,
-            max_y: None,
+            bounds: Default::default()
         }
     }
 
+    /// Creates a transform from x and y values. Will use z value 0, scale 1. and default angle.
     pub fn from_xy(x: f32, y: f32) -> Self { Self::new(Coordinates::new(x, y), 1., 0.) }
 
+    /// Creates a transform from x, y and z values. Will use scale 1. and default angle.
     pub fn from_xyz(x: f32, y: f32, z: usize) -> Self {
         Self::new(Coordinates::new_with_z(x, y, z), 1., 0.)
     }
@@ -110,25 +112,25 @@ impl Transform {
 
     /// Configure the minimum global x position for this transform to be min_x
     pub fn set_min_x(&mut self, min_x: Option<f32>) {
-        self.min_x = min_x;
+        self.bounds.min_x = min_x;
         self.handle_bounds();
     }
 
     /// Configure the maximum global x position for this transform to be max_x
     pub fn set_max_x(&mut self, max_x: Option<f32>) {
-        self.max_x = max_x;
+        self.bounds.max_x = max_x;
         self.handle_bounds();
     }
 
     /// Configure the minimum global y position for this transform to be min_x
     pub fn set_min_y(&mut self, min_y: Option<f32>) {
-        self.min_y = min_y;
+        self.bounds.min_y = min_y;
         self.handle_bounds();
     }
 
     /// Configure the maximum global y position for this transform to be max_x
     pub fn set_max_y(&mut self, max_y: Option<f32>) {
-        self.max_y = max_y;
+        self.bounds.max_y = max_y;
         self.handle_bounds();
     }
 
@@ -140,10 +142,10 @@ impl Transform {
         min_y: Option<f32>,
         max_y: Option<f32>,
     ) {
-        self.min_x = min_x;
-        self.max_x = max_x;
-        self.min_y = min_y;
-        self.max_y = max_y;
+        self.bounds.min_x = min_x;
+        self.bounds.max_x = max_x;
+        self.bounds.min_y = min_y;
+        self.bounds.max_y = max_y;
         self.handle_bounds();
     }
 
@@ -159,25 +161,25 @@ impl Transform {
     }
 
     fn handle_bounds(&mut self) {
-        if let Some(min_x) = self.min_x {
+        if let Some(min_x) = self.bounds.min_x {
             if self.global_translation.x < min_x {
                 self.global_translation.set_x(min_x);
             }
         }
 
-        if let Some(max_x) = self.max_x {
+        if let Some(max_x) = self.bounds.max_x {
             if self.global_translation.x > max_x {
                 self.global_translation.set_x(max_x);
             }
         }
 
-        if let Some(min_y) = self.min_y {
+        if let Some(min_y) = self.bounds.min_y {
             if self.global_translation.y < min_y {
                 self.global_translation.set_y(min_y);
             }
         }
 
-        if let Some(max_y) = self.max_y {
+        if let Some(max_y) = self.bounds.max_y {
             if self.global_translation.y > max_y {
                 self.global_translation.set_y(max_y);
             }

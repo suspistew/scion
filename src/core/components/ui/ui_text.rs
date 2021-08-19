@@ -9,6 +9,7 @@ use crate::{
     },
     rendering::scion2d::{Renderable2D, RenderableUi},
 };
+use wgpu::PrimitiveTopology;
 
 /// A component representing an Text in the UI.
 pub struct UiText {
@@ -49,6 +50,10 @@ impl Renderable2D for UiTextImage {
     }
 
     fn range(&self) -> Range<u32> { self.0.range() }
+
+    fn topology(&self) -> PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleList
+    }
 
     fn dirty(&self) -> bool { false }
 

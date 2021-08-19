@@ -9,6 +9,7 @@ use crate::{
     legion::{systems::CommandBuffer, *},
 };
 
+/// System responsible of adding a Camera on each entity with a DefaultCamera component
 #[system(for_each)]
 pub(crate) fn default_camera(
     cmd: &mut CommandBuffer,

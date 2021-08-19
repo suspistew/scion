@@ -1,4 +1,6 @@
+/*
 use std::{
+
     fs::{read_to_string, write},
     path::PathBuf,
 };
@@ -35,6 +37,7 @@ impl ShaderData {
 }
 
 fn main() -> Result<()> {
+
     // Collect all shaders recursively within /src/
     let mut shader_paths =
         [glob("./src/**/*.vert")?, glob("./src/**/*.frag")?, glob("./src/**/*.comp")?];
@@ -70,4 +73,7 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+*/
+fn main(){
 }

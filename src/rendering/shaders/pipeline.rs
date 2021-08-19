@@ -1,18 +1,17 @@
-use wgpu::{
-    BindGroupLayout, BlendComponent, BlendFactor, BlendOperation, Device, RenderPipeline,
-    SwapChainDescriptor,
-};
+use wgpu::{BindGroupLayout, BlendComponent, BlendFactor, BlendOperation, Device, RenderPipeline, SurfaceConfiguration};
 
 use crate::rendering::gl_representations::TexturedGlVertex;
 
 pub fn pipeline(
     device: &Device,
-    sc_desc: &SwapChainDescriptor,
+    surface_config: &SurfaceConfiguration,
     texture_bind_group_layout: &BindGroupLayout,
     transform_bind_group_layout: &BindGroupLayout,
+    topology: wgpu::PrimitiveTopology
 ) -> RenderPipeline {
     let vs_module = device.create_shader_module(&wgpu::include_spirv!("./shader.vert.spv"));
     let fs_module = device.create_shader_module(&wgpu::include_spirv!("./shader.frag.spv"));
+
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Basic square pipeline layout"),
@@ -32,8 +31,8 @@ pub fn pipeline(
             module: &fs_module,
             entry_point: "main",
             targets: &[wgpu::ColorTargetState {
-                format: sc_desc.format,
-                write_mask: wgpu::ColorWrite::ALL,
+                format: surface_config.format,
+                write_mask: wgpu::ColorWrites::ALL,
                 blend: Some(wgpu::BlendState {
                     color: BlendComponent {
                         src_factor: BlendFactor::SrcAlpha,
@@ -49,7 +48,7 @@ pub fn pipeline(
             }],
         }),
         primitive: wgpu::PrimitiveState {
-            topology: wgpu::PrimitiveTopology::TriangleList,
+            topology,
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
             cull_mode: Some(wgpu::Face::Back),

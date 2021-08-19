@@ -8,6 +8,7 @@ use crate::{
     },
     rendering::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
 };
+use wgpu::PrimitiveTopology;
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
@@ -78,7 +79,7 @@ impl Renderable2D for Sprite {
             contents: bytemuck::cast_slice(
                 self.contents.as_ref().expect("A computed content is missing in Sprite component"),
             ),
-            usage: wgpu::BufferUsage::VERTEX,
+            usage: wgpu::BufferUsages::VERTEX,
         }
     }
 
@@ -86,11 +87,15 @@ impl Renderable2D for Sprite {
         wgpu::util::BufferInitDescriptor {
             label: Some("Square Index Buffer"),
             contents: bytemuck::cast_slice(&INDICES),
-            usage: wgpu::BufferUsage::INDEX,
+            usage: wgpu::BufferUsages::INDEX,
         }
     }
 
     fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
+
+    fn topology(&self) -> PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleList
+    }
 
     fn dirty(&self) -> bool { self.dirty }
 

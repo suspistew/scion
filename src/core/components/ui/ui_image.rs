@@ -9,6 +9,7 @@ use crate::{
         scion2d::{Renderable2D, RenderableUi},
     },
 };
+use wgpu::PrimitiveTopology;
 
 /// Renderable 2D UIImage
 #[derive(Debug)]
@@ -59,7 +60,7 @@ impl Renderable2D for UiImage {
         wgpu::util::BufferInitDescriptor {
             label: Some("Square Vertex Buffer"),
             contents: bytemuck::cast_slice(&self.contents),
-            usage: wgpu::BufferUsage::VERTEX,
+            usage: wgpu::BufferUsages::VERTEX,
         }
     }
 
@@ -67,11 +68,15 @@ impl Renderable2D for UiImage {
         wgpu::util::BufferInitDescriptor {
             label: Some("Square Index Buffer"),
             contents: bytemuck::cast_slice(&INDICES),
-            usage: wgpu::BufferUsage::INDEX,
+            usage: wgpu::BufferUsages::INDEX,
         }
     }
 
     fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
+
+    fn topology(&self) -> PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleList
+    }
 
     fn dirty(&self) -> bool { false }
 

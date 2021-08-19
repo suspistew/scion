@@ -7,6 +7,7 @@ use crate::{
     rendering::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
 };
 use crate::core::components::maths::Pivot;
+use wgpu::PrimitiveTopology;
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
@@ -27,7 +28,7 @@ impl Square {
     }
 
     /// Sets the pivot point of the square and returns it
-    pub fn pivot(mut self, pivot: Pivot) -> Self {
+    pub fn pivot(self, pivot: Pivot) -> Self {
         let offset = match pivot {
             Pivot::TopLeft => 0.,
             Pivot::Center => self.length / 2.
@@ -65,7 +66,7 @@ impl Renderable2D for Square {
         wgpu::util::BufferInitDescriptor {
             label: Some("Square Vertex Buffer"),
             contents: bytemuck::cast_slice(&self.contents),
-            usage: wgpu::BufferUsage::VERTEX,
+            usage: wgpu::BufferUsages::VERTEX,
         }
     }
 
@@ -73,11 +74,15 @@ impl Renderable2D for Square {
         wgpu::util::BufferInitDescriptor {
             label: Some("Square Index Buffer"),
             contents: bytemuck::cast_slice(&INDICES),
-            usage: wgpu::BufferUsage::INDEX,
+            usage: wgpu::BufferUsages::INDEX,
         }
     }
 
     fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
+
+    fn topology(&self) -> PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleList
+    }
 
     fn dirty(&self) -> bool { false }
 
