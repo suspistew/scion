@@ -2,21 +2,20 @@ use legion::{Resources, World};
 use winit::{event::WindowEvent, window::Window};
 
 use crate::{config::scion_config::ScionConfig, rendering::ScionRenderer};
+use wgpu::{SurfaceConfiguration, TextureViewDescriptor};
 
 pub(crate) struct RendererState {
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
-    sc_desc: wgpu::SwapChainDescriptor,
-    swap_chain: wgpu::SwapChain,
-    size: winit::dpi::PhysicalSize<u32>,
+    config: SurfaceConfiguration,
     scion_renderer: Box<dyn ScionRenderer>,
 }
 
 impl RendererState {
     pub(crate) async fn new(window: &Window, scion_renderer: Box<dyn ScionRenderer>) -> Self {
         let size = window.inner_size();
-        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+        let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -37,24 +36,23 @@ impl RendererState {
             )
             .await
             .unwrap();
-
-        let sc_desc = wgpu::SwapChainDescriptor {
-            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
-            format: adapter.get_swap_chain_preferred_format(&surface).unwrap(),
+        let swapchain_format = surface.get_preferred_format(&adapter).unwrap();
+        let config = SurfaceConfiguration {
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            format: swapchain_format,
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::Fifo,
+            present_mode: wgpu::PresentMode::Immediate
         };
-        let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+        surface.configure(&device, &config);
 
-        Self { surface, device, queue, sc_desc, swap_chain, size, scion_renderer }
+        Self { surface, device, queue, config, scion_renderer }
     }
 
     pub(crate) fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.size = new_size;
-        self.sc_desc.width = new_size.width;
-        self.sc_desc.height = new_size.height;
-        self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+        self.config.width = new_size.width;
+        self.config.height = new_size.height;
+        self.surface.configure(&self.device, &self.config);
     }
 
     pub(crate) fn _input(&mut self, _event: &WindowEvent) -> bool {
@@ -63,20 +61,21 @@ impl RendererState {
     }
 
     pub(crate) fn update(&mut self, world: &mut World, resources: &mut Resources) {
-        self.scion_renderer.update(world, resources, &self.device, &self.sc_desc, &mut self.queue);
+        self.scion_renderer.update(world, resources, &self.device, &self.config, &mut self.queue);
     }
 
     pub(crate) fn render(
         &mut self,
         world: &mut World,
         config: &ScionConfig,
-    ) -> Result<(), wgpu::SwapChainError> {
-        let frame = self.swap_chain.get_current_frame()?.output;
+    ) -> Result<(), wgpu::SurfaceError> {
+        let frame = self.surface.get_current_frame()?.output;
+        let view = frame.texture.create_view(&TextureViewDescriptor::default());
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Render Encoder"),
         });
 
-        self.scion_renderer.render(world, config, &frame, &mut encoder);
+        self.scion_renderer.render(world, config, &view, &mut encoder);
         self.queue.submit(std::iter::once(encoder.finish()));
 
         Ok(())

@@ -1,7 +1,8 @@
 //! Everything that is relative to rendering to the window (Like renderable components, camera, transforms..)
 use legion::{Resources, World};
+use wgpu::{CommandEncoder, Device, Queue, SurfaceConfiguration, TextureView};
+
 use scion2d::Scion2D;
-use wgpu::{CommandEncoder, Device, Queue, SwapChainDescriptor, SwapChainTexture};
 
 use crate::config::scion_config::ScionConfig;
 
@@ -18,7 +19,7 @@ pub trait ScionRenderer {
         world: &mut World,
         resources: &mut Resources,
         device: &Device,
-        sc_desc: &SwapChainDescriptor,
+        surface_config: &SurfaceConfiguration,
         queue: &mut Queue,
     );
 
@@ -27,7 +28,7 @@ pub trait ScionRenderer {
         &mut self,
         world: &mut World,
         config: &ScionConfig,
-        frame: &SwapChainTexture,
+        texture_view: &TextureView,
         encoder: &mut CommandEncoder,
     );
 }

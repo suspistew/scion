@@ -22,7 +22,9 @@ use scion::{
     utils::file::app_base_path,
     Scion,
 };
-use scion::core::components::maths::Pivot;
+
+use scion::core::components::shapes::line::Line;
+use scion::core::components::maths::coordinates::Coordinates;
 
 #[derive(Default)]
 pub struct WorldCup {
@@ -30,7 +32,7 @@ pub struct WorldCup {
 }
 
 impl SimpleGameLayer for WorldCup {
-    fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
+    fn on_start(&mut self, world: &mut World, _resources: &mut Resources) {
         let animation = Animation::new(
             Duration::from_millis(5000),
             vec![AnimationModifier::transform(60 * 5,None, None, Some(3.) )],
@@ -39,7 +41,7 @@ impl SimpleGameLayer for WorldCup {
         let animations = Animations::single("color", animation);
 
         self.entity = Some(world.push((
-            Square::new(300., None).pivot(Pivot::Center),
+            Line::new([Coordinates::new(100., 100.), Coordinates::new(200. ,200.)]),
             Transform::from_xy(300., 300.),
             Material::Color(Color::new(0, 0, 255, 1.0)),
             animations,

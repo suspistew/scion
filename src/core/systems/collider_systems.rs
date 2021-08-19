@@ -8,6 +8,7 @@ use crate::core::components::maths::{
 #[system(for_each)]
 pub(crate) fn colliders_cleaner(collider: &mut Collider) { collider.clear_collisions() }
 
+/// System responsible to compute collision between colliders, following the mask filters
 #[system]
 pub(crate) fn compute_collisions(
     world: &mut SubWorld,

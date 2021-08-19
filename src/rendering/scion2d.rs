@@ -1,11 +1,7 @@
 use std::{cfg, collections::HashMap, ops::Range, path::Path, time::SystemTime};
 
 use legion::{component, storage::Component, Entity, IntoQuery, Resources, World};
-use wgpu::{
-    util::{BufferInitDescriptor, DeviceExt},
-    BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment,
-    RenderPipeline, SwapChainDescriptor, SwapChainTexture,
-};
+use wgpu::{util::{BufferInitDescriptor, DeviceExt}, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView};
 
 use crate::{
     config::scion_config::ScionConfig,
@@ -31,11 +27,13 @@ use crate::{
     },
     utils::file::{read_file_modification_time, FileReaderError},
 };
+use crate::core::components::shapes::line::Line;
 
 pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor;
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor;
     fn range(&self) -> Range<u32>;
+    fn topology(&self) -> wgpu::PrimitiveTopology;
     fn dirty(&self) -> bool;
     fn set_dirty(&mut self, is_dirty: bool);
 }
@@ -67,19 +65,20 @@ impl ScionRenderer for Scion2D {
         world: &mut World,
         resources: &mut Resources,
         device: &Device,
-        sc_desc: &SwapChainDescriptor,
+        surface_config: &SurfaceConfiguration,
         queue: &mut Queue,
     ) {
         if world_contains_camera(world) {
             self.update_diffuse_bind_groups(world, resources, device, queue);
             self.update_transforms(world, &device, queue);
-            self.upsert_component_pipeline::<Triangle>(world, &device, &sc_desc);
-            self.upsert_component_pipeline::<Square>(world, &device, &sc_desc);
-            self.upsert_component_pipeline::<Rectangle>(world, &device, &sc_desc);
-            self.upsert_component_pipeline::<Sprite>(world, &device, &sc_desc);
-            self.upsert_tilemaps_pipeline(world, &device, &sc_desc);
-            self.upsert_ui_component_pipeline::<UiImage>(world, &device, &sc_desc, queue);
-            self.upsert_ui_component_pipeline::<UiTextImage>(world, &device, &sc_desc, queue);
+            self.upsert_component_pipeline::<Triangle>(world, &device, &surface_config);
+            self.upsert_component_pipeline::<Square>(world, &device, &surface_config);
+            self.upsert_component_pipeline::<Rectangle>(world, &device, &surface_config);
+            self.upsert_component_pipeline::<Sprite>(world, &device, &surface_config);
+            self.upsert_component_pipeline::<Line>(world, &device, &surface_config);
+            self.upsert_tilemaps_pipeline(world, &device, &surface_config);
+            self.upsert_ui_component_pipeline::<UiImage>(world, &device, &surface_config, queue);
+            self.upsert_ui_component_pipeline::<UiTextImage>(world, &device, &surface_config, queue);
         } else {
             log::warn!("No camera has been found in resources");
         }
@@ -90,13 +89,13 @@ impl ScionRenderer for Scion2D {
         &mut self,
         world: &mut World,
         config: &ScionConfig,
-        frame: &SwapChainTexture,
+        texture_view: &TextureView,
         encoder: &mut CommandEncoder,
     ) {
         {
             encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Scion 2D Render Pass"),
-                color_attachments: &[get_default_color_attachment(frame, config)],
+                color_attachments: &[get_default_color_attachment(texture_view, config)],
                 depth_stencil_attachment: None,
             });
         }
@@ -107,13 +106,14 @@ impl ScionRenderer for Scion2D {
             rendering_infos.append(&mut self.pre_render_component::<Square>(world));
             rendering_infos.append(&mut self.pre_render_component::<Rectangle>(world));
             rendering_infos.append(&mut self.pre_render_component::<Sprite>(world));
+            rendering_infos.append(&mut self.pre_render_component::<Line>(world));
             rendering_infos.append(&mut self.pre_render_ui_component::<UiImage>(world));
             rendering_infos.append(&mut self.pre_render_ui_component::<UiTextImage>(world));
             rendering_infos.append(&mut self.pre_render_tilemaps(world));
 
             rendering_infos.sort_by(|a, b| b.layer.cmp(&a.layer));
             while let Some(info) = rendering_infos.pop() {
-                self.render_component(&frame, encoder, info);
+                self.render_component(texture_view, encoder, info);
             }
         }
     }
@@ -124,7 +124,7 @@ impl Scion2D {
         &mut self,
         world: &mut World,
         device: &&Device,
-        sc_desc: &&SwapChainDescriptor,
+        surface_config: &&SurfaceConfiguration,
     ) {
         for (entity, component, material, _) in
             <(Entity, &mut T, &Material, &Transform)>::query().iter_mut(world)
@@ -144,18 +144,19 @@ impl Scion2D {
             match material {
                 Material::Color(color) => {
                     let path = get_path_from_color(&color);
-                    self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path, false)
+                    self.insert_pipeline_if_not_finded(device, surface_config, &entity, &path, false, component.topology())
                 }
                 Material::Texture(path) => {
-                    self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &path, false)
+                    self.insert_pipeline_if_not_finded(device, surface_config, &entity, &path, false, component.topology())
                 }
                 Material::Tileset(tileset) => {
                     self.insert_pipeline_if_not_finded(
                         device,
-                        sc_desc,
+                        surface_config,
                         &entity,
                         &tileset.texture,
                         component.dirty(),
+                        component.topology()
                     )
                 }
             };
@@ -167,7 +168,7 @@ impl Scion2D {
         &mut self,
         world: &mut World,
         device: &&Device,
-        sc_desc: &&SwapChainDescriptor,
+        surface_config: &&SurfaceConfiguration,
     ) {
         let mut tilemap_query = <(Entity, &mut Tilemap, &Material, &Transform)>::query();
         let (mut tilemap_world, mut tile_world) = world.split_for_query(&tilemap_query);
@@ -175,7 +176,7 @@ impl Scion2D {
         let mut tiles: Vec<(&Tile, &mut Sprite)> =
             <(&Tile, &mut Sprite)>::query().iter_mut(&mut tile_world).collect();
 
-        for (entity, _, material, _) in tilemap_query.iter_mut(&mut tilemap_world) {
+        for (entity, tilemap, material, _) in tilemap_query.iter_mut(&mut tilemap_world) {
             let tile_size = Material::tile_size(material).expect("");
             let mut vertexes = Vec::new();
             let mut position = 0;
@@ -211,7 +212,7 @@ impl Scion2D {
                 let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some("TileMap Vertex Buffer"),
                     contents: bytemuck::cast_slice(vertexes.as_slice()),
-                    usage: wgpu::BufferUsage::VERTEX,
+                    usage: wgpu::BufferUsages::VERTEX,
                 });
 
                 self.vertex_buffers.insert(*entity, buffer);
@@ -219,7 +220,7 @@ impl Scion2D {
                 let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some("Square Index Buffer"),
                     contents: bytemuck::cast_slice(&indexes),
-                    usage: wgpu::BufferUsage::INDEX,
+                    usage: wgpu::BufferUsages::INDEX,
                 });
                 self.index_buffers.insert(*entity, index_buffer);
 
@@ -227,10 +228,11 @@ impl Scion2D {
                     Material::Tileset(tileset) => {
                         self.insert_pipeline_if_not_finded(
                             device,
-                            sc_desc,
+                            surface_config,
                             &entity,
                             &tileset.texture,
                             any_tile_modified,
+                            tilemap.topology()
                         )
                     }
                     _ => {}
@@ -243,7 +245,7 @@ impl Scion2D {
         &mut self,
         world: &mut World,
         device: &&Device,
-        sc_desc: &&SwapChainDescriptor,
+        surface_config: &&SurfaceConfiguration,
         queue: &mut Queue,
     ) {
         for (entity, component, _) in <(Entity, &mut T, &Transform)>::query().iter_mut(world) {
@@ -273,7 +275,7 @@ impl Scion2D {
                     }
                 }
 
-                self.insert_pipeline_if_not_finded(device, sc_desc, &entity, &texture_path, false)
+                self.insert_pipeline_if_not_finded(device, surface_config, &entity, &texture_path, false, component.topology())
             }
         }
     }
@@ -281,19 +283,21 @@ impl Scion2D {
     fn insert_pipeline_if_not_finded(
         &mut self,
         device: &&Device,
-        sc_desc: &&SwapChainDescriptor,
+        surface_config: &&SurfaceConfiguration,
         entity: &Entity,
         path: &String,
         force_reinsert: bool,
+        topology: wgpu::PrimitiveTopology
     ) {
         if !self.render_pipelines.contains_key(path.as_str()) || force_reinsert {
             self.render_pipelines.insert(
                 path.clone(),
                 pipeline(
                     device,
-                    sc_desc,
+                    surface_config,
                     &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
                     &self.transform_uniform_bind_groups.get(entity).unwrap().2,
+                    topology
                 ),
             );
         }
@@ -301,13 +305,13 @@ impl Scion2D {
 
     fn render_component(
         &mut self,
-        frame: &&SwapChainTexture,
+        texture_view: &TextureView,
         encoder: &mut CommandEncoder,
         rendering_infos: RenderingInfos,
     ) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Scion 2D Render Pass"),
-            color_attachments: &[get_no_color_attachment(frame)],
+            color_attachments: &[get_no_color_attachment(texture_view)],
             depth_stencil_attachment: None,
         });
 
@@ -413,6 +417,7 @@ impl Scion2D {
         self.update_transforms_for_type::<Square>(world, &device, queue);
         self.update_transforms_for_type::<Rectangle>(world, &device, queue);
         self.update_transforms_for_type::<Sprite>(world, &device, queue);
+        self.update_transforms_for_type::<Line>(world, &device, queue);
         self.update_transforms_for_type::<UiImage>(world, &device, queue);
         self.update_transforms_for_type::<UiTextImage>(world, &device, queue);
         self.update_transforms_for_type::<Tilemap>(world, &device, queue);
@@ -582,7 +587,7 @@ fn load_texture_to_queue(
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+        usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
         label: Some("diffuse_texture"),
     });
 
@@ -591,6 +596,7 @@ fn load_texture_to_queue(
             texture: &diffuse_texture,
             mip_level: 0,
             origin: wgpu::Origin3d::ZERO,
+            aspect: wgpu::TextureAspect::All
         },
         &*texture.bytes,
         wgpu::ImageDataLayout {
@@ -615,7 +621,7 @@ fn load_texture_to_queue(
             entries: &[
                 wgpu::BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: wgpu::ShaderStage::FRAGMENT,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
                     ty: wgpu::BindingType::Texture {
                         multisampled: false,
                         view_dimension: wgpu::TextureViewDimension::D2,
@@ -625,7 +631,7 @@ fn load_texture_to_queue(
                 },
                 wgpu::BindGroupLayoutEntry {
                     binding: 1,
-                    visibility: wgpu::ShaderStage::FRAGMENT,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
                     ty: wgpu::BindingType::Sampler { comparison: false, filtering: true },
                     count: None,
                 },
@@ -661,14 +667,14 @@ fn create_transform_uniform_bind_group(
     let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Uniform Buffer"),
         contents: bytemuck::cast_slice(&[uniform]),
-        usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
     });
 
     let uniform_bind_group_layout =
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             entries: &[wgpu::BindGroupLayoutEntry {
                 binding: 0,
-                visibility: wgpu::ShaderStage::VERTEX,
+                visibility: wgpu::ShaderStages::VERTEX,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Uniform,
                     has_dynamic_offset: false,
@@ -692,11 +698,11 @@ fn create_transform_uniform_bind_group(
 }
 
 fn get_default_color_attachment<'a>(
-    frame: &'a SwapChainTexture,
+    texture_view: &'a TextureView,
     config: &'a ScionConfig,
 ) -> RenderPassColorAttachment<'a> {
     RenderPassColorAttachment {
-        view: &frame.view,
+        view: texture_view,
         resolve_target: None,
         ops: wgpu::Operations {
             load: wgpu::LoadOp::Clear(
@@ -721,9 +727,9 @@ fn get_default_color_attachment<'a>(
     }
 }
 
-fn get_no_color_attachment(frame: &SwapChainTexture) -> RenderPassColorAttachment {
+fn get_no_color_attachment(texture_view: &TextureView) -> RenderPassColorAttachment {
     RenderPassColorAttachment {
-        view: &frame.view,
+        view: texture_view,
         resolve_target: None,
         ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: true },
     }

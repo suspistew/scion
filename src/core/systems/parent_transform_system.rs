@@ -7,6 +7,8 @@ use crate::core::components::maths::{
     transform::Transform,
 };
 
+/// System responsible of detecting when a transform's global coords should be computed again
+/// based on the fact that the transform is flagged as dirty_child (IE when it's added to a parent)
 #[system]
 pub(crate) fn dirty_child(
     world: &mut SubWorld,
@@ -17,6 +19,7 @@ pub(crate) fn dirty_child(
         Option<&Children>,
     )>,
 ) {
+    // GET all the childs that are 'dirty childs'
     let mut parent_to_check = Vec::new();
     query_transform_with_parent.for_each_mut(world, |(child_entity, transform, parent, _child)| {
         if transform.dirty_child {
@@ -28,6 +31,7 @@ pub(crate) fn dirty_child(
         }
     });
 
+    // GET all the parents that needs to be checked
     let mut parents_transform = HashMap::new();
     for (_, parent) in parent_to_check.iter() {
         if let Ok(parent_transform) = world.entry_ref(*parent).unwrap().get_component::<Transform>()
@@ -48,12 +52,14 @@ pub(crate) fn dirty_child(
                 .expect("Missing Transform component previously found on this entity");
             if parents_transform.contains_key(&parent) {
                 let parent_transform = parents_transform.get(&parent).unwrap();
+                // If the parent of the current entity is not a dirty child, then we can compute the current
+                // transform
                 if !parent_transform.dirty_child {
                     child_transform.dirty_child = false;
                     child_transform
                         .compute_global_from_parent(parent_transform.global_translation());
                     parents_transform.insert(child, child_transform.clone());
-                } else {
+                } else { // Else we need to check the parent first, in the next iteration
                     parent_to_check.push((child, parent));
                 }
             } else {
@@ -64,6 +70,8 @@ pub(crate) fn dirty_child(
     }
 }
 
+/// System responsible of detecting when a child transform should be computed again based on any parent
+/// transform modification
 #[system]
 pub(crate) fn dirty_transform(
     world: &mut SubWorld,
