@@ -35,7 +35,7 @@ use crate::{
         systems::{
             animations_system::animation_executer_system,
             asset_ref_resolver_system::{asset_ref_resolver_system, MaterialAssetResolverFn},
-            collider_systems::{colliders_cleaner_system, compute_collisions_system},
+            collider_systems::{colliders_cleaner_system, compute_collisions_system, debug_colliders_system},
             default_camera_system::default_camera_system,
             hide_propagation_system::{hide_propagated_deletion_system, hide_propagation_system},
             hierarchy_system::children_manager_system,
@@ -276,6 +276,7 @@ impl ScionBuilder {
         self.schedule_builder
             .add_system(default_camera_system())
             .add_system(ui_text_bitmap_update_system())
+            .add_system(debug_colliders_system())
             .flush()
             .add_system(children_manager_system())
             .add_system(hide_propagated_deletion_system())

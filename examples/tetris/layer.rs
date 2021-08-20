@@ -13,6 +13,7 @@ use scion::{
 };
 
 use crate::{asset_path, resources::TetrisResource};
+use scion::core::legion_ext::ScionWorldExtension;
 
 #[derive(Default)]
 pub struct TetrisLayer {
@@ -24,7 +25,7 @@ impl SimpleGameLayer for TetrisLayer {
         add_main_ui_mask(world);
         add_ui_top_overflow(world);
         self.score = Some(add_score_ui(world));
-        world.push((Camera::new(544., 704., 10.), Transform::default()));
+        world.add_default_camera();
         let _r = resources.timers().add_timer("piece", TimerType::Cyclic, 0.5);
         let _r = resources.timers().add_timer("action_reset_timer", TimerType::Manual, 0.2);
         let mut tetris = TetrisResource::default();
