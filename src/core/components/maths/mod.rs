@@ -10,5 +10,5 @@ pub enum Pivot {
     /// Pivot is on the top left corner of the shape
     TopLeft,
     /// Pivot is on the center of the shape
-    Center
+    Center,
 }

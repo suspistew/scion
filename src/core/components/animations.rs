@@ -108,33 +108,21 @@ impl Animation {
     pub fn new(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
         Animation::initialise_animation(duration, &mut modifiers);
 
-        Self {
-            _duration: duration,
-            modifiers,
-            status: AnimationStatus::STOPPED,
-        }
+        Self { _duration: duration, modifiers, status: AnimationStatus::STOPPED }
     }
 
     /// Creates a new animation with the status running
     pub fn running(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
         Animation::initialise_animation(duration, &mut modifiers);
 
-        Self {
-            _duration: duration,
-            modifiers,
-            status: AnimationStatus::RUNNING,
-        }
+        Self { _duration: duration, modifiers, status: AnimationStatus::RUNNING }
     }
 
     ///Creates a new animation with the status looping
     pub fn looping(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
         Animation::initialise_animation(duration, &mut modifiers);
 
-        Self {
-            _duration: duration,
-            modifiers,
-            status: AnimationStatus::LOOPING,
-        }
+        Self { _duration: duration, modifiers, status: AnimationStatus::LOOPING }
     }
 
     fn initialise_animation(duration: Duration, modifiers: &mut Vec<AnimationModifier>) {

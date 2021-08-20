@@ -3,7 +3,7 @@ use std::{io::Cursor, sync::mpsc};
 use audrey::Reader;
 
 use crate::{
-    core::resources::sound::{PlayConfig},
+    core::resources::sound::PlayConfig,
     sound::controller::{AudioController, AudioEvent},
 };
 

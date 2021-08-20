@@ -1,13 +1,14 @@
 use std::ops::Range;
 
-use wgpu::util::BufferInitDescriptor;
+use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
 use crate::{
-    core::components::{material::Material, maths::coordinates::Coordinates},
-    rendering::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
+    core::components::{
+        material::Material,
+        maths::{coordinates::Coordinates, Pivot},
+    },
+    rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
-use crate::core::components::maths::Pivot;
-use wgpu::PrimitiveTopology;
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
@@ -16,7 +17,7 @@ pub struct Square {
     pub vertices: [Coordinates; 4],
     pub uvs: Option<[Coordinates; 4]>,
     contents: [TexturedGlVertex; 4],
-    length: f32
+    length: f32,
 }
 
 impl Square {
@@ -31,13 +32,13 @@ impl Square {
     pub fn pivot(self, pivot: Pivot) -> Self {
         let offset = match pivot {
             Pivot::TopLeft => 0.,
-            Pivot::Center => self.length / 2.
+            Pivot::Center => self.length / 2.,
         };
         Square::new_with_offset(self.length, self.uvs, offset)
     }
 
-    fn new_with_offset(length: f32, uvs: Option<[Coordinates; 4]>, offset: f32) -> Self{
-        let a = Coordinates::new(0. - offset, 0. -offset);
+    fn new_with_offset(length: f32, uvs: Option<[Coordinates; 4]>, offset: f32) -> Self {
+        let a = Coordinates::new(0. - offset, 0. - offset);
         let b = Coordinates::new(a.x(), a.y() + length);
         let c = Coordinates::new(a.x() + length, a.y() + length);
         let d = Coordinates::new(a.x() + length, a.y());
@@ -80,9 +81,7 @@ impl Renderable2D for Square {
 
     fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
 
-    fn topology(&self) -> PrimitiveTopology {
-        wgpu::PrimitiveTopology::TriangleList
-    }
+    fn topology(&self) -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
 
     fn dirty(&self) -> bool { false }
 

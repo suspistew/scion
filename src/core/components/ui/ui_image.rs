@@ -1,15 +1,11 @@
 use std::ops::Range;
 
-use wgpu::util::BufferInitDescriptor;
+use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
 use crate::{
     core::components::{material::Material, maths::coordinates::Coordinates},
-    rendering::{
-        gl_representations::TexturedGlVertex,
-        scion2d::{Renderable2D, RenderableUi},
-    },
+    rendering::{gl_representations::TexturedGlVertex, Renderable2D, RenderableUi},
 };
-use wgpu::PrimitiveTopology;
 
 /// Renderable 2D UIImage
 #[derive(Debug)]
@@ -74,9 +70,7 @@ impl Renderable2D for UiImage {
 
     fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
 
-    fn topology(&self) -> PrimitiveTopology {
-        wgpu::PrimitiveTopology::TriangleList
-    }
+    fn topology(&self) -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
 
     fn dirty(&self) -> bool { false }
 

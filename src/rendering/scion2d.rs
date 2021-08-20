@@ -1,7 +1,10 @@
 use std::{cfg, collections::HashMap, ops::Range, path::Path, time::SystemTime};
 
 use legion::{component, storage::Component, Entity, IntoQuery, Resources, World};
-use wgpu::{util::{BufferInitDescriptor, DeviceExt}, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView};
+use wgpu::{
+    util::DeviceExt, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue,
+    RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView,
+};
 
 use crate::{
     config::scion_config::ScionConfig,
@@ -10,7 +13,10 @@ use crate::{
             color::Color,
             material::{Material, Texture},
             maths::{camera::Camera, transform::Transform},
-            shapes::{rectangle::Rectangle, square::Square, triangle::Triangle},
+            shapes::{
+                line::Line, polygon::Polygon, rectangle::Rectangle, square::Square,
+                triangle::Triangle,
+            },
             tiles::{
                 sprite::Sprite,
                 tilemap::{Tile, Tilemap},
@@ -23,24 +29,10 @@ use crate::{
     rendering::{
         gl_representations::{GlUniform, UniformData},
         shaders::pipeline::pipeline,
-        ScionRenderer,
+        Renderable2D, RenderableUi, ScionRenderer,
     },
     utils::file::{read_file_modification_time, FileReaderError},
 };
-use crate::core::components::shapes::line::Line;
-
-pub(crate) trait Renderable2D {
-    fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor;
-    fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor;
-    fn range(&self) -> Range<u32>;
-    fn topology(&self) -> wgpu::PrimitiveTopology;
-    fn dirty(&self) -> bool;
-    fn set_dirty(&mut self, is_dirty: bool);
-}
-
-pub(crate) trait RenderableUi: Renderable2D {
-    fn get_texture_path(&self) -> Option<String> { None }
-}
 
 #[derive(Default)]
 pub(crate) struct Scion2D {
@@ -76,9 +68,15 @@ impl ScionRenderer for Scion2D {
             self.upsert_component_pipeline::<Rectangle>(world, &device, &surface_config);
             self.upsert_component_pipeline::<Sprite>(world, &device, &surface_config);
             self.upsert_component_pipeline::<Line>(world, &device, &surface_config);
+            self.upsert_component_pipeline::<Polygon>(world, &device, &surface_config);
             self.upsert_tilemaps_pipeline(world, &device, &surface_config);
             self.upsert_ui_component_pipeline::<UiImage>(world, &device, &surface_config, queue);
-            self.upsert_ui_component_pipeline::<UiTextImage>(world, &device, &surface_config, queue);
+            self.upsert_ui_component_pipeline::<UiTextImage>(
+                world,
+                &device,
+                &surface_config,
+                queue,
+            );
         } else {
             log::warn!("No camera has been found in resources");
         }
@@ -107,6 +105,7 @@ impl ScionRenderer for Scion2D {
             rendering_infos.append(&mut self.pre_render_component::<Rectangle>(world));
             rendering_infos.append(&mut self.pre_render_component::<Sprite>(world));
             rendering_infos.append(&mut self.pre_render_component::<Line>(world));
+            rendering_infos.append(&mut self.pre_render_component::<Polygon>(world));
             rendering_infos.append(&mut self.pre_render_ui_component::<UiImage>(world));
             rendering_infos.append(&mut self.pre_render_ui_component::<UiTextImage>(world));
             rendering_infos.append(&mut self.pre_render_tilemaps(world));
@@ -144,10 +143,24 @@ impl Scion2D {
             match material {
                 Material::Color(color) => {
                     let path = get_path_from_color(&color);
-                    self.insert_pipeline_if_not_finded(device, surface_config, &entity, &path, false, component.topology())
+                    self.insert_pipeline_if_not_finded(
+                        device,
+                        surface_config,
+                        &entity,
+                        &path,
+                        false,
+                        component.topology(),
+                    )
                 }
                 Material::Texture(path) => {
-                    self.insert_pipeline_if_not_finded(device, surface_config, &entity, &path, false, component.topology())
+                    self.insert_pipeline_if_not_finded(
+                        device,
+                        surface_config,
+                        &entity,
+                        &path,
+                        false,
+                        component.topology(),
+                    )
                 }
                 Material::Tileset(tileset) => {
                     self.insert_pipeline_if_not_finded(
@@ -156,7 +169,7 @@ impl Scion2D {
                         &entity,
                         &tileset.texture,
                         component.dirty(),
-                        component.topology()
+                        component.topology(),
                     )
                 }
             };
@@ -232,7 +245,7 @@ impl Scion2D {
                             &entity,
                             &tileset.texture,
                             any_tile_modified,
-                            tilemap.topology()
+                            tilemap.topology(),
                         )
                     }
                     _ => {}
@@ -275,7 +288,14 @@ impl Scion2D {
                     }
                 }
 
-                self.insert_pipeline_if_not_finded(device, surface_config, &entity, &texture_path, false, component.topology())
+                self.insert_pipeline_if_not_finded(
+                    device,
+                    surface_config,
+                    &entity,
+                    &texture_path,
+                    false,
+                    component.topology(),
+                )
             }
         }
     }
@@ -287,7 +307,7 @@ impl Scion2D {
         entity: &Entity,
         path: &String,
         force_reinsert: bool,
-        topology: wgpu::PrimitiveTopology
+        topology: wgpu::PrimitiveTopology,
     ) {
         if !self.render_pipelines.contains_key(path.as_str()) || force_reinsert {
             self.render_pipelines.insert(
@@ -297,7 +317,7 @@ impl Scion2D {
                     surface_config,
                     &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
                     &self.transform_uniform_bind_groups.get(entity).unwrap().2,
-                    topology
+                    topology,
                 ),
             );
         }
@@ -418,6 +438,7 @@ impl Scion2D {
         self.update_transforms_for_type::<Rectangle>(world, &device, queue);
         self.update_transforms_for_type::<Sprite>(world, &device, queue);
         self.update_transforms_for_type::<Line>(world, &device, queue);
+        self.update_transforms_for_type::<Polygon>(world, &device, queue);
         self.update_transforms_for_type::<UiImage>(world, &device, queue);
         self.update_transforms_for_type::<UiTextImage>(world, &device, queue);
         self.update_transforms_for_type::<Tilemap>(world, &device, queue);
@@ -596,7 +617,7 @@ fn load_texture_to_queue(
             texture: &diffuse_texture,
             mip_level: 0,
             origin: wgpu::Origin3d::ZERO,
-            aspect: wgpu::TextureAspect::All
+            aspect: wgpu::TextureAspect::All,
         },
         &*texture.bytes,
         wgpu::ImageDataLayout {

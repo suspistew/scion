@@ -75,5 +75,4 @@ fn main() -> Result<()> {
     Ok(())
 }
 */
-fn main(){
-}
+fn main() {}

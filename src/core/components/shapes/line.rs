@@ -1,13 +1,11 @@
 use std::ops::Range;
 
-use wgpu::util::BufferInitDescriptor;
+use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
 use crate::{
     core::components::{material::Material, maths::coordinates::Coordinates},
-    rendering::{gl_representations::TexturedGlVertex, scion2d::Renderable2D},
+    rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
-
-use wgpu::PrimitiveTopology;
 
 const INDICES: &[u16] = &[0, 1];
 
@@ -18,19 +16,15 @@ pub struct Line {
 }
 
 impl Line {
-    /// Creates a new line using `length`.
+    /// Creates a new line using `vertices`.
     pub fn new(vertices: [Coordinates; 2]) -> Self {
         let contents = [
             TexturedGlVertex::from((&vertices[0], &Coordinates::new(0., 0.))),
             TexturedGlVertex::from((&vertices[1], &Coordinates::new(0., 0.))),
         ];
-        Self {
-            vertices,
-            contents
-        }
+        Self { vertices, contents }
     }
 }
-
 
 impl Renderable2D for Line {
     fn vertex_buffer_descriptor(&mut self, _material: Option<&Material>) -> BufferInitDescriptor {
@@ -51,9 +45,7 @@ impl Renderable2D for Line {
 
     fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
 
-    fn topology(&self) -> PrimitiveTopology {
-        wgpu::PrimitiveTopology::LineList
-    }
+    fn topology(&self) -> PrimitiveTopology { wgpu::PrimitiveTopology::LineList }
 
     fn dirty(&self) -> bool { false }
 

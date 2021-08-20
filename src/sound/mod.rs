@@ -1,10 +1,6 @@
-use std::{io::Cursor};
+use std::io::Cursor;
 
-use audrey::{
-    Reader,
-};
-
-
+use audrey::Reader;
 
 pub(crate) mod bindings;
 pub(crate) mod context;
