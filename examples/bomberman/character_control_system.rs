@@ -63,8 +63,7 @@ pub fn controller(
             }
         });
         inputs.keyboard_mut().on_key_pressed(KeyCode::Space, || {
-            let mut animations =
-                Animations::single("EXPLODE", bomb_animations::explode());
+            let mut animations = Animations::single("EXPLODE", bomb_animations::explode());
             animations.run_animation("EXPLODE");
             cmd.push((
                 Transform::from_xyz(

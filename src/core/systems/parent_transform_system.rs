@@ -59,7 +59,8 @@ pub(crate) fn dirty_child(
                     child_transform
                         .compute_global_from_parent(parent_transform.global_translation());
                     parents_transform.insert(child, child_transform.clone());
-                } else { // Else we need to check the parent first, in the next iteration
+                } else {
+                    // Else we need to check the parent first, in the next iteration
                     parent_to_check.push((child, parent));
                 }
             } else {

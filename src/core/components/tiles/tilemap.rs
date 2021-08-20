@@ -1,7 +1,7 @@
 use std::{collections::HashMap, ops::Range};
 
 use legion::{world::SubWorld, Entity, EntityStore, World};
-use wgpu::util::BufferInitDescriptor;
+use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
 use crate::{
     core::{
@@ -13,10 +13,9 @@ use crate::{
         },
         resources::asset_manager::AssetRef,
     },
-    rendering::scion2d::Renderable2D,
+    rendering::Renderable2D,
     utils::maths::{Dimensions, Position},
 };
-use wgpu::PrimitiveTopology;
 
 pub(crate) struct Tile {
     pub(crate) position: Position,
@@ -137,9 +136,7 @@ impl Renderable2D for Tilemap {
 
     fn range(&self) -> Range<u32> { todo!() }
 
-    fn topology(&self) -> PrimitiveTopology {
-        wgpu::PrimitiveTopology::TriangleList
-    }
+    fn topology(&self) -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
 
     fn dirty(&self) -> bool { todo!() }
 

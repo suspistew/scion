@@ -7,7 +7,8 @@ use scion::{
             animations::{Animation, AnimationModifier, Animations},
             color::Color,
             material::Material,
-            maths::{hierarchy::Parent, transform::Transform},
+            maths::{coordinates::Coordinates, hierarchy::Parent, transform::Transform},
+            shapes::polygon::Polygon,
             Hide, Square,
         },
         game_layer::{GameLayer, SimpleGameLayer},
@@ -23,9 +24,6 @@ use scion::{
     Scion,
 };
 
-use scion::core::components::shapes::line::Line;
-use scion::core::components::maths::coordinates::Coordinates;
-
 #[derive(Default)]
 pub struct WorldCup {
     entity: Option<Entity>,
@@ -35,32 +33,31 @@ impl SimpleGameLayer for WorldCup {
     fn on_start(&mut self, world: &mut World, _resources: &mut Resources) {
         let animation = Animation::new(
             Duration::from_millis(5000),
-            vec![AnimationModifier::transform(60 * 5,None, None, Some(3.) )],
+            vec![AnimationModifier::transform(60 * 5, None, None, Some(3.))],
         );
 
         let animations = Animations::single("color", animation);
 
         self.entity = Some(world.push((
-            Line::new([Coordinates::new(100., 100.), Coordinates::new(200. ,200.)]),
+            Polygon::new(vec![
+                Coordinates::new(100., 100.),
+                Coordinates::new(200., 200.),
+                Coordinates::new(250., 200.),
+            ]),
             Transform::from_xy(300., 300.),
-            Material::Color(Color::new(0, 0, 255, 1.0)),
+            Material::Color(Color::new(255, 0, 0, 1.0)),
             animations,
         )));
 
         world.add_default_camera();
-
     }
 
-    fn update(&mut self, world: &mut World, resources: &mut Resources) {
+    fn update(&mut self, world: &mut World, _resources: &mut Resources) {
         let mut entry = world.entry_mut(*self.entity.as_ref().unwrap()).unwrap();
-        let animations = entry.get_component_mut::<Animations>().unwrap();
-        resources.inputs().keyboard_mut().on_key_pressed(KeyCode::P, || {
-            if animations.any_animation_running() {
-                animations.stop_animation("color", false);
-            } else {
-                animations.loop_animation("color");
-            }
-        });
+        let polygon = entry.get_component_mut::<Polygon>().unwrap();
+        if polygon.vertices.get(1).unwrap().y() >= 100. {
+            polygon.append_y(1, -0.01);
+        }
     }
 }
 

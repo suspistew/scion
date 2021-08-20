@@ -1,8 +1,8 @@
 use legion::{Resources, World};
+use wgpu::{SurfaceConfiguration, TextureViewDescriptor};
 use winit::{event::WindowEvent, window::Window};
 
 use crate::{config::scion_config::ScionConfig, rendering::ScionRenderer};
-use wgpu::{SurfaceConfiguration, TextureViewDescriptor};
 
 pub(crate) struct RendererState {
     surface: wgpu::Surface,
@@ -42,7 +42,7 @@ impl RendererState {
             format: swapchain_format,
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::Immediate
+            present_mode: wgpu::PresentMode::Immediate,
         };
         surface.configure(&device, &config);
 

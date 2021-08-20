@@ -1,10 +1,13 @@
 //! Everything that is relative to rendering to the window (Like renderable components, camera, transforms..)
+use std::ops::Range;
+
 use legion::{Resources, World};
-use wgpu::{CommandEncoder, Device, Queue, SurfaceConfiguration, TextureView};
-
 use scion2d::Scion2D;
+use wgpu::{
+    util::BufferInitDescriptor, CommandEncoder, Device, Queue, SurfaceConfiguration, TextureView,
+};
 
-use crate::config::scion_config::ScionConfig;
+use crate::{config::scion_config::ScionConfig, core::components::material::Material};
 
 pub(crate) mod gl_representations;
 pub(crate) mod renderer_state;
@@ -52,4 +55,17 @@ impl RendererType {
             RendererType::Custom(boxed) => boxed,
         }
     }
+}
+
+pub(crate) trait Renderable2D {
+    fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor;
+    fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor;
+    fn range(&self) -> Range<u32>;
+    fn topology(&self) -> wgpu::PrimitiveTopology;
+    fn dirty(&self) -> bool;
+    fn set_dirty(&mut self, is_dirty: bool);
+}
+
+pub(crate) trait RenderableUi: Renderable2D {
+    fn get_texture_path(&self) -> Option<String> { None }
 }

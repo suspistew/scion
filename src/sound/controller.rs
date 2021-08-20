@@ -1,13 +1,6 @@
-use std::{
-    collections::HashMap,
-    io::Cursor,
-    sync::mpsc,
-    thread,
-};
+use std::{collections::HashMap, io::Cursor, sync::mpsc, thread};
 
-use audrey::{
-    Reader,
-};
+use audrey::Reader;
 
 use crate::{
     core::resources::sound::{PlayConfig, Sound},
@@ -76,9 +69,11 @@ impl AudioController {
                 let channel = data.description().channel_count();
                 let mut samples = data.samples::<f32>().map(|e| e.unwrap());
                 match channel {
-                    super::MONO => { while let Some(sample) = samples.next() {
-                        VEC.push((id, [sample, sample]));
-                    }}
+                    super::MONO => {
+                        while let Some(sample) = samples.next() {
+                            VEC.push((id, [sample, sample]));
+                        }
+                    }
                     super::STEREO => unsafe {
                         while let (Some(sample_left), Some(sample_right)) =
                             (samples.next(), samples.next())

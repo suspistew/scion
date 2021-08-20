@@ -8,7 +8,6 @@ use crate::{
     legion::{world::SubWorld, Entity, EntityStore, *},
 };
 
-
 /// System responsible to add a `HidePropagate` component to each child of entities that have an `Hide` component
 #[system(for_each)]
 #[read_component(Entity)]

@@ -19,7 +19,7 @@ pub struct Transform {
     pub(crate) angle: f32,
     pub(crate) dirty: bool,
     pub(crate) dirty_child: bool,
-    bounds: Bounds
+    bounds: Bounds,
 }
 
 impl Default for Transform {
@@ -31,7 +31,7 @@ impl Default for Transform {
             angle: 0.0,
             dirty: false,
             dirty_child: true,
-            bounds: Default::default()
+            bounds: Default::default(),
         }
     }
 }
@@ -46,7 +46,7 @@ impl Transform {
             angle,
             dirty: false,
             dirty_child: true,
-            bounds: Default::default()
+            bounds: Default::default(),
         }
     }
 
