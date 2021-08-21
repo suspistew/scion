@@ -35,6 +35,7 @@ pub struct Collider {
     collider_type: ColliderType,
     collision_filter: Vec<ColliderMask>,
     collisions: Vec<Collision>,
+    debug_lines: bool
 }
 
 impl Collider {
@@ -45,7 +46,12 @@ impl Collider {
         collision_filter: Vec<ColliderMask>,
         collider_type: ColliderType,
     ) -> Self {
-        Collider { collider_mask, collider_type, collision_filter, collisions: vec![] }
+        Collider { collider_mask, collider_type, collision_filter, collisions: vec![], debug_lines: false }
+    }
+
+    pub fn with_debug_lines(mut self) -> Self{
+        self.debug_lines = true;
+        self
     }
 
     /// Return whether or not this collider colliding to any other collider ?
@@ -56,6 +62,15 @@ impl Collider {
 
     /// The mask of this collision
     pub fn mask(&self) -> &ColliderMask { &self.collider_mask }
+
+    /// Retrieve the collider type of this collider
+    pub fn collider_type(&self) -> &ColliderType {
+        &self.collider_type
+    }
+
+    pub(crate) fn debug_lines(&self) -> bool{
+        self.debug_lines
+    }
 
     pub(crate) fn passive(&self) -> bool {
         self.collision_filter.len() == 1 && self.collision_filter.contains(&ColliderMask::None)
@@ -122,6 +137,9 @@ impl Collision {
     pub fn mask(&self) -> &ColliderMask { &self.mask }
     pub fn coordinates(&self) -> &Coordinates { &self.coordinates }
 }
+
+/// Internal component used to keep track of a collider debug display
+pub (crate) struct ColliderDebug;
 
 #[cfg(test)]
 mod tests {

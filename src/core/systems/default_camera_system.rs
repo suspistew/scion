@@ -20,7 +20,7 @@ pub(crate) fn default_camera(
     cmd.remove_component::<DefaultCamera>(*entity);
     cmd.add_component(
         *entity,
-        Camera::new(window_dimension.width() as f32, window_dimension.height() as f32, 10.),
+        Camera::new(window_dimension.width() as f32, window_dimension.height() as f32),
     );
     cmd.add_component(*entity, Transform::default());
 }

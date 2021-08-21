@@ -51,7 +51,7 @@ impl SimpleGameLayer for Mario {
         let mut camera_transform = Transform::from_xy(-202., -320.);
         camera_transform.set_global_translation_bounds(Some(0.), Some(2060.), Some(0.), Some(0.));
         world.push((
-            Camera::new(500., 640., 10.),
+            Camera::new(500., 640.),
             camera_transform,
             Parent(self.hero.expect("Hero is mandatory")),
         ));

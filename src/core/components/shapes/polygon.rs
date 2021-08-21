@@ -7,8 +7,6 @@ use crate::{
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
 
-const INDICES: &[u16] = &[0, 1];
-
 /// Renderable 2D Polygon made of outlines.
 pub struct Polygon {
     pub vertices: Vec<Coordinates>,
@@ -78,5 +76,5 @@ impl Renderable2D for Polygon {
 
     fn dirty(&self) -> bool { self.dirty }
 
-    fn set_dirty(&mut self, _is_dirty: bool) {}
+    fn set_dirty(&mut self, is_dirty: bool) { self.dirty = is_dirty;}
 }
