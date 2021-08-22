@@ -2,3 +2,4 @@
 pub mod file;
 pub mod logger;
 pub mod maths;
+pub(crate) mod debug_ecs;

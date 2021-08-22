@@ -46,6 +46,7 @@ use crate::{
     },
     rendering::{renderer_state::RendererState, RendererType},
 };
+use crate::utils::debug_ecs::try_debug;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -144,6 +145,7 @@ impl Scion {
     }
 
     fn next_frame(&mut self) {
+        try_debug(&mut self.world, &mut self.resources);
         let frame_duration = self
             .resources
             .get_mut::<Time>()
