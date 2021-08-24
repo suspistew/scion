@@ -3,7 +3,7 @@ mod collisions_system;
 
 use std::{path::Path, str::from_utf8};
 
-use legion::IntoQuery;
+use legion::{IntoQuery, component};
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
