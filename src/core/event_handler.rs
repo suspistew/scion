@@ -15,7 +15,6 @@ use crate::{
                 mouse::{MouseButton, MouseEvent},
                 InputState, KeyboardEvent,
             },
-            window::WindowDimensions,
         },
     },
     rendering::renderer_state::RendererState,
@@ -35,10 +34,7 @@ pub(crate) fn handle_event(
             match event {
                 WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                 WindowEvent::Resized(physical_size) => {
-                    resources
-                        .get_mut::<WindowDimensions>()
-                        .expect("Missing mandatory ressource : WindowDimension")
-                        .set(physical_size.width, physical_size.height);
+                    resources.window().set_dimensions(physical_size.width, physical_size.height);
                     renderer.resize(*physical_size);
                 }
                 WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
