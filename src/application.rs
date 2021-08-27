@@ -29,7 +29,6 @@ use crate::{
             inputs::inputs_controller::InputsController,
             sound::AudioPlayer,
             time::{Time, TimerType, Timers},
-            window::WindowDimensions,
         },
         state::GameState,
         systems::{
@@ -98,7 +97,7 @@ impl Scion {
 
     fn initialize_internal_resources(&mut self) {
         let inner_size = self.window.as_ref().expect("No window found during setup").inner_size();
-        self.resources.insert(WindowDimensions::new((inner_size.width, inner_size.height)));
+        self.resources.insert(crate::core::resources::window::Window::new((inner_size.width, inner_size.height)));
 
         let mut events = Events::default();
         events
@@ -161,6 +160,14 @@ impl Scion {
             &mut self.world,
             &mut self.resources,
         );
+        {
+            let mut window = self.resources.window();
+            if let Some(icon) = window.new_cursor() {
+                let w = self.window.as_mut().expect("A window is mandatory to run this game !");
+                w.set_cursor_icon(*icon);
+                window.reset_new_cursor();
+            }
+        }
         self.resources.inputs().reset_inputs();
         self.resources.get_mut::<Events>().expect("Missing mandatory ressource : Events").cleanup();
     }
@@ -252,6 +259,7 @@ impl ScionBuilder {
             .expect("An error occured while building the main game window");
 
         self.add_late_internal_systems_to_schedule();
+
 
         let renderer = self.renderer.into_boxed_renderer();
         let renderer_state = futures::executor::block_on(

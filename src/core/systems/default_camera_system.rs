@@ -4,7 +4,7 @@ use crate::{
             camera::{Camera, DefaultCamera},
             transform::Transform,
         },
-        resources::window::WindowDimensions,
+        resources::window::Window,
     },
     legion::{systems::CommandBuffer, *},
 };
@@ -13,7 +13,7 @@ use crate::{
 #[system(for_each)]
 pub(crate) fn default_camera(
     cmd: &mut CommandBuffer,
-    #[resource] window_dimension: &WindowDimensions,
+    #[resource] window_dimension: &Window,
     _c: &DefaultCamera,
     entity: &Entity,
 ) {

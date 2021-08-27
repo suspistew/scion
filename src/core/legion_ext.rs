@@ -17,6 +17,7 @@ use crate::{
     },
     legion::Entity,
 };
+use crate::core::resources::window::Window;
 
 pub(crate) struct PausableSystem<S> {
     pub(crate) system: S,
@@ -64,6 +65,7 @@ pub trait ScionResourcesExtension {
     fn inputs(&mut self) -> AtomicRefMut<InputsController>;
     fn events(&mut self) -> AtomicRefMut<Events>;
     fn audio(&mut self) -> AtomicRefMut<AudioPlayer>;
+    fn window(&mut self) -> AtomicRefMut<Window>;
 }
 
 impl ScionResourcesExtension for Resources {
@@ -93,6 +95,12 @@ impl ScionResourcesExtension for Resources {
     fn audio(&mut self) -> AtomicRefMut<AudioPlayer> {
         self.get_mut::<AudioPlayer>()
             .expect("The engine is missing the mandatory audio player resource")
+    }
+
+    /// retrieves the window from the resources
+    fn window(&mut self) -> AtomicRefMut<Window> {
+        self.get_mut::<Window>()
+            .expect("The engine is missing the mandatory window resource")
     }
 }
 
