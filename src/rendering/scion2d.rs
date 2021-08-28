@@ -39,8 +39,10 @@ pub(crate) struct Scion2D {
     vertex_buffers: HashMap<Entity, wgpu::Buffer>,
     index_buffers: HashMap<Entity, wgpu::Buffer>,
     render_pipelines: HashMap<String, RenderPipeline>,
-    diffuse_bind_groups: HashMap<String, (BindGroupLayout, BindGroup, wgpu::Texture)>,
-    transform_uniform_bind_groups: HashMap<Entity, (GlUniform, Buffer, BindGroupLayout, BindGroup)>,
+    texture_bind_group_layout: Option<BindGroupLayout>,
+    transform_bind_group_layout: Option<BindGroupLayout>,
+    diffuse_bind_groups: HashMap<String, (BindGroup, wgpu::Texture)>,
+    transform_uniform_bind_groups: HashMap<Entity, (GlUniform, Buffer, BindGroup)>,
     assets_timestamps: HashMap<String, SystemTime>,
 }
 
@@ -49,9 +51,62 @@ struct RenderingInfos {
     range: Range<u32>,
     entity: Entity,
     texture_path: Option<String>,
+    type_name: String,
 }
 
 impl ScionRenderer for Scion2D {
+    fn start(&mut self, device: &Device, surface_config: &SurfaceConfiguration) {
+        let uniform_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                entries: &[wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::VERTEX,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                }],
+                label: Some("uniform_bind_group_layout"),
+            });
+
+        let texture_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            multisampled: false,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler { comparison: false, filtering: true },
+                        count: None,
+                    },
+                ],
+                label: Some("texture_bind_group_layout"),
+            });
+
+        self.transform_bind_group_layout = Some(uniform_bind_group_layout);
+        self.texture_bind_group_layout = Some(texture_bind_group_layout);
+        self.insert_components_pipelines::<Triangle>(&device, &surface_config);
+        self.insert_components_pipelines::<Square>(&device, &surface_config);
+        self.insert_components_pipelines::<Rectangle>(&device, &surface_config);
+        self.insert_components_pipelines::<Sprite>(&device, &surface_config);
+        self.insert_components_pipelines::<Line>(&device, &surface_config);
+        self.insert_components_pipelines::<Polygon>(&device, &surface_config);
+        self.insert_components_pipelines::<UiImage>(&device, &surface_config);
+        self.insert_components_pipelines::<UiTextImage>(&device, &surface_config);
+        self.insert_components_pipelines::<Tilemap>(&device, &surface_config);
+    }
+
     fn update(
         &mut self,
         world: &mut World,
@@ -63,20 +118,15 @@ impl ScionRenderer for Scion2D {
         if world_contains_camera(world) {
             self.update_diffuse_bind_groups(world, resources, device, queue);
             self.update_transforms(world, &device, queue);
-            self.upsert_component_pipeline::<Triangle>(world, &device, &surface_config);
-            self.upsert_component_pipeline::<Square>(world, &device, &surface_config);
-            self.upsert_component_pipeline::<Rectangle>(world, &device, &surface_config);
-            self.upsert_component_pipeline::<Sprite>(world, &device, &surface_config);
-            self.upsert_component_pipeline::<Line>(world, &device, &surface_config);
-            self.upsert_component_pipeline::<Polygon>(world, &device, &surface_config);
-            self.upsert_tilemaps_pipeline(world, &device, &surface_config);
-            self.upsert_ui_component_pipeline::<UiImage>(world, &device, &surface_config, queue);
-            self.upsert_ui_component_pipeline::<UiTextImage>(
-                world,
-                &device,
-                &surface_config,
-                queue,
-            );
+            self.upsert_component_buffers::<Triangle>(world, &device);
+            self.upsert_component_buffers::<Square>(world, &device);
+            self.upsert_component_buffers::<Rectangle>(world, &device);
+            self.upsert_component_buffers::<Sprite>(world, &device);
+            self.upsert_component_buffers::<Line>(world, &device);
+            self.upsert_component_buffers::<Polygon>(world, &device);
+            self.upsert_tilemaps_buffers(world, &device);
+            self.upsert_ui_component_buffers::<UiImage>(world, &device, &surface_config, queue);
+            self.upsert_ui_component_buffers::<UiTextImage>(world, &device, &surface_config, queue);
         } else {
             log::warn!("No camera has been found in resources");
         }
@@ -119,11 +169,18 @@ impl ScionRenderer for Scion2D {
 }
 
 impl Scion2D {
-    fn upsert_component_pipeline<T: Component + Renderable2D>(
+    fn insert_components_pipelines<T: Component + Renderable2D>(
+        &mut self,
+        device: &&Device,
+        surface_config: &&SurfaceConfiguration,
+    ) {
+        self.insert_pipeline_if_not_finded::<T>(device, surface_config);
+    }
+
+    fn upsert_component_buffers<T: Component + Renderable2D>(
         &mut self,
         world: &mut World,
         device: &&Device,
-        surface_config: &&SurfaceConfiguration,
     ) {
         for (entity, component, material, _) in
             <(Entity, &mut T, &Material, &Transform)>::query().iter_mut(world)
@@ -140,56 +197,18 @@ impl Scion2D {
                 self.index_buffers.insert(*entity, index_buffer);
             }
 
-            match material {
-                Material::Color(color) => {
-                    let path = get_path_from_color(&color);
-                    self.insert_pipeline_if_not_finded(
-                        device,
-                        surface_config,
-                        &entity,
-                        &path,
-                        false,
-                        component.topology(),
-                    )
-                }
-                Material::Texture(path) => {
-                    self.insert_pipeline_if_not_finded(
-                        device,
-                        surface_config,
-                        &entity,
-                        &path,
-                        false,
-                        component.topology(),
-                    )
-                }
-                Material::Tileset(tileset) => {
-                    self.insert_pipeline_if_not_finded(
-                        device,
-                        surface_config,
-                        &entity,
-                        &tileset.texture,
-                        component.dirty(),
-                        component.topology(),
-                    )
-                }
-            };
             component.set_dirty(false);
         }
     }
 
-    fn upsert_tilemaps_pipeline(
-        &mut self,
-        world: &mut World,
-        device: &&Device,
-        surface_config: &&SurfaceConfiguration,
-    ) {
+    fn upsert_tilemaps_buffers(&mut self, world: &mut World, device: &&Device) {
         let mut tilemap_query = <(Entity, &mut Tilemap, &Material, &Transform)>::query();
         let (mut tilemap_world, mut tile_world) = world.split_for_query(&tilemap_query);
 
         let mut tiles: Vec<(&Tile, &mut Sprite)> =
             <(&Tile, &mut Sprite)>::query().iter_mut(&mut tile_world).collect();
 
-        for (entity, tilemap, material, _) in tilemap_query.iter_mut(&mut tilemap_world) {
+        for (entity, _tilemap, material, _) in tilemap_query.iter_mut(&mut tilemap_world) {
             let tile_size = Material::tile_size(material).expect("");
             let mut vertexes = Vec::new();
             let mut position = 0;
@@ -236,29 +255,15 @@ impl Scion2D {
                     usage: wgpu::BufferUsages::INDEX,
                 });
                 self.index_buffers.insert(*entity, index_buffer);
-
-                match material {
-                    Material::Tileset(tileset) => {
-                        self.insert_pipeline_if_not_finded(
-                            device,
-                            surface_config,
-                            &entity,
-                            &tileset.texture,
-                            any_tile_modified,
-                            tilemap.topology(),
-                        )
-                    }
-                    _ => {}
-                }
             }
         }
     }
 
-    fn upsert_ui_component_pipeline<T: Component + Renderable2D + RenderableUi>(
+    fn upsert_ui_component_buffers<T: Component + Renderable2D + RenderableUi>(
         &mut self,
         world: &mut World,
         device: &&Device,
-        surface_config: &&SurfaceConfiguration,
+        _surface_config: &&SurfaceConfiguration,
         queue: &mut Queue,
     ) {
         for (entity, component, _) in <(Entity, &mut T, &Transform)>::query().iter_mut(world) {
@@ -279,7 +284,12 @@ impl Scion2D {
                     let loaded_texture = Texture::from_png(path);
                     self.diffuse_bind_groups.insert(
                         texture_path.clone(),
-                        load_texture_to_queue(&loaded_texture, queue, device),
+                        load_texture_to_queue(
+                            &loaded_texture,
+                            queue,
+                            device,
+                            self.texture_bind_group_layout.as_ref().unwrap(),
+                        ),
                     );
 
                     let timestamp = read_file_modification_time(path);
@@ -287,37 +297,25 @@ impl Scion2D {
                         self.assets_timestamps.insert(texture_path.clone(), timestamp);
                     }
                 }
-
-                self.insert_pipeline_if_not_finded(
-                    device,
-                    surface_config,
-                    &entity,
-                    &texture_path,
-                    false,
-                    component.topology(),
-                )
             }
         }
     }
 
-    fn insert_pipeline_if_not_finded(
+    fn insert_pipeline_if_not_finded<T: Component + Renderable2D>(
         &mut self,
         device: &&Device,
         surface_config: &&SurfaceConfiguration,
-        entity: &Entity,
-        path: &String,
-        force_reinsert: bool,
-        topology: wgpu::PrimitiveTopology,
     ) {
-        if !self.render_pipelines.contains_key(path.as_str()) || force_reinsert {
+        let type_name = std::any::type_name::<T>();
+        if !self.render_pipelines.contains_key(type_name) {
             self.render_pipelines.insert(
-                path.clone(),
+                type_name.to_string(),
                 pipeline(
                     device,
                     surface_config,
-                    &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
-                    &self.transform_uniform_bind_groups.get(entity).unwrap().2,
-                    topology,
+                    self.texture_bind_group_layout.as_ref().unwrap(),
+                    self.transform_bind_group_layout.as_ref().unwrap(),
+                    T::topology(),
                 ),
             );
         }
@@ -337,7 +335,7 @@ impl Scion2D {
 
         render_pass.set_bind_group(
             1,
-            &self.transform_uniform_bind_groups.get(&rendering_infos.entity).unwrap().3,
+            &self.transform_uniform_bind_groups.get(&rendering_infos.entity).unwrap().2,
             &[],
         );
         render_pass.set_vertex_buffer(
@@ -348,15 +346,17 @@ impl Scion2D {
             self.index_buffers.get(&rendering_infos.entity).as_ref().unwrap().slice(..),
             wgpu::IndexFormat::Uint16,
         );
-
+        render_pass.set_pipeline(
+            self.render_pipelines.get(rendering_infos.type_name.as_str()).as_ref().unwrap(),
+        );
         if let Some(path) = rendering_infos.texture_path {
-            render_pass.set_pipeline(self.render_pipelines.get(path.as_str()).as_ref().unwrap());
             render_pass.set_bind_group(
                 0,
-                &self.diffuse_bind_groups.get(path.as_str()).unwrap().1,
+                &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
                 &[],
             );
         }
+
         render_pass.draw_indexed(rendering_infos.range, 0, 0..1);
     }
 
@@ -364,6 +364,7 @@ impl Scion2D {
         &mut self,
         world: &mut World,
     ) -> Vec<RenderingInfos> {
+        let type_name = std::any::type_name::<T>();
         let mut render_infos = Vec::new();
         for (entity, component, material, transform) in
             <(Entity, &mut T, &Material, &Transform)>::query()
@@ -382,12 +383,14 @@ impl Scion2D {
                 range: component.range(),
                 entity: *entity,
                 texture_path: path,
+                type_name: type_name.to_string(),
             });
         }
         render_infos
     }
 
     fn pre_render_tilemaps(&mut self, world: &mut World) -> Vec<RenderingInfos> {
+        let type_name = std::any::type_name::<Tilemap>();
         let mut render_infos = Vec::new();
 
         let mut tilemap_query = <(Entity, &mut Tilemap, &Material, &Transform)>::query()
@@ -408,6 +411,7 @@ impl Scion2D {
                 range: 0..(tiles_nb * Sprite::indices().len()) as u32,
                 entity: *entity,
                 texture_path: path,
+                type_name: type_name.to_string(),
             });
         }
         render_infos
@@ -417,6 +421,7 @@ impl Scion2D {
         &mut self,
         world: &mut World,
     ) -> Vec<RenderingInfos> {
+        let type_name = std::any::type_name::<T>();
         let mut render_infos = Vec::new();
         for (entity, component, transform) in <(Entity, &mut T, &Transform)>::query()
             .filter(!component::<Hide>() & !component::<HidePropagated>())
@@ -427,6 +432,7 @@ impl Scion2D {
                 range: component.range(),
                 entity: *entity,
                 texture_path: component.get_texture_path(),
+                type_name: type_name.to_string(),
             });
         }
         render_infos
@@ -460,17 +466,18 @@ impl Scion2D {
             <(Entity, &Transform, Option<&UiComponent>, &T)>::query().iter_mut(&mut world)
         {
             if !self.transform_uniform_bind_groups.contains_key(entity) {
-                let (uniform, uniform_buffer, glayout, group) = create_transform_uniform_bind_group(
+                let (uniform, uniform_buffer, group) = create_transform_uniform_bind_group(
                     &device,
                     transform,
                     camera,
                     optional_ui_component.is_some(),
+                    self.transform_bind_group_layout.as_ref().unwrap(),
                 );
                 queue.write_buffer(&uniform_buffer, 0, bytemuck::cast_slice(&[uniform]));
                 self.transform_uniform_bind_groups
-                    .insert(*entity, (uniform, uniform_buffer, glayout, group));
+                    .insert(*entity, (uniform, uniform_buffer, group));
             } else {
-                let (uniform, uniform_buffer, _, _) = self
+                let (uniform, uniform_buffer, _) = self
                     .transform_uniform_bind_groups
                     .get_mut(entity)
                     .expect("Fatal error, a transform has been marked as found but doesn't exist");
@@ -532,7 +539,7 @@ impl Scion2D {
                             self.diffuse_bind_groups
                                 .get(texture_path.as_str())
                                 .expect("Unreachable diffuse bind group after check")
-                                .2
+                                .1
                                 .destroy();
                             self.diffuse_bind_groups.remove(texture_path.as_str());
                         }
@@ -540,7 +547,12 @@ impl Scion2D {
                         let loaded_texture = Texture::from_png(path);
                         self.diffuse_bind_groups.insert(
                             texture_path.clone(),
-                            load_texture_to_queue(&loaded_texture, queue, device),
+                            load_texture_to_queue(
+                                &loaded_texture,
+                                queue,
+                                device,
+                                self.texture_bind_group_layout.as_ref().unwrap(),
+                            ),
                         );
 
                         if let Some(Ok(timestamp)) = new_timestamp {
@@ -554,7 +566,12 @@ impl Scion2D {
                         let loaded_texture = Texture::from_color(&color);
                         self.diffuse_bind_groups.insert(
                             path.clone(),
-                            load_texture_to_queue(&loaded_texture, queue, device),
+                            load_texture_to_queue(
+                                &loaded_texture,
+                                queue,
+                                device,
+                                self.texture_bind_group_layout.as_ref().unwrap(),
+                            ),
                         );
                     }
                 }
@@ -572,7 +589,12 @@ impl Scion2D {
                         let loaded_texture = Texture::from_png(Path::new(tileset.texture.as_str()));
                         self.diffuse_bind_groups.insert(
                             tileset.texture.clone(),
-                            load_texture_to_queue(&loaded_texture, queue, device),
+                            load_texture_to_queue(
+                                &loaded_texture,
+                                queue,
+                                device,
+                                self.texture_bind_group_layout.as_ref().unwrap(),
+                            ),
                         );
                         if let Some(Ok(timestamp)) = new_timestamp {
                             self.assets_timestamps.insert(tileset.texture.clone(), timestamp);
@@ -595,7 +617,8 @@ fn load_texture_to_queue(
     texture: &Texture,
     queue: &mut Queue,
     device: &Device,
-) -> (BindGroupLayout, BindGroup, wgpu::Texture) {
+    texture_bind_group_layout: &BindGroupLayout,
+) -> (BindGroup, wgpu::Texture) {
     let texture_size = wgpu::Extent3d {
         width: texture.width as u32,
         height: texture.height as u32,
@@ -637,28 +660,6 @@ fn load_texture_to_queue(
         mipmap_filter: wgpu::FilterMode::Nearest,
         ..Default::default()
     });
-    let texture_bind_group_layout =
-        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        multisampled: false,
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        sample_type: wgpu::TextureSampleType::Float { filterable: false },
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler { comparison: false, filtering: true },
-                    count: None,
-                },
-            ],
-            label: Some("texture_bind_group_layout"),
-        });
 
     let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
         layout: &texture_bind_group_layout,
@@ -675,7 +676,7 @@ fn load_texture_to_queue(
         label: Some("diffuse_bind_group"),
     });
 
-    (texture_bind_group_layout, diffuse_bind_group, diffuse_texture)
+    (diffuse_bind_group, diffuse_texture)
 }
 
 fn create_transform_uniform_bind_group(
@@ -683,7 +684,8 @@ fn create_transform_uniform_bind_group(
     transform: &Transform,
     camera: (&Camera, &Transform),
     is_ui_component: bool,
-) -> (GlUniform, Buffer, BindGroupLayout, BindGroup) {
+    uniform_bind_group_layout: &BindGroupLayout,
+) -> (GlUniform, Buffer, BindGroup) {
     let uniform = GlUniform::from(UniformData { transform, camera, is_ui_component });
     let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Uniform Buffer"),
@@ -691,23 +693,8 @@ fn create_transform_uniform_bind_group(
         usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
     });
 
-    let uniform_bind_group_layout =
-        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-            label: Some("uniform_bind_group_layout"),
-        });
-
     let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        layout: &uniform_bind_group_layout,
+        layout: uniform_bind_group_layout,
         entries: &[wgpu::BindGroupEntry {
             binding: 0,
             resource: uniform_buffer.as_entire_binding(),
@@ -715,7 +702,7 @@ fn create_transform_uniform_bind_group(
         label: Some("uniform_bind_group"),
     });
 
-    (uniform, uniform_buffer, uniform_bind_group_layout, uniform_bind_group)
+    (uniform, uniform_buffer, uniform_bind_group)
 }
 
 fn get_default_color_attachment<'a>(

@@ -13,7 +13,6 @@ use scion::{
     utils::file::app_base_path,
     Scion,
 };
-use winit::window::CursorIcon;
 
 #[derive(Debug)]
 struct Case(Coordinates);

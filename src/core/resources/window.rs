@@ -7,7 +7,7 @@ use winit::window::CursorIcon;
 pub struct Window {
     width: u32,
     height: u32,
-    new_cursor: Option<CursorIcon>
+    new_cursor: Option<CursorIcon>,
 }
 
 impl Window {
@@ -20,13 +20,9 @@ impl Window {
         self.height = height;
     }
 
-    pub fn set_cursor(&mut self, icon: CursorIcon) {
-        self.new_cursor = Some(icon);
-    }
+    pub fn set_cursor(&mut self, icon: CursorIcon) { self.new_cursor = Some(icon); }
 
-    pub(crate) fn reset_new_cursor(&mut self) {
-        self.new_cursor = None
-    }
+    pub(crate) fn reset_new_cursor(&mut self) { self.new_cursor = None }
 
     pub fn dimensions(self) -> (u32, u32) { (self.width, self.height) }
 

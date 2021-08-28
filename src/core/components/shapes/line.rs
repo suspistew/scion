@@ -45,7 +45,7 @@ impl Renderable2D for Line {
 
     fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
 
-    fn topology(&self) -> PrimitiveTopology { wgpu::PrimitiveTopology::LineList }
+    fn topology() -> PrimitiveTopology { wgpu::PrimitiveTopology::LineList }
 
     fn dirty(&self) -> bool { false }
 
