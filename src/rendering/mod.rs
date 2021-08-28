@@ -16,6 +16,8 @@ pub(crate) mod shaders;
 
 /// Trait to implement in order to create a renderer to use in a `Scion` application
 pub trait ScionRenderer {
+    fn start(&mut self, device: &Device, surface_config: &SurfaceConfiguration);
+
     /// Will be called first, before render, each time the window request redraw.
     fn update(
         &mut self,
@@ -61,7 +63,7 @@ pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor;
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor;
     fn range(&self) -> Range<u32>;
-    fn topology(&self) -> wgpu::PrimitiveTopology;
+    fn topology() -> wgpu::PrimitiveTopology;
     fn dirty(&self) -> bool;
     fn set_dirty(&mut self, is_dirty: bool);
 }

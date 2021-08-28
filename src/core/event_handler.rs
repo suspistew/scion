@@ -9,12 +9,10 @@ use crate::{
     config::scion_config::ScionConfig,
     core::{
         legion_ext::ScionResourcesExtension,
-        resources::{
-            inputs::{
-                keycode::KeyCode,
-                mouse::{MouseButton, MouseEvent},
-                InputState, KeyboardEvent,
-            },
+        resources::inputs::{
+            keycode::KeyCode,
+            mouse::{MouseButton, MouseEvent},
+            InputState, KeyboardEvent,
         },
     },
     rendering::renderer_state::RendererState,

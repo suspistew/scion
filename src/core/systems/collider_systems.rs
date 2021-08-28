@@ -1,17 +1,18 @@
-use legion::{world::SubWorld, *};
-
-use crate::core::components::maths::{
-    collider::{Collider, Collision},
-    transform::Transform,
-};
-use legion::systems::CommandBuffer;
-use crate::core::components::maths::hierarchy::{Children, Parent};
-use crate::core::components::maths::collider::{ColliderDebug, ColliderType};
 use std::collections::HashSet;
-use crate::core::components::shapes::polygon::Polygon;
-use crate::core::components::maths::coordinates::Coordinates;
-use crate::core::components::material::Material;
-use crate::core::components::color::Color;
+
+use legion::{systems::CommandBuffer, world::SubWorld, *};
+
+use crate::core::components::{
+    color::Color,
+    material::Material,
+    maths::{
+        collider::{Collider, ColliderDebug, ColliderType, Collision},
+        coordinates::Coordinates,
+        hierarchy::Parent,
+        transform::Transform,
+    },
+    shapes::polygon::Polygon,
+};
 
 #[system(for_each)]
 pub(crate) fn colliders_cleaner(collider: &mut Collider) { collider.clear_collisions() }
@@ -67,33 +68,33 @@ pub(crate) fn debug_colliders(
     cmd: &mut CommandBuffer,
     world: &mut SubWorld,
     query_colliders: &mut Query<(Entity, &Transform, &mut Collider)>,
-    query_collider_debug: &mut Query<(&ColliderDebug, &Parent)>) {
+    query_collider_debug: &mut Query<(&ColliderDebug, &Parent)>,
+) {
     let (mut collider_world, debug_world) = world.split_for_query(query_colliders);
 
-    let collider_debug: HashSet<Entity> = query_collider_debug.iter(&debug_world).map(|(_, p)| p.0).collect();
+    let collider_debug: HashSet<Entity> =
+        query_collider_debug.iter(&debug_world).map(|(_, p)| p.0).collect();
 
     query_colliders.for_each_mut(&mut collider_world, |(entity, _, collider)| {
         if collider.debug_lines() && !collider_debug.contains(entity) {
             let ColliderType::Square(size) = collider.collider_type();
             let size = *size as f32;
-            cmd.push((Parent(*entity),
-                      ColliderDebug,
-                      Transform::from_xyz(0., 0., 99),
-                      Polygon::new(
-                          vec![
-                              Coordinates::new(0., 0.),
-                              Coordinates::new(size, 0.),
-                              Coordinates::new(size, size),
-                              Coordinates::new(0., size),
-                              Coordinates::new(0., 0.),
-                          ]
-                      ),
-                      Material::Color(Color::new_rgb(0, 255, 0))
+            cmd.push((
+                Parent(*entity),
+                ColliderDebug,
+                Transform::from_xyz(0., 0., 99),
+                Polygon::new(vec![
+                    Coordinates::new(0., 0.),
+                    Coordinates::new(size, 0.),
+                    Coordinates::new(size, size),
+                    Coordinates::new(0., size),
+                    Coordinates::new(0., 0.),
+                ]),
+                Material::Color(Color::new_rgb(0, 255, 0)),
             ));
         }
     });
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -176,8 +177,10 @@ mod tests {
         let mut resources = Resources::default();
         let mut schedule = Schedule::builder().add_system(debug_colliders_system()).build();
 
-        let collider = world.push((Transform::default(), Collider::new(ColliderMask::None, vec![], ColliderType::Square(100))
-            .with_debug_lines()));
+        let _collider = world.push((
+            Transform::default(),
+            Collider::new(ColliderMask::None, vec![], ColliderType::Square(100)).with_debug_lines(),
+        ));
         schedule.execute(&mut world, &mut resources);
 
         let res = <(&ColliderDebug, &Parent)>::query().iter(&world).count();

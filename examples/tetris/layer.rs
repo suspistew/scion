@@ -1,19 +1,18 @@
 use scion::{
     core::{
         components::{
-            maths::{camera::Camera, transform::Transform},
+            maths::transform::Transform,
             tiles::tileset::Tileset,
             ui::{font::Font, ui_image::UiImage, ui_text::UiText},
         },
         game_layer::SimpleGameLayer,
-        legion_ext::ScionResourcesExtension,
+        legion_ext::{ScionResourcesExtension, ScionWorldExtension},
         resources::time::TimerType,
     },
     legion::{Entity, Resources, World},
 };
 
 use crate::{asset_path, resources::TetrisResource};
-use scion::core::legion_ext::ScionWorldExtension;
 
 #[derive(Default)]
 pub struct TetrisLayer {

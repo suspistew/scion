@@ -50,7 +50,7 @@ impl Renderable2D for UiTextImage {
 
     fn range(&self) -> Range<u32> { self.0.range() }
 
-    fn topology(&self) -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
+    fn topology() -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
 
     fn dirty(&self) -> bool { false }
 

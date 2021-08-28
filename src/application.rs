@@ -34,7 +34,9 @@ use crate::{
         systems::{
             animations_system::animation_executer_system,
             asset_ref_resolver_system::{asset_ref_resolver_system, MaterialAssetResolverFn},
-            collider_systems::{colliders_cleaner_system, compute_collisions_system, debug_colliders_system},
+            collider_systems::{
+                colliders_cleaner_system, compute_collisions_system, debug_colliders_system,
+            },
             default_camera_system::default_camera_system,
             hide_propagation_system::{hide_propagated_deletion_system, hide_propagation_system},
             hierarchy_system::children_manager_system,
@@ -44,8 +46,8 @@ use crate::{
         },
     },
     rendering::{renderer_state::RendererState, RendererType},
+    utils::debug_ecs::try_debug,
 };
-use crate::utils::debug_ecs::try_debug;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -98,7 +100,10 @@ impl Scion {
 
     fn initialize_internal_resources(&mut self) {
         let inner_size = self.window.as_ref().expect("No window found during setup").inner_size();
-        self.resources.insert(crate::core::resources::window::Window::new((inner_size.width, inner_size.height)));
+        self.resources.insert(crate::core::resources::window::Window::new((
+            inner_size.width,
+            inner_size.height,
+        )));
 
         let mut events = Events::default();
         events
@@ -261,7 +266,6 @@ impl ScionBuilder {
             .expect("An error occured while building the main game window");
 
         self.add_late_internal_systems_to_schedule();
-
 
         let renderer = self.renderer.into_boxed_renderer();
         let renderer_state = futures::executor::block_on(

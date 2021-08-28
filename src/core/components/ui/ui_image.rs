@@ -70,7 +70,7 @@ impl Renderable2D for UiImage {
 
     fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
 
-    fn topology(&self) -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
+    fn topology() -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
 
     fn dirty(&self) -> bool { false }
 

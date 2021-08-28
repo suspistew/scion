@@ -72,9 +72,9 @@ impl Renderable2D for Polygon {
 
     fn range(&self) -> Range<u32> { 0..self.indices.len() as u32 }
 
-    fn topology(&self) -> PrimitiveTopology { wgpu::PrimitiveTopology::LineStrip }
+    fn topology() -> PrimitiveTopology { wgpu::PrimitiveTopology::LineStrip }
 
     fn dirty(&self) -> bool { self.dirty }
 
-    fn set_dirty(&mut self, is_dirty: bool) { self.dirty = is_dirty;}
+    fn set_dirty(&mut self, is_dirty: bool) { self.dirty = is_dirty; }
 }

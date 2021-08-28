@@ -12,12 +12,12 @@ use crate::{
         resources::{
             asset_manager::AssetManager, events::Events,
             inputs::inputs_controller::InputsController, sound::AudioPlayer, time::Timers,
+            window::Window,
         },
         state::GameState,
     },
     legion::Entity,
 };
-use crate::core::resources::window::Window;
 
 pub(crate) struct PausableSystem<S> {
     pub(crate) system: S,
@@ -99,8 +99,7 @@ impl ScionResourcesExtension for Resources {
 
     /// retrieves the window from the resources
     fn window(&mut self) -> AtomicRefMut<Window> {
-        self.get_mut::<Window>()
-            .expect("The engine is missing the mandatory window resource")
+        self.get_mut::<Window>().expect("The engine is missing the mandatory window resource")
     }
 }
 
