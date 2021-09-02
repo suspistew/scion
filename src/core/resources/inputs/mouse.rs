@@ -105,6 +105,8 @@ impl Mouse {
     pub fn x(&self) -> f64 { self.x }
     /// Returns the current y value of the cursor
     pub fn y(&self) -> f64 { self.y }
+    /// Returns the current x and y value of the cursor
+    pub fn xy(&self) -> (f64, f64) { (self.x, self.y) }
     /// Returns if the mouse has been clicked in the current frame
     pub fn click_event(&self) -> &Option<MouseEvent> { &self.click_event }
 }

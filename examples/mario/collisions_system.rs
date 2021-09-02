@@ -17,7 +17,7 @@ pub(crate) fn collider(
     transform: &Transform,
 ) {
     if let Material::Color(_c) = material {
-        collider.collisions().for_each(|collision| {
+        collider.collisions().iter().for_each(|collision| {
             match collision.mask() {
                 ColliderMask::Death => std::process::exit(0),
                 ColliderMask::Landscape => {

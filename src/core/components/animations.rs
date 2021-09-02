@@ -53,22 +53,33 @@ impl Animations {
     /// Stops the animation `name`. Returns true is the animation has been stopped, false if it does not exist or was already stopped
     pub fn stop_animation(&mut self, animation_name: &str, force: bool) -> bool {
         if self.animations.contains_key(animation_name) {
-            let mut animation = self
+            let animation = self
                 .animations
                 .get_mut(animation_name)
                 .expect("An animation has not been found after the security check");
-            if animation.status == AnimationStatus::LOOPING
-                || animation.status == AnimationStatus::RUNNING
-            {
-                if force {
-                    animation.status = AnimationStatus::STOPPED;
-                } else {
-                    animation.status = AnimationStatus::STOPPING;
-                }
-                true
+            Animations::stop_single_animation(force, animation)
+        } else {
+            false
+        }
+    }
+
+    /// Stops all the animations
+    pub fn stop_all_animation(&mut self, force: bool) {
+        self.animations.iter_mut().for_each(|(_k, v)| {
+            Animations::stop_single_animation(force, v);
+        });
+    }
+
+    fn stop_single_animation(force: bool, animation: &mut Animation) -> bool {
+        if animation.status == AnimationStatus::LOOPING
+            || animation.status == AnimationStatus::RUNNING
+        {
+            if force {
+                animation.status = AnimationStatus::STOPPED;
             } else {
-                false
+                animation.status = AnimationStatus::STOPPING;
             }
+            true
         } else {
             false
         }

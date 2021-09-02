@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use legion::{systems::CommandBuffer, world::SubWorld, *};
 
@@ -6,7 +6,7 @@ use crate::core::components::{
     color::Color,
     material::Material,
     maths::{
-        collider::{Collider, ColliderDebug, ColliderType, Collision},
+        collider::{Collider, ColliderDebug, ColliderMask, ColliderType, Collision},
         coordinates::Coordinates,
         hierarchy::Parent,
         transform::Transform,
@@ -23,43 +23,47 @@ pub(crate) fn compute_collisions(
     world: &mut SubWorld,
     query_colliders: &mut Query<(Entity, &Transform, &mut Collider)>,
 ) {
+    let mut res: HashMap<Entity, Vec<Collision>> = HashMap::default();
     let mut colliders: Vec<(&Entity, &Transform, &mut Collider)> =
         query_colliders.iter_mut(world).collect();
-    let len = colliders.len();
-    for i in 0..len {
-        let col = colliders
-            .get(i)
-            .expect("A collider can't be found while it must exist due to previous checks");
-        if !col.2.passive() {
-            let mut collisions = (0..len)
-                .filter(|index| *index != i)
-                .filter(|index| {
-                    let col2 = colliders.get(*index).expect(
-                        "A collider can't be found while it must exist due to previous checks",
-                    );
-                    col.2.collides_with(col.1, col2.2, col2.1)
-                })
-                .map(|index| {
-                    let col = colliders.get(index).expect(
-                        "A collider can't be found while it must exist due to previous checks",
-                    );
-                    let col2 = colliders.get(index).expect(
-                        "A collider can't be found while it must exist due to previous checks",
-                    );
-                    Collision {
-                        mask: col.2.mask().clone(),
-                        entity: *col.0,
-                        coordinates: col2.1.global_translation().clone(),
-                    }
-                })
-                .collect();
-            colliders
-                .get_mut(i)
-                .expect("A collider can't be found while it must exist due to previous checks")
-                .2
-                .add_collisions(&mut collisions);
-        }
+    {
+        let mut colliders_by_mask: HashMap<
+            ColliderMask,
+            Vec<(&&Entity, &&Transform, &&mut Collider)>,
+        > = HashMap::default();
+        colliders.iter().for_each(|(e, t, c)| {
+            colliders_by_mask.entry(c.mask().clone()).or_insert_with(|| Vec::new()).push((e, t, c))
+        });
+
+        let mut cpt = 0;
+        colliders.iter().for_each(|(entity, transform, collider)| {
+            collider.filters().iter().filter(|mask| colliders_by_mask.contains_key(mask)).for_each(
+                |mask| {
+                    colliders_by_mask
+                        .get(mask)
+                        .unwrap()
+                        .iter()
+                        .filter(|(_e, t, c)| {
+                            cpt += 1;
+                            collider.collides_with(transform, c, t)
+                        })
+                        .for_each(|(_e, t, c)| {
+                            res.entry(**entity).or_insert_with(|| Vec::new()).push(Collision {
+                                mask: c.mask().clone(),
+                                entity: **entity,
+                                coordinates: t.global_translation().clone(),
+                            });
+                        })
+                },
+            );
+        });
     }
+
+    colliders.iter_mut().for_each(|(e, _, c)| {
+        if res.contains_key(*e) {
+            c.add_collisions(&mut (res.remove(*e).unwrap()));
+        }
+    });
 }
 
 /// System responsible to add a `ColliderDebug` component to each colliders that are in debug mode
@@ -77,17 +81,19 @@ pub(crate) fn debug_colliders(
 
     query_colliders.for_each_mut(&mut collider_world, |(entity, _, collider)| {
         if collider.debug_lines() && !collider_debug.contains(entity) {
-            let ColliderType::Square(size) = collider.collider_type();
-            let size = *size as f32;
+            let (width, height) = match collider.collider_type() {
+                ColliderType::Square(size) => (*size as f32, *size as f32),
+                ColliderType::Rectangle(width, height) => (*width as f32 as f32, *height as f32),
+            };
             cmd.push((
                 Parent(*entity),
                 ColliderDebug,
                 Transform::from_xyz(0., 0., 99),
                 Polygon::new(vec![
                     Coordinates::new(0., 0.),
-                    Coordinates::new(size, 0.),
-                    Coordinates::new(size, size),
-                    Coordinates::new(0., size),
+                    Coordinates::new(width, 0.),
+                    Coordinates::new(width, height),
+                    Coordinates::new(0., height),
                     Coordinates::new(0., 0.),
                 ]),
                 Material::Color(Color::new_rgb(0, 255, 0)),
@@ -150,14 +156,14 @@ mod tests {
             t,
             Collider::new(
                 ColliderMask::Bullet,
-                vec![ColliderMask::Landscape],
+                vec![],
                 ColliderType::Square(5),
             ),
         ));
         let e2 = world.push((
             2,
             t2,
-            Collider::new(ColliderMask::Bullet, vec![], ColliderType::Square(5)),
+            Collider::new(ColliderMask::Landscape, vec![ColliderMask::Bullet], ColliderType::Square(5)),
         ));
 
         schedule.execute(&mut world, &mut resources);

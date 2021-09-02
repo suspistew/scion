@@ -33,6 +33,8 @@ impl Sprite {
         self.dirty = true;
     }
 
+    pub fn get_tile_nb(&self) -> usize { self.tile_number }
+
     fn uv_refs(&self, tileset: &Tileset) -> [Coordinates; 4] {
         let line = (self.tile_number / tileset.length) as f32;
         let column = (self.tile_number % tileset.length) as f32;

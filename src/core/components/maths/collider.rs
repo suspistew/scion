@@ -1,20 +1,21 @@
-use std::slice::Iter;
-
 use legion::Entity;
 
 use crate::core::components::maths::{coordinates::Coordinates, transform::Transform};
 
-struct SquareColliderInfo<'a> {
-    size: &'a usize,
+struct RectangleColliderInfo<'a> {
+    width: &'a usize,
+    height: &'a usize,
     transform: &'a Transform,
 }
 
-impl<'a> SquareColliderInfo<'a> {
-    fn of(size: &'a usize, transform: &'a Transform) -> Self { Self { size, transform } }
+impl<'a> RectangleColliderInfo<'a> {
+    fn of(width: &'a usize, height: &'a usize, transform: &'a Transform) -> Self {
+        Self { width, height, transform }
+    }
 }
 
 /// `ColliderMask` will serve as a 'mask' to allow filter while collisions happen
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Eq, Hash)]
 pub enum ColliderMask {
     None,
     Character,
@@ -25,11 +26,14 @@ pub enum ColliderMask {
 }
 
 /// `ColliderType` will determine the shape of the collider.
+#[derive(Clone)]
 pub enum ColliderType {
     Square(usize),
+    Rectangle(usize, usize),
 }
 
 /// The main collider representation to add to an entity, using the new function
+#[derive(Clone)]
 pub struct Collider {
     collider_mask: ColliderMask,
     collider_type: ColliderType,
@@ -40,7 +44,7 @@ pub struct Collider {
 
 impl Collider {
     /// Creates a new collider. Note that an empty collision_filter means that this colliders
-    /// collides with every other colliders
+    /// won't collide
     pub fn new(
         collider_mask: ColliderMask,
         collision_filter: Vec<ColliderMask>,
@@ -64,10 +68,16 @@ impl Collider {
     pub fn is_colliding(&self) -> bool { !self.collisions.is_empty() }
 
     /// Returns an iterator of current collisions
-    pub fn collisions(&self) -> Iter<'_, Collision> { self.collisions.iter() }
+    pub fn collisions(&self) -> &Vec<Collision> { &self.collisions }
 
-    /// The mask of this collision
+    /// The mask of this collider
     pub fn mask(&self) -> &ColliderMask { &self.collider_mask }
+
+    /// The mask of this collider
+    pub fn mask_cloned(&self) -> ColliderMask { self.collider_mask.clone() }
+
+    /// The filters of this collider
+    pub fn filters(&self) -> &Vec<ColliderMask> { &self.collision_filter }
 
     /// Retrieve the collider type of this collider
     pub fn collider_type(&self) -> &ColliderType { &self.collider_type }
@@ -81,8 +91,7 @@ impl Collider {
     pub(crate) fn clear_collisions(&mut self) { self.collisions.clear(); }
 
     pub(crate) fn can_collide_with(&self, other: &Collider) -> bool {
-        return self.collision_filter.is_empty()
-            || self.collision_filter.contains(&other.collider_mask);
+        self.collision_filter.is_empty() || self.collision_filter.contains(&other.collider_mask)
     }
 
     pub(crate) fn collides_with(
@@ -94,9 +103,36 @@ impl Collider {
         self.can_collide_with(target_collider)
             && match (&self.collider_type, &target_collider.collider_type) {
                 (ColliderType::Square(self_size), ColliderType::Square(target_size)) => {
-                    square_collider_vs_square_collider(
-                        SquareColliderInfo::of(self_size, self_transform),
-                        SquareColliderInfo::of(target_size, target_transform),
+                    rectangle_collider_vs_square_collider(
+                        RectangleColliderInfo::of(self_size, self_size, self_transform),
+                        RectangleColliderInfo::of(target_size, target_size, target_transform),
+                    )
+                }
+                (
+                    ColliderType::Rectangle(self_width, self_height),
+                    ColliderType::Rectangle(target_width, target_height),
+                ) => {
+                    rectangle_collider_vs_square_collider(
+                        RectangleColliderInfo::of(self_width, self_height, self_transform),
+                        RectangleColliderInfo::of(target_width, target_height, target_transform),
+                    )
+                }
+                (
+                    ColliderType::Square(self_size),
+                    ColliderType::Rectangle(target_width, target_height),
+                ) => {
+                    rectangle_collider_vs_square_collider(
+                        RectangleColliderInfo::of(self_size, self_size, self_transform),
+                        RectangleColliderInfo::of(target_width, target_height, target_transform),
+                    )
+                }
+                (
+                    ColliderType::Rectangle(self_width, self_height),
+                    ColliderType::Square(target_size),
+                ) => {
+                    rectangle_collider_vs_square_collider(
+                        RectangleColliderInfo::of(self_width, self_height, self_transform),
+                        RectangleColliderInfo::of(target_size, target_size, target_transform),
                     )
                 }
             }
@@ -107,26 +143,27 @@ impl Collider {
     }
 }
 
-fn square_collider_vs_square_collider(
-    self_collider: SquareColliderInfo,
-    target_collider: SquareColliderInfo,
+fn rectangle_collider_vs_square_collider(
+    self_collider: RectangleColliderInfo,
+    target_collider: RectangleColliderInfo,
 ) -> bool {
     let p1 = self_collider.transform.global_translation;
     let p2 = target_collider.transform.global_translation;
     let (x_min_p1, x_max_p1, y_min_p1, y_max_p1, x_min_p2, x_max_p2, y_min_p2, y_max_p2) = (
         p1.x(),
-        p1.x() + *self_collider.size as f32,
+        p1.x() + *self_collider.width as f32,
         p1.y(),
-        p1.y() + *self_collider.size as f32,
+        p1.y() + *self_collider.height as f32,
         p2.x(),
-        p2.x() + *target_collider.size as f32,
+        p2.x() + *target_collider.width as f32,
         p2.y(),
-        p2.y() + *target_collider.size as f32,
+        p2.y() + *target_collider.height as f32,
     );
     x_min_p1 < x_max_p2 && x_max_p1 > x_min_p2 && y_min_p1 < y_max_p2 && y_max_p1 > y_min_p2
 }
 
 /// Representation of a collision
+#[derive(Clone)]
 pub struct Collision {
     pub(crate) mask: ColliderMask,
     pub(crate) entity: Entity,
@@ -135,7 +172,6 @@ pub struct Collision {
 
 impl Collision {
     pub fn entity(&self) -> &Entity { &self.entity }
-
     pub fn mask(&self) -> &ColliderMask { &self.mask }
     pub fn coordinates(&self) -> &Coordinates { &self.coordinates }
 }

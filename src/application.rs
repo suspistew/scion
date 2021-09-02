@@ -6,6 +6,7 @@ use legion::{
 };
 use log::info;
 use winit::{
+    event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
@@ -20,7 +21,7 @@ use crate::{
                 ui_text::{UiText, UiTextImage},
             },
         },
-        event_handler::handle_event,
+        event_handler::update_input_events,
         game_layer::{GameLayer, GameLayerController, GameLayerMachine, LayerAction},
         legion_ext::{PausableSystem, ScionResourcesExtension},
         resources::{
@@ -129,22 +130,59 @@ impl Scion {
     fn run(mut self, event_loop: EventLoop<()>) {
         event_loop.run(move |event, _, control_flow| {
             *control_flow = ControlFlow::Poll;
-            handle_event(
-                event,
-                control_flow,
-                self.window.as_mut().expect("A window is mandatory to run this game !"),
-                self.renderer.as_mut().expect("A renderer is mandatory to run this game !"),
-                &mut self.world,
-                &mut self.resources,
-                &self.config,
-            );
-            self.next_frame();
-            self.layer_machine.apply_layers_action(
-                LayerAction::EndFrame,
-                &mut self.world,
-                &mut self.resources,
-            );
-            self.resources.audio().system_ready();
+
+            match event {
+                Event::WindowEvent { ref event, window_id }
+                    if window_id == self.window.as_mut().unwrap().id() =>
+                {
+                    match event {
+                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                        WindowEvent::Resized(physical_size) => {
+                            self.resources
+                                .window()
+                                .set_dimensions(physical_size.width, physical_size.height);
+                            self.renderer.as_mut().unwrap().resize(*physical_size);
+                        }
+                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                            self.renderer.as_mut().unwrap().resize(**new_inner_size);
+                        }
+                        WindowEvent::CursorMoved { device_id: _, position, .. } => {
+                            let dpi_factor = self
+                                .window
+                                .as_mut()
+                                .unwrap()
+                                .current_monitor()
+                                .expect("Missing the monitor")
+                                .scale_factor();
+                            self.resources
+                                .inputs()
+                                .mouse_mut()
+                                .set_position(position.x / dpi_factor, position.y / dpi_factor);
+                        }
+                        _ => {}
+                    }
+
+                    update_input_events(event, &mut self.resources);
+                }
+                Event::MainEventsCleared => {
+                    self.next_frame();
+                    self.layer_machine.apply_layers_action(
+                        LayerAction::EndFrame,
+                        &mut self.world,
+                        &mut self.resources,
+                    );
+                    self.resources.audio().system_ready();
+                    self.window.as_mut().unwrap().request_redraw();
+                }
+                Event::RedrawRequested(_) => {
+                    self.renderer.as_mut().unwrap().update(&mut self.world, &mut self.resources);
+                    match self.renderer.as_mut().unwrap().render(&mut self.world, &self.config) {
+                        Ok(_) => {}
+                        Err(e) => log::error!("{:?}", e),
+                    }
+                }
+                _ => (),
+            }
         });
     }
 
