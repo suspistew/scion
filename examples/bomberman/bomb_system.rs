@@ -23,9 +23,14 @@ pub fn exposion(
             tilemap_entry.get_component_mut::<Tilemap>().expect("Unreachable Tilemap in the world");
         {
             let left = level_data
-                .tilemap.get_mut(2).unwrap()
-                .values.get_mut(bomb.pos_y).unwrap()
-                .get_mut(bomb.pos_x - 1).unwrap();
+                .tilemap
+                .get_mut(2)
+                .unwrap()
+                .values
+                .get_mut(bomb.pos_y)
+                .unwrap()
+                .get_mut(bomb.pos_x - 1)
+                .unwrap();
             if *left == 4 {
                 let _r = std::mem::replace(left, 0);
                 tilemap.modify_sprite_tile(

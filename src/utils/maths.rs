@@ -1,5 +1,5 @@
 /// The standard way to communicate a position in 3 dimensions in `Scion`
-#[derive(Eq, PartialEq, Hash, Clone)]
+#[derive(Eq, PartialEq, Hash, Clone, Debug)]
 pub struct Position {
     x: usize,
     y: usize,

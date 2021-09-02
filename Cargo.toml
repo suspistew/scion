@@ -1,6 +1,6 @@
 [package]
 name = "scion"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["grzi <jeremy.thulliez@gmail.com>"]
 edition = "2018"
 description = "Game making library on top of wgpu, winit, legion"

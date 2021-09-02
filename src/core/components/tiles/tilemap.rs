@@ -8,7 +8,7 @@ use crate::{
         components::{
             animations::{Animation, Animations},
             material::Material,
-            maths::transform::Transform,
+            maths::{hierarchy::Parent, transform::Transform},
             tiles::sprite::Sprite,
         },
         resources::asset_manager::AssetRef,
@@ -74,8 +74,10 @@ impl Tilemap {
                     let position = Position::new(x, y, z);
                     let tile_infos = tile_resolver(&position);
 
-                    let entity = world
-                        .push((Tile { position: position.clone(), tilemap: self_entity.clone() },));
+                    let entity = world.push((
+                        Tile { position: position.clone(), tilemap: self_entity.clone() },
+                        Parent(self_entity.clone()),
+                    ));
 
                     if let Some(tile_nb) = tile_infos.tile_nb {
                         world.entry(entity).unwrap().add_component(Sprite::new(tile_nb));
@@ -116,6 +118,23 @@ impl Tilemap {
                 sprite.set_tile_nb(new_tile_nb);
             }
         }
+    }
+
+    pub fn retrieve_sprite_tile(
+        &self,
+        tile_position: &Position,
+        world: &SubWorld,
+    ) -> Option<usize> {
+        if self.tile_entities.contains_key(&tile_position) {
+            let entity = self.tile_entities.get(&tile_position).unwrap();
+            if let Ok(entry) = world.entry_ref(*entity) {
+                let sprite = entry.get_component::<Sprite>();
+                if let Ok(sprite) = sprite {
+                    return Some(sprite.get_tile_nb());
+                }
+            }
+        }
+        None
     }
 
     fn create_tilemap(

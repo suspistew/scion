@@ -50,3 +50,4 @@ These are the dependencies this project is relying on. Thanks to these awesome c
 <img src="./examples/tetris/tetris.gif" alt="Tetris" style="width:300px" />
 <img src="./examples/mario/mario.gif" alt="Mario" style="width:300px" />
 <img src="./examples/bomberman/bomberman.gif" alt="Bomberman" style="width:300px" />
+<img src="./examples/jezzball/jezzball.gif" alt="Jezzball" style="width:300px" />

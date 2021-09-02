@@ -21,9 +21,15 @@ pub fn controller(
         inputs.keyboard_mut().on_key_pressed(KeyCode::Right, || {
             if level_data.pathing.get(posy).unwrap().get(posx + 1).unwrap() == &1
                 && level_data
-                    .tilemap.get(2).unwrap()
-                    .values.get(posy).unwrap()
-                    .get(posx + 1).unwrap() == &0
+                    .tilemap
+                    .get(2)
+                    .unwrap()
+                    .values
+                    .get(posy)
+                    .unwrap()
+                    .get(posx + 1)
+                    .unwrap()
+                    == &0
             {
                 character.pos_x += 1;
                 animations.run_animation("MOVE_RIGHT");
@@ -32,9 +38,15 @@ pub fn controller(
         inputs.keyboard_mut().on_key_pressed(KeyCode::Left, || {
             if level_data.pathing.get(posy).unwrap().get(posx - 1).unwrap() == &1
                 && level_data
-                    .tilemap.get(2).unwrap()
-                    .values.get(posy).unwrap()
-                    .get(posx - 1).unwrap() == &0
+                    .tilemap
+                    .get(2)
+                    .unwrap()
+                    .values
+                    .get(posy)
+                    .unwrap()
+                    .get(posx - 1)
+                    .unwrap()
+                    == &0
             {
                 character.pos_x -= 1;
                 animations.run_animation("MOVE_LEFT");
@@ -43,9 +55,15 @@ pub fn controller(
         inputs.keyboard_mut().on_key_pressed(KeyCode::Up, || {
             if level_data.pathing.get(posy - 1).unwrap().get(posx).unwrap() == &1
                 && level_data
-                    .tilemap.get(2).unwrap()
-                    .values.get(posy - 1).unwrap()
-                    .get(posx).unwrap() == &0
+                    .tilemap
+                    .get(2)
+                    .unwrap()
+                    .values
+                    .get(posy - 1)
+                    .unwrap()
+                    .get(posx)
+                    .unwrap()
+                    == &0
             {
                 character.pos_y -= 1;
                 animations.run_animation("MOVE_TOP");
@@ -54,9 +72,15 @@ pub fn controller(
         inputs.keyboard_mut().on_key_pressed(KeyCode::Down, || {
             if level_data.pathing.get(posy + 1).unwrap().get(posx).unwrap() == &1
                 && level_data
-                    .tilemap.get(2).unwrap()
-                    .values.get(posy + 1).unwrap()
-                    .get(posx).unwrap() == &0
+                    .tilemap
+                    .get(2)
+                    .unwrap()
+                    .values
+                    .get(posy + 1)
+                    .unwrap()
+                    .get(posx)
+                    .unwrap()
+                    == &0
             {
                 character.pos_y += 1;
                 animations.run_animation("MOVE_BOTTOM");

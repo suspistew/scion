@@ -33,10 +33,10 @@ pub(crate) fn animation_executer(
         .animations_mut()
         .iter_mut()
         .filter(|(_, v)| v.status != AnimationStatus::STOPPED)
-        .for_each(|(k, animation)| {
+        .for_each(|(key, animation)| {
             for mut modifier in animation.modifiers.iter_mut() {
                 let mut timer_created = false;
-                let timer_id = format!("{:?}-{}-{}", *entity, k, modifier.to_string());
+                let timer_id = format!("{:?}-{}-{}", *entity, key, modifier.to_string());
                 let timer_id = timer_id.as_str();
                 if let Ok(timer) = timers.add_timer(
                     timer_id,
@@ -89,6 +89,17 @@ pub(crate) fn animation_executer(
             }
             animation.try_update_status();
         });
+
+    animations
+        .animations_mut()
+        .iter_mut()
+        .filter(|(_, v)| v.status == AnimationStatus::STOPPED)
+        .for_each(|(key, animation)| {
+            for modifier in animation.modifiers.iter_mut() {
+                let timer_id = format!("{:?}-{}-{}", *entity, key, modifier.to_string());
+                timers.delete_timer(timer_id.as_str());
+            }
+        });
 }
 
 fn apply_transform_modifier(
@@ -139,7 +150,12 @@ fn apply_sprite_modifier(
         } else {
             animation_sprite
                 .set_tile_nb(*tile_numbers.get(modifier.next_sprite_index.unwrap()).unwrap());
-            modifier.next_sprite_index.replace(modifier.next_sprite_index.unwrap() + 1);
+
+            if modifier.next_sprite_index.unwrap() >= modifier.number_of_keyframes {
+                modifier.next_sprite_index.replace(0);
+            } else {
+                modifier.next_sprite_index.replace(modifier.next_sprite_index.unwrap() + 1);
+            }
         }
     }
 }
