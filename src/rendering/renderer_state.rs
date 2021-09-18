@@ -14,6 +14,7 @@ pub(crate) struct RendererState {
 
 impl RendererState {
     pub(crate) async fn new(window: &Window, mut scion_renderer: Box<dyn ScionRenderer>) -> Self {
+
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
@@ -41,8 +42,8 @@ impl RendererState {
         let config = SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: swapchain_format,
-            width: size.width,
-            height: size.height,
+            width: size.width * window.scale_factor() as u32,
+            height: size.height * window.scale_factor() as u32,
             present_mode: wgpu::PresentMode::Immediate,
         };
         surface.configure(&device, &config);

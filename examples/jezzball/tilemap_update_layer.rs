@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, BTreeSet};
 
 use legion::{world::SubWorld, EntityStore, IntoQuery};
 use scion::{
@@ -70,26 +70,29 @@ impl SimpleGameLayer for TilemapUpdateLayer {
                     )
                 })
                 .collect();
-            let mut pathfinded_cases: HashSet<Position> = Default::default();
+            let mut pathfinded_cases = [[false;38]; 68];
             ball_pos.iter().for_each(|(pos_x, pos_y)| {
-                let mut visited = HashSet::new();
-                pathfind_from(Position::new(*pos_x, *pos_y, 0), &world_c, tilemap, &mut visited)
-                    .drain()
+            let mut visited = [[false;38]; 68];
+                pathfind_from((*pos_x, *pos_y), &world_c, tilemap, &mut visited)
+                    .iter()
                     .for_each(|e| {
-                        pathfinded_cases.insert(e);
+                        pathfinded_cases[e.0][e.1] = true;
                     });
             });
 
+            let mut open = 0;
             for i in 0..68 {
                 for j in 0..38 {
-                    let tmp_pos = Position::new(i, j, 0);
-                    if !pathfinded_cases.contains(&tmp_pos) {
+                    if !pathfinded_cases[i][j] {
+                        let tmp_pos = Position::new(i, j, 0);
                         tilemap.modify_sprite_tile(tmp_pos, 2, &mut world_c);
+                    }else{
+                        open+=1;
                     }
                 }
             }
 
-            if pathfinded_cases.len() < 150 {
+            if open < 150 {
                 let mut controller = resources.get_mut::<GameLayerController>().unwrap();
                 controller.replace_layer(
                     "TILEMAP_LAYER",
@@ -113,47 +116,45 @@ impl SimpleGameLayer for TilemapUpdateLayer {
 }
 
 fn pathfind_from(
-    pos: Position,
+    pos: (usize, usize),
     world: &SubWorld,
     tilemap: &Tilemap,
-    visited: &mut HashSet<Position>,
-) -> HashSet<Position> {
-    let mut res = HashSet::new();
-    let sides = compute_sides(&pos);
+    visited: &mut [[bool; 38]; 68],
+) -> Vec<(usize, usize)> {
+    let mut res = Vec::new();
+    let sides = compute_sides(pos);
     sides.iter().for_each(|side_pos| {
-        if !visited.contains(side_pos) {
-            visited.insert(side_pos.clone());
-            let sprite = tilemap.retrieve_sprite_tile(side_pos, &world).unwrap_or(2);
+        if !visited[side_pos.0][side_pos.1] {
+            visited[side_pos.0][side_pos.1] = true;
+            let sprite = tilemap.retrieve_sprite_tile(&Position::new(side_pos.0, side_pos.1, 0), &world).unwrap_or(2);
             if sprite != 2 {
-                res.insert(side_pos.clone());
-                let recursive_call_result =
-                    pathfind_from(side_pos.clone(), world, tilemap, visited);
-                recursive_call_result.iter().for_each(|e| {
-                    res.insert(e.clone());
-                });
+                res.push(side_pos.clone());
+                let mut recursive_call_result =
+                    pathfind_from(*side_pos, world, tilemap, visited);
+               res.append(&mut recursive_call_result);
             }
         }
     });
     res
 }
 
-fn compute_sides(pos: &Position) -> Vec<Position> {
+fn compute_sides(pos: (usize, usize)) -> Vec<(usize, usize)> {
     let mut res = Vec::new();
 
-    if pos.x() > 0 {
-        res.push(Position::new(pos.x() - 1, pos.y(), 0));
+    if pos.0 > 0 {
+        res.push((pos.0 - 1, pos.1));
     }
 
-    if pos.x() < 67 {
-        res.push(Position::new(pos.x() + 1, pos.y(), 0));
+    if pos.0 < 67 {
+        res.push((pos.0 + 1, pos.1));
     }
 
-    if pos.y() > 0 {
-        res.push(Position::new(pos.x(), pos.y() - 1, 0));
+    if pos.1 > 0 {
+        res.push((pos.0, pos.1 - 1));
     }
 
-    if pos.y() < 37 {
-        res.push(Position::new(pos.x(), pos.y() + 1, 0));
+    if pos.1 < 37 {
+        res.push((pos.0, pos.1 + 1));
     }
     res
 }

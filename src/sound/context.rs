@@ -19,7 +19,7 @@ impl AudioContext {
         let (sender, receiver) = mpsc::channel();
         if cfg!(target_os = "linux") {
             std::thread::spawn(move || unsafe {
-                super::bindings::quad_linux_snd::audio_thread(AudioController::new(receiver))
+                super::bindings::snd::audio_thread(AudioController::new(receiver))
             });
         }
         AudioContext { sender, counter: 0 }

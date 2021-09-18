@@ -11,6 +11,7 @@ use scion::{
 const ANIMATION_DURATION: Duration = Duration::from_millis(400);
 const BALL_SPEED: f32 = 75.;
 
+
 pub fn ball_asset() -> String { app_base_path().join("examples/jezzball/assets/ball.png").get() }
 
 pub fn cases_asset() -> String { app_base_path().join("examples/jezzball/assets/cases.png").get() }
@@ -22,7 +23,7 @@ pub fn ball_bounce_effect() -> String {
 pub fn ball_animations() -> Animations {
     let mut animations = HashMap::new();
     animations.insert(
-        "TOP_LEFT".to_string(),
+        "TopLeft".to_string(),
         Animation::new(
             ANIMATION_DURATION,
             vec![
@@ -37,7 +38,7 @@ pub fn ball_animations() -> Animations {
         ),
     );
     animations.insert(
-        "BOTTOM_LEFT".to_string(),
+        "BottomLeft".to_string(),
         Animation::new(
             ANIMATION_DURATION,
             vec![
@@ -52,7 +53,7 @@ pub fn ball_animations() -> Animations {
         ),
     );
     animations.insert(
-        "TOP_RIGHT".to_string(),
+        "TopRight".to_string(),
         Animation::new(
             ANIMATION_DURATION,
             vec![
@@ -67,7 +68,7 @@ pub fn ball_animations() -> Animations {
         ),
     );
     animations.insert(
-        "BOTTOM_RIGHT".to_string(),
+        "BottomRight".to_string(),
         Animation::new(
             ANIMATION_DURATION,
             vec![

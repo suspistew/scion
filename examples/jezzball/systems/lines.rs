@@ -31,7 +31,7 @@ pub fn line_update(
     let timer_name = format!("{:?}_line", entity);
     let timer_str = timer_name.as_str();
     if !timers.exists(timer_str) {
-        timers.add_timer(timer_str, TimerType::Cyclic, 0.02);
+        let _r = timers.add_timer(timer_str, TimerType::Cyclic, 0.02);
     }
     let timer = timers.get_timer(timer_str).unwrap();
 
@@ -60,7 +60,7 @@ pub fn line_update(
                 match line.direction {
                     LineDirection::LEFT | LineDirection::RIGHT => {
                         let y = (transform.translation().y() - 10.) as usize / 16;
-                        events.publish(
+                        let _r = events.publish(
                             "TILEMAP_UPDATE",
                             (
                                 ((transform.translation().x()) - 10.) as usize / 16,
@@ -86,7 +86,7 @@ pub fn line_update(
                     }
                     LineDirection::TOP | LineDirection::BOTTOM => {
                         let x = (transform.translation().x() - 10.) as usize / 16;
-                        events.publish(
+                        let _r = events.publish(
                             "TILEMAP_UPDATE",
                             (
                                 x,
@@ -136,12 +136,4 @@ pub fn line_update(
             );
         }
     }
-}
-
-fn line_touched_horizontal_border(transform: &mut Transform, rectangle: &mut Rectangle) -> bool {
-    transform.translation().y() < 10. || transform.translation().y() + rectangle.height() > 619.
-}
-
-fn line_touched_vertical_border(transform: &mut Transform, rectangle: &mut Rectangle) -> bool {
-    transform.translation().x() < 10. || transform.translation().x() + rectangle.width() > 1098.
 }

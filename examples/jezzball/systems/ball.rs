@@ -34,40 +34,40 @@ pub fn ball_control(
                 name.as_str(),
                 &ball.direction.as_ref().expect("A ball has collided without any direction WTF ?!"),
             ) {
-                ("BORDER_LEFT", BallDirection::TOP_LEFT) => Some(BallDirection::TOP_RIGHT),
-                ("BORDER_LEFT", BallDirection::BOTTOM_LEFT) => Some(BallDirection::BOTTOM_RIGHT),
-                ("BORDER_RIGHT", BallDirection::TOP_RIGHT) => Some(BallDirection::TOP_LEFT),
-                ("BORDER_RIGHT", BallDirection::BOTTOM_RIGHT) => Some(BallDirection::BOTTOM_LEFT),
-                ("BORDER_TOP", BallDirection::TOP_RIGHT) => Some(BallDirection::BOTTOM_RIGHT),
-                ("BORDER_TOP", BallDirection::TOP_LEFT) => Some(BallDirection::BOTTOM_LEFT),
-                ("BORDER_BOTTOM", BallDirection::BOTTOM_RIGHT) => Some(BallDirection::TOP_RIGHT),
-                ("BORDER_BOTTOM", BallDirection::BOTTOM_LEFT) => Some(BallDirection::TOP_LEFT),
+                ("BORDER_LEFT", BallDirection::TopLeft) => Some(BallDirection::TopRight),
+                ("BORDER_LEFT", BallDirection::BottomLeft) => Some(BallDirection::BottomRight),
+                ("BORDER_RIGHT", BallDirection::TopRight) => Some(BallDirection::TopLeft),
+                ("BORDER_RIGHT", BallDirection::BottomRight) => Some(BallDirection::BottomLeft),
+                ("BORDER_TOP", BallDirection::TopRight) => Some(BallDirection::BottomRight),
+                ("BORDER_TOP", BallDirection::TopLeft) => Some(BallDirection::BottomLeft),
+                ("BORDER_BOTTOM", BallDirection::BottomRight) => Some(BallDirection::TopRight),
+                ("BORDER_BOTTOM", BallDirection::BottomLeft) => Some(BallDirection::TopLeft),
                 ("BORDER_CUSTOM_VERTICAL", e) => {
                     match e {
-                        BallDirection::TOP_LEFT => {
+                        BallDirection::TopLeft => {
                             if collision.coordinates().x() + 8. <= transform.translation().x() {
-                                Some(BallDirection::TOP_RIGHT)
+                                Some(BallDirection::TopRight)
                             } else {
                                 None
                             }
                         }
-                        BallDirection::TOP_RIGHT => {
+                        BallDirection::TopRight => {
                             if collision.coordinates().x() > transform.translation().x() {
-                                Some(BallDirection::TOP_LEFT)
+                                Some(BallDirection::TopLeft)
                             } else {
                                 None
                             }
                         }
-                        BallDirection::BOTTOM_LEFT => {
+                        BallDirection::BottomLeft => {
                             if collision.coordinates().x() + 8. <= transform.translation().x() {
-                                Some(BallDirection::BOTTOM_RIGHT)
+                                Some(BallDirection::BottomRight)
                             } else {
                                 None
                             }
                         }
-                        BallDirection::BOTTOM_RIGHT => {
+                        BallDirection::BottomRight => {
                             if collision.coordinates().x() > transform.translation().x() {
-                                Some(BallDirection::BOTTOM_LEFT)
+                                Some(BallDirection::BottomLeft)
                             } else {
                                 None
                             }
@@ -76,30 +76,30 @@ pub fn ball_control(
                 }
                 ("BORDER_CUSTOM_HORIZONTAL", e) => {
                     match e {
-                        BallDirection::TOP_LEFT => {
+                        BallDirection::TopLeft => {
                             if collision.coordinates().y() + 8. <= transform.translation().y() {
-                                Some(BallDirection::BOTTOM_LEFT)
+                                Some(BallDirection::BottomLeft)
                             } else {
                                 None
                             }
                         }
-                        BallDirection::TOP_RIGHT => {
+                        BallDirection::TopRight => {
                             if collision.coordinates().y() + 8. <= transform.translation().y() {
-                                Some(BallDirection::BOTTOM_RIGHT)
+                                Some(BallDirection::BottomRight)
                             } else {
                                 None
                             }
                         }
-                        BallDirection::BOTTOM_LEFT => {
+                        BallDirection::BottomLeft => {
                             if collision.coordinates().y() > transform.translation().y() {
-                                Some(BallDirection::TOP_LEFT)
+                                Some(BallDirection::TopLeft)
                             } else {
                                 None
                             }
                         }
-                        BallDirection::BOTTOM_RIGHT => {
+                        BallDirection::BottomRight => {
                             if collision.coordinates().y() > transform.translation().y() {
-                                Some(BallDirection::TOP_RIGHT)
+                                Some(BallDirection::TopRight)
                             } else {
                                 None
                             }
@@ -113,7 +113,7 @@ pub fn ball_control(
                 animations.stop_all_animation(true);
                 animations.loop_animation(direction.to_string().as_str());
                 ball.direction = Some(direction);
-                //audio_player.play("BOUNCE", PlayConfig::default());
+                audio_player.play("BOUNCE", PlayConfig::default());
             }
         }
     })
@@ -121,9 +121,9 @@ pub fn ball_control(
 
 fn random_direction() -> BallDirection {
     match thread_rng().gen_range(0..4) {
-        0 => BallDirection::TOP_RIGHT,
-        1 => BallDirection::TOP_LEFT,
-        2 => BallDirection::BOTTOM_LEFT,
-        _ => BallDirection::BOTTOM_RIGHT,
+        0 => BallDirection::TopRight,
+        1 => BallDirection::TopLeft,
+        2 => BallDirection::BottomLeft,
+        _ => BallDirection::BottomRight,
     }
 }

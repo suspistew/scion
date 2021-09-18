@@ -16,7 +16,7 @@ hot-reload = []
 
 [dependencies]
 legion = { version = "0.4", default-features = false, features = ["codegen"] }
-atomic_refcell = "0.1.7"
+atomic_refcell = "0.1.6"
 
 # window & rendering
 winit = "0.25"
@@ -27,8 +27,8 @@ futures = "0.3"
 ultraviolet = "0.8"
 
 # serialization
-serde = { version = "1.0.127", features = ["derive"] }
-serde_json = "1.0.64"
+serde = { version = "1.0.130", features = ["derive"] }
+serde_json = "1.0.68"
 bytemuck = { version = "1.7", features = ["derive"] }
 image = { version = "0.23", default-features = false, features = ["png"] }
 
@@ -60,4 +60,4 @@ glob = "0.3"
 #shaderc = "0.7"
 
 [dev-dependencies]
-rand = "0.8.3"
+rand = "0.8.4"

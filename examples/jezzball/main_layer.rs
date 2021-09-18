@@ -26,10 +26,10 @@ use crate::utils::{ball_animations, ball_asset, ball_bounce_effect};
 
 #[derive(Debug)]
 pub enum BallDirection {
-    TOP_LEFT,
-    TOP_RIGHT,
-    BOTTOM_LEFT,
-    BOTTOM_RIGHT,
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
 }
 
 #[derive(Debug)]
@@ -78,7 +78,7 @@ impl SimpleGameLayer for JezzBallLayer {
         init_balls(world, &assets);
         add_border(world);
 
-        resources.audio().register_sound(
+        let _r = resources.audio().register_sound(
             "BOUNCE",
             Sound::new(ball_bounce_effect(), SoundLoadingType::AlwaysInMemory),
         );
