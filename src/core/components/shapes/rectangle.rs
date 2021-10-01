@@ -27,18 +27,7 @@ impl Rectangle {
     /// When rendering using a texture, you can customize uvs map using `uvs`. By default it will
     /// use 0 to 1 uvs
     pub fn new(width: f32, height: f32, uvs: Option<[Coordinates; 4]>) -> Self {
-        let a = Coordinates::new(0., 0.);
-        let b = Coordinates::new(a.x(), a.y() + height);
-        let c = Coordinates::new(a.x() + width, a.y() + height);
-        let d = Coordinates::new(a.x() + width, a.y());
-        let uvs_ref = uvs.unwrap_or(default_uvs());
-        let contents = [
-            TexturedGlVertex::from((&a, &uvs_ref[0])),
-            TexturedGlVertex::from((&b, &uvs_ref[1])),
-            TexturedGlVertex::from((&c, &uvs_ref[2])),
-            TexturedGlVertex::from((&d, &uvs_ref[3])),
-        ];
-        Self { width, height, vertices: [a, b, c, d], uvs: Some(uvs_ref), contents, dirty: false }
+        Rectangle::new_with_offset(width, height, uvs, 0.)
     }
 
     pub fn pivot(self, pivot: Pivot) -> Self {
