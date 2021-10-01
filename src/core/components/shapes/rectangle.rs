@@ -3,7 +3,10 @@ use std::ops::Range;
 use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
 use crate::{
-    core::components::{material::Material, maths::coordinates::Coordinates},
+    core::components::{
+        material::Material,
+        maths::{coordinates::Coordinates, Pivot},
+    },
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
 
@@ -25,6 +28,35 @@ impl Rectangle {
     /// use 0 to 1 uvs
     pub fn new(width: f32, height: f32, uvs: Option<[Coordinates; 4]>) -> Self {
         let a = Coordinates::new(0., 0.);
+        let b = Coordinates::new(a.x(), a.y() + height);
+        let c = Coordinates::new(a.x() + width, a.y() + height);
+        let d = Coordinates::new(a.x() + width, a.y());
+        let uvs_ref = uvs.unwrap_or(default_uvs());
+        let contents = [
+            TexturedGlVertex::from((&a, &uvs_ref[0])),
+            TexturedGlVertex::from((&b, &uvs_ref[1])),
+            TexturedGlVertex::from((&c, &uvs_ref[2])),
+            TexturedGlVertex::from((&d, &uvs_ref[3])),
+        ];
+        Self { width, height, vertices: [a, b, c, d], uvs: Some(uvs_ref), contents, dirty: false }
+    }
+
+    pub fn pivot(self, pivot: Pivot) -> Self {
+        let offset = match pivot {
+            Pivot::TopLeft => 0.,
+            Pivot::Center => self.width / 2.,
+        };
+
+        Rectangle::new_with_offset(self.width, self.height, self.uvs, offset)
+    }
+
+    pub fn new_with_offset(
+        width: f32,
+        height: f32,
+        uvs: Option<[Coordinates; 4]>,
+        offset: f32,
+    ) -> Self {
+        let a = Coordinates::new(0. - offset, 0. - offset);
         let b = Coordinates::new(a.x(), a.y() + height);
         let c = Coordinates::new(a.x() + width, a.y() + height);
         let d = Coordinates::new(a.x() + width, a.y());
@@ -74,8 +106,12 @@ impl Rectangle {
         self.width = new_width;
     }
 
-    pub fn height(&self) -> f32 { self.height }
-    pub fn width(&self) -> f32 { self.width }
+    pub fn height(&self) -> f32 {
+        self.height
+    }
+    pub fn width(&self) -> f32 {
+        self.width
+    }
 }
 
 fn default_uvs() -> [Coordinates; 4] {
@@ -104,11 +140,19 @@ impl Renderable2D for Rectangle {
         }
     }
 
-    fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
+    fn range(&self) -> Range<u32> {
+        0..INDICES.len() as u32
+    }
 
-    fn topology() -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
+    fn topology() -> PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleList
+    }
 
-    fn dirty(&self) -> bool { self.dirty }
+    fn dirty(&self) -> bool {
+        self.dirty
+    }
 
-    fn set_dirty(&mut self, is_dirty: bool) { self.dirty = is_dirty }
+    fn set_dirty(&mut self, is_dirty: bool) {
+        self.dirty = is_dirty
+    }
 }
