@@ -102,6 +102,11 @@ impl AudioPlayer {
         }
     }
 
+    pub fn stop_all(&mut self) -> Result<(), Error> {
+        self.context.stop_all_sounds();
+        Ok(())
+    }
+
     /// This is a way to tell the audio controller that the system is ready.
     /// The system is considered ready to deliver any sound once at least one frame is finished.
     pub(crate) fn system_ready(&mut self) {
