@@ -12,6 +12,7 @@ pub enum AudioEvent {
     AddSound { sound_id: usize, data: Reader<Cursor<Vec<u8>>> },
     PlaySound { sound_id: usize, config: PlayConfig },
     StopSound { sound_id: usize },
+    StopAllSounds,
     SystemReady,
 }
 
@@ -56,6 +57,9 @@ impl AudioController {
                 AudioEvent::StopSound { sound_id } => {
                     self.currently_played_sounds.remove(&sound_id);
                 }
+                AudioEvent::StopAllSounds => {
+                    self.currently_played_sounds.clear();
+                }
             }
         }
     }
@@ -99,24 +103,20 @@ impl AudioController {
         let (sounds, currently_played_sounds) = self.split_loaded_and_playing();
         for frame in 0..frames {
             let (mut left_channel, mut right_channel) = (0., 0.);
-            currently_played_sounds.retain(|sound_id, state| {
-                match sounds.get(sound_id) {
-                    Some(sound_data) => {
-                        left_channel += sound_data[state.sample_cursor][0] * 1.;
-                        right_channel += sound_data[state.sample_cursor][1] * 1.;
-                        state.sample_cursor += 1;
-                        if state.sample_cursor >= sound_data.len() {
-                            false
-                        } else {
-                            true
-                        }
-                    }
-                    None => {
-                        log::error!(
-                            "A sound can't be played because it's not present in the datas"
-                        );
+            currently_played_sounds.retain(|sound_id, state| match sounds.get(sound_id) {
+                Some(sound_data) => {
+                    left_channel += sound_data[state.sample_cursor][0] * 1.;
+                    right_channel += sound_data[state.sample_cursor][1] * 1.;
+                    state.sample_cursor += 1;
+                    if state.sample_cursor >= sound_data.len() {
+                        false
+                    } else {
                         true
                     }
+                }
+                None => {
+                    log::error!("A sound can't be played because it's not present in the datas");
+                    true
                 }
             });
             buffer[CHANNELS as usize * frame as usize] = left_channel;
