@@ -24,47 +24,47 @@ pub fn score(
     for (_, bloc, transform) in query.iter_mut(world) {
         match bloc.kind {
             BlocKind::Static => {
-                let key = (transform.translation().y() / BLOC_SIZE) as usize;
-                let new_val = match lines.get(&key) {
+                let line_idx = (transform.translation().y() / BLOC_SIZE) as usize;
+                let bloc_counter = match lines.get(&line_idx) {
                     Some(val) => val + 1,
                     None => 1,
                 };
-                lines.insert(key, new_val);
+                lines.insert(line_idx, bloc_counter);
             }
             _ => {}
         }
     }
 
-    let lines2 = {
+    let full_lines = {
         let mut full_lines = Vec::new();
-        for (key, val) in lines.iter() {
-            if val == &10 {
+        for (line_idx, bloc_counter) in lines.iter() {
+            if bloc_counter == &10 {
                 tetris.score += 1;
-                full_lines.push(*key);
+                full_lines.push(*line_idx);
             }
         }
         full_lines.sort_unstable();
         full_lines
     };
 
-    if !lines2.is_empty() {
+    if !full_lines.is_empty() {
         for (entity, bloc, transform) in query.iter_mut(world) {
             match bloc.kind {
                 BlocKind::Static => {
-                    let line = (transform.translation().y() / BLOC_SIZE) as usize;
-                    if lines2.contains(&line) {
+                    let line_idx = (transform.translation().y() / BLOC_SIZE) as usize;
+                    if full_lines.contains(&line_idx) {
                         cmd.remove(*entity);
                     }
                 }
                 _ => {}
             };
         }
-        for line in lines2.iter() {
+        for full_line_idx in full_lines.iter() {
             for (_, bloc, transform) in query.iter_mut(world) {
                 match bloc.kind {
                     BlocKind::Static => {
-                        if *line > (transform.translation().y() / BLOC_SIZE) as usize
-                        {
+                        let line_idx = (transform.translation().y() / BLOC_SIZE) as usize;
+                        if *full_line_idx > line_idx {
                             transform.move_down(BLOC_SIZE);
                         }
                     }
