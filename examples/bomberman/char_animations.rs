@@ -1,9 +1,9 @@
 use std::{collections::HashMap, time::Duration};
 
 use scion::core::components::{
-    animations::{Animation, AnimationModifier},
-    maths::vector::Vector,
+    animations::{Animation, AnimationModifier}
 };
+use scion::utils::maths::Vector;
 
 const MOVE_DURATION: Duration = Duration::from_millis(500);
 

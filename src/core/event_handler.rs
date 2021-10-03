@@ -1,21 +1,17 @@
 use legion::Resources;
 use winit::{
-    event::{Event, WindowEvent},
-    event_loop::ControlFlow,
-    window::Window,
+    event::WindowEvent
 };
 
 use crate::{
-    config::scion_config::ScionConfig,
     core::{
         legion_ext::ScionResourcesExtension,
         resources::inputs::{
-            keycode::KeyCode,
-            mouse::{MouseButton, MouseEvent},
-            InputState, KeyboardEvent,
+            InputState,
+            KeyboardEvent,
+            keycode::KeyCode, mouse::{MouseButton, MouseEvent},
         },
     },
-    rendering::renderer_state::RendererState,
 };
 
 pub fn update_input_events(window_event: &WindowEvent, resources: &mut Resources) {

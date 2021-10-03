@@ -3,10 +3,10 @@ use std::{collections::HashMap, time::Duration};
 use scion::{
     core::components::{
         animations::{Animation, AnimationModifier, Animations},
-        maths::vector::Vector,
     },
     utils::file::app_base_path,
 };
+use scion::utils::maths::Vector;
 
 const ANIMATION_DURATION: Duration = Duration::from_millis(400);
 const BALL_SPEED: f32 = 75.;

@@ -97,7 +97,7 @@ pub(crate) fn animation_executer(
         .for_each(|(key, animation)| {
             for modifier in animation.modifiers.iter_mut() {
                 let timer_id = format!("{:?}-{}-{}", *entity, key, modifier.to_string());
-                timers.delete_timer(timer_id.as_str());
+                let _r = timers.delete_timer(timer_id.as_str());
             }
         });
 }
