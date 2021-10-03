@@ -23,7 +23,10 @@ pub enum SoundLoadingType {
 
 /// `PlayConfig` describe how sound must be played
 #[derive(Default)]
-pub struct PlayConfig {}
+pub struct PlayConfig {
+    /// Should the sound restart if it is already playing
+    pub restart_on_conflict: bool
+}
 
 #[derive(Clone)]
 pub struct Sound {

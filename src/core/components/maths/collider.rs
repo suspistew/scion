@@ -84,10 +84,6 @@ impl Collider {
 
     pub(crate) fn debug_lines(&self) -> bool { self.debug_lines }
 
-    pub(crate) fn passive(&self) -> bool {
-        self.collision_filter.len() == 1 && self.collision_filter.contains(&ColliderMask::None)
-    }
-
     pub(crate) fn clear_collisions(&mut self) { self.collisions.clear(); }
 
     pub(crate) fn can_collide_with(&self, other: &Collider) -> bool {

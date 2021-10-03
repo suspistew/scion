@@ -7,7 +7,7 @@ Scion is a 2D game library made in rust.
 
 ## Why this project ? 
 
-Well, firstly because it' a good way to learn. 
+Well, firstly because it' a good way to learn the different aspects of game dev under the hood. 
 Then, because I wanted to create something with modest goals, focused on ease of use and a short list of principles that also serves as a guideline.
 
 Scion is not 'inspired' by any other engine, it's inspired by the needs from real projects. 
@@ -17,7 +17,7 @@ Scion is not 'inspired' by any other engine, it's inspired by the needs from rea
 - Strong focus on **2D** only.
 - **Easy** and **Fun** to use.
 - Clean and readable source code
-- I hope one day (Editor)
+- Tauri based Editor
 
 ### Non goals
 
@@ -35,7 +35,7 @@ I believe that ECS has its strength and its weaknesses.
 The choice of it here is made because the main target games of this lib at its start were to be able to make : 
 - a complex city building game.
 - a pkmn fan game with real time trainer progression and wild pkmn.
-- granular network packets representation && dot simulation games. 
+- granular network packets representation && dot simulation games.
 
 ## Notable dependencies
 
@@ -44,10 +44,23 @@ These are the dependencies this project is relying on. Thanks to these awesome c
 - <a href="https://github.com/rust-windowing/winit" target="blank">winit</a> and <a href="https://github.com/gfx-rs/wgpu/tree/master/wgpu" target="blank">wgpu</a> (windowing and multi backend rendering)
 - <a href="https://github.com/amethyst/legion" target="blank">legion</a> (Entity component system)
 - <a href="https://github.com/termhn/ultraviolet" target="blank">ultraviolet</a> (Maths)
+
+## Pre-requisite
+
+### Debian, Ubuntu, PopOS...
+
+To build the project you'll need to install these first : 
+```sh
+sudo apt install gcc cmake build-essential libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev
+```
+
 ## Showcase
 
-<img src="./examples/taquin/taquin.gif" alt="Taquin" style="width:300px"/>
-<img src="./examples/tetris/tetris.gif" alt="Tetris" style="width:300px" />
-<img src="./examples/mario/mario.gif" alt="Mario" style="width:300px" />
-<img src="./examples/bomberman/bomberman.gif" alt="Bomberman" style="width:300px" />
-<img src="./examples/jezzball/jezzball.gif" alt="Jezzball" style="width:300px" />
+| <img src="./examples/taquin/taquin.gif" alt="Taquin" style="width:300px"/>  | <img src="./examples/tetris/tetris.gif" alt="Tetris" style="width:300px" />  | <img src="./examples/mario/mario.gif" alt="Mario" style="width:300px" /> |
+| ------------- | ------------- | ------------- |
+| <img src="./examples/bomberman/bomberman.gif" alt="Bomberman" style="width:300px" /> | <img src="./examples/jezzball/jezzball.gif" alt="Jezzball" style="width:300px" /> | |
+
+
+
+
+

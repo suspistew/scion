@@ -3,9 +3,8 @@ use std::{collections::HashMap, io::Cursor, sync::mpsc, thread};
 use audrey::Reader;
 
 use crate::{
-    core::resources::sound::{PlayConfig, Sound},
-    sound::{parse_ogg, CHANNELS},
-    utils::file::read_file,
+    core::resources::sound::PlayConfig,
+    sound::CHANNELS
 };
 
 pub enum AudioEvent {
@@ -51,6 +50,9 @@ impl AudioController {
                     self.sounds.insert(sound_id, data);
                 }
                 AudioEvent::PlaySound { sound_id, config } => {
+                    if self.currently_played_sounds.contains_key(&sound_id) && !config.restart_on_conflict {
+                        return;
+                    }
                     self.currently_played_sounds
                         .insert(sound_id, SoundState { config, sample_cursor: 0 });
                 }
