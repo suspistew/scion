@@ -27,25 +27,26 @@ impl Rectangle {
     /// When rendering using a texture, you can customize uvs map using `uvs`. By default it will
     /// use 0 to 1 uvs
     pub fn new(width: f32, height: f32, uvs: Option<[Coordinates; 4]>) -> Self {
-        Rectangle::new_with_offset(width, height, uvs, 0.)
+        Rectangle::new_with_offset(width, height, uvs, 0., 0.)
     }
 
     pub fn pivot(self, pivot: Pivot) -> Self {
-        let offset = match pivot {
-            Pivot::TopLeft => 0.,
-            Pivot::Center => self.width / 2.,
+        let (x_offset, y_offset) = match pivot {
+            Pivot::TopLeft => (0., 0.),
+            Pivot::Center => (self.width / 2., self.height / 2.),
         };
 
-        Rectangle::new_with_offset(self.width, self.height, self.uvs, offset)
+        Rectangle::new_with_offset(self.width, self.height, self.uvs, x_offset, y_offset)
     }
 
     pub fn new_with_offset(
         width: f32,
         height: f32,
         uvs: Option<[Coordinates; 4]>,
-        offset: f32,
+        x_offset: f32,
+        y_offset: f32,
     ) -> Self {
-        let a = Coordinates::new(0. - offset, 0. - offset);
+        let a = Coordinates::new(0. - x_offset, 0. - y_offset);
         let b = Coordinates::new(a.x(), a.y() + height);
         let c = Coordinates::new(a.x() + width, a.y() + height);
         let d = Coordinates::new(a.x() + width, a.y());
