@@ -54,6 +54,20 @@ To build the project you'll need to install these first :
 sudo apt install gcc cmake build-essential libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev
 ```
 
+### Fedora
+
+To build the project you'll need to install these first : 
+```sh
+sudo dnf install gcc cmake make automake gcc gcc-c++ kernel-devel libX11-devel libXi-devel mesa-libGL-devel alsa-lib-devel
+```
+
+### Run an example
+
+Then, you can run an example :
+```sh
+cargo run --example bomberman --release
+```
+
 ## Showcase
 
 | <img src="./examples/taquin/taquin.gif" alt="Taquin" style="width:300px"/>  | <img src="./examples/tetris/tetris.gif" alt="Tetris" style="width:300px" />  | <img src="./examples/mario/mario.gif" alt="Mario" style="width:300px" /> |
