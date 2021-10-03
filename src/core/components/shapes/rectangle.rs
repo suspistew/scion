@@ -3,7 +3,10 @@ use std::ops::Range;
 use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
 use crate::{
-    core::components::{material::Material, maths::coordinates::Coordinates},
+    core::components::{
+        material::Material,
+        maths::{coordinates::Coordinates, Pivot},
+    },
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
 
@@ -24,7 +27,26 @@ impl Rectangle {
     /// When rendering using a texture, you can customize uvs map using `uvs`. By default it will
     /// use 0 to 1 uvs
     pub fn new(width: f32, height: f32, uvs: Option<[Coordinates; 4]>) -> Self {
-        let a = Coordinates::new(0., 0.);
+        Rectangle::new_with_offset(width, height, uvs, 0., 0.)
+    }
+
+    pub fn pivot(self, pivot: Pivot) -> Self {
+        let (x_offset, y_offset) = match pivot {
+            Pivot::TopLeft => (0., 0.),
+            Pivot::Center => (self.width / 2., self.height / 2.),
+        };
+
+        Rectangle::new_with_offset(self.width, self.height, self.uvs, x_offset, y_offset)
+    }
+
+    pub fn new_with_offset(
+        width: f32,
+        height: f32,
+        uvs: Option<[Coordinates; 4]>,
+        x_offset: f32,
+        y_offset: f32,
+    ) -> Self {
+        let a = Coordinates::new(0. - x_offset, 0. - y_offset);
         let b = Coordinates::new(a.x(), a.y() + height);
         let c = Coordinates::new(a.x() + width, a.y() + height);
         let d = Coordinates::new(a.x() + width, a.y());
@@ -74,8 +96,12 @@ impl Rectangle {
         self.width = new_width;
     }
 
-    pub fn height(&self) -> f32 { self.height }
-    pub fn width(&self) -> f32 { self.width }
+    pub fn height(&self) -> f32 {
+        self.height
+    }
+    pub fn width(&self) -> f32 {
+        self.width
+    }
 }
 
 fn default_uvs() -> [Coordinates; 4] {
@@ -104,11 +130,19 @@ impl Renderable2D for Rectangle {
         }
     }
 
-    fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
+    fn range(&self) -> Range<u32> {
+        0..INDICES.len() as u32
+    }
 
-    fn topology() -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
+    fn topology() -> PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleList
+    }
 
-    fn dirty(&self) -> bool { self.dirty }
+    fn dirty(&self) -> bool {
+        self.dirty
+    }
 
-    fn set_dirty(&mut self, is_dirty: bool) { self.dirty = is_dirty }
+    fn set_dirty(&mut self, is_dirty: bool) {
+        self.dirty = is_dirty
+    }
 }
