@@ -59,12 +59,11 @@ pub fn score(
                 _ => {}
             };
         }
-        for (index, line) in lines2.iter().enumerate() {
+        for line in lines2.iter() {
             for (_, bloc, transform) in query.iter_mut(world) {
                 match bloc.kind {
                     BlocKind::Static => {
-                        if (*line - index as usize)
-                            > (transform.translation().y() / BLOC_SIZE) as usize
+                        if *line > (transform.translation().y() / BLOC_SIZE) as usize
                         {
                             transform.move_down(BLOC_SIZE);
                         }
