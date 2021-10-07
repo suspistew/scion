@@ -3,7 +3,7 @@ use scion::core::{components::material::Material, resources::asset_manager::Asse
 use crate::components::Piece;
 
 pub enum TetrisState {
-    MOVING(u32, u32),
+    MOVING(i32, i32),
     WAITING,
 }
 

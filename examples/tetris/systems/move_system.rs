@@ -64,7 +64,7 @@ pub fn move_piece(
         if should_move {
             movement_timer.reset();
             if let TetrisState::MOVING(x, y) = tetris.state {
-                tetris.state = TetrisState::MOVING((x as i32 + movement as i32) as u32, y);
+                tetris.state = TetrisState::MOVING(x + movement, y);
             };
             for (bloc, transform) in query.iter_mut(world) {
                 match bloc.kind {
