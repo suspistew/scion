@@ -1,7 +1,8 @@
+use std::collections::HashSet;
+
 use serde::{Deserialize, Serialize};
 
-use crate::core::resources::inputs::types::{MouseButton, InputState, Input};
-use std::collections::HashSet;
+use crate::core::resources::inputs::types::{Input, InputState, MouseButton};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MouseEvent {
@@ -106,26 +107,20 @@ impl Mouse {
     }
 
     pub(crate) fn all_click_at_state(&self, state: InputState) -> Vec<Input> {
-        self.click_events.iter()
+        self.click_events
+            .iter()
             .filter(|input| input.state == state)
-            .map(|input| Input::Mouse(input.button)).collect()
+            .map(|input| Input::Mouse(input.button))
+            .collect()
     }
 
     pub(crate) fn all_pressed(&self) -> Vec<Input> {
-        self.buttons_pressed.iter()
-            .map(|input| Input::Mouse(*input)).collect()
+        self.buttons_pressed.iter().map(|input| Input::Mouse(*input)).collect()
     }
 
-    /// Returns the current x value of the cursor
-    pub(crate) fn x(&self) -> f64 { self.x }
-    /// Returns the current y value of the cursor
-    pub(crate) fn y(&self) -> f64 { self.y }
     /// Returns the current x and y value of the cursor
     pub(crate) fn xy(&self) -> (f64, f64) { (self.x, self.y) }
-    /// Returns if the mouse has been clicked in the current frame
-    pub(crate) fn click_events(&self) -> &Vec<MouseEvent> { &self.click_events }
-
-    pub(crate) fn button_pressed(&self, button: &MouseButton) -> bool{
+    pub(crate) fn button_pressed(&self, button: &MouseButton) -> bool {
         self.buttons_pressed.contains(button)
     }
 }

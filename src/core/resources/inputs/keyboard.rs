@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::core::resources::inputs::types::{KeyCode, Input, InputState, KeyboardEvent};
+use crate::core::resources::inputs::types::{Input, InputState, KeyCode, KeyboardEvent};
 
 #[derive(Default)]
 /// Convenience resource used to keep track of keyboard inputs
@@ -47,14 +47,15 @@ impl Keyboard {
     }
 
     pub(crate) fn all_keys_at_state(&self, state: InputState) -> Vec<Input> {
-        self.keyboard_events.iter()
+        self.keyboard_events
+            .iter()
             .filter(|input| input.state == state)
-            .map(|input| Input::Key(input.keycode)).collect()
+            .map(|input| Input::Key(input.keycode))
+            .collect()
     }
 
     pub(crate) fn all_pressed(&self) -> Vec<Input> {
-        self.pressed_keys.iter()
-            .map(|input| Input::Key(*input)).collect()
+        self.pressed_keys.iter().map(|input| Input::Key(*input)).collect()
     }
 
     pub(crate) fn clear_events(&mut self) { self.keyboard_events.clear(); }

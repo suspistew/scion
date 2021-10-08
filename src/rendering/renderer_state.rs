@@ -14,7 +14,6 @@ pub(crate) struct RendererState {
 
 impl RendererState {
     pub(crate) async fn new(window: &Window, mut scion_renderer: Box<dyn ScionRenderer>) -> Self {
-
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };

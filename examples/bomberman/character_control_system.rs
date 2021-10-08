@@ -1,11 +1,10 @@
 use legion::{systems::CommandBuffer, *};
 use scion::core::{
     components::{animations::Animations, maths::transform::Transform, tiles::sprite::Sprite},
-    resources::inputs::{inputs_controller::InputsController},
+    resources::inputs::{inputs_controller::InputsController, types::KeyCode},
 };
 
 use crate::{bomb_animations, level_reader::Level, Bomb, BombermanInfos, BombermanRefs};
-use scion::core::resources::inputs::types::KeyCode;
 
 #[system(for_each)]
 pub fn controller(

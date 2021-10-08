@@ -34,9 +34,7 @@ impl SimpleGameLayer for InputLayer {
         let mut change_mouse_state = false;
         let mouse_pos = resources.inputs().mouse_xy();
         if !self.compute_mouse_on_border(mouse_pos, resources) {
-            resources
-                .inputs()
-                .on_right_click_released(|_pos_x, _pos_y| change_mouse_state = true);
+            resources.inputs().on_right_click_released(|_pos_x, _pos_y| change_mouse_state = true);
             if change_mouse_state {
                 let new_icon = self.compute_new_icon(resources);
                 resources.window().set_cursor(new_icon);

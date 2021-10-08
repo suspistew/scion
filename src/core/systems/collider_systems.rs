@@ -154,16 +154,16 @@ mod tests {
         let e = world.push((
             1,
             t,
-            Collider::new(
-                ColliderMask::Bullet,
-                vec![],
-                ColliderType::Square(5),
-            ),
+            Collider::new(ColliderMask::Bullet, vec![], ColliderType::Square(5)),
         ));
         let e2 = world.push((
             2,
             t2,
-            Collider::new(ColliderMask::Landscape, vec![ColliderMask::Bullet], ColliderType::Square(5)),
+            Collider::new(
+                ColliderMask::Landscape,
+                vec![ColliderMask::Bullet],
+                ColliderType::Square(5),
+            ),
         ));
 
         schedule.execute(&mut world, &mut resources);

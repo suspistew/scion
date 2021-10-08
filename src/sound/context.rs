@@ -47,7 +47,5 @@ impl AudioContext {
         let _r = self.sender.send(AudioEvent::StopAllSounds);
     }
 
-    pub(crate) fn system_ready(&self) {
-        let _r = self.sender.send(AudioEvent::SystemReady);
-    }
+    pub(crate) fn system_ready(&self) { let _r = self.sender.send(AudioEvent::SystemReady); }
 }

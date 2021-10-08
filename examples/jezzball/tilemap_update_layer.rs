@@ -1,4 +1,4 @@
-use std::collections::{HashSet, BTreeSet};
+use std::collections::{BTreeSet, HashSet};
 
 use legion::{world::SubWorld, EntityStore, IntoQuery};
 use scion::{
@@ -70,14 +70,14 @@ impl SimpleGameLayer for TilemapUpdateLayer {
                     )
                 })
                 .collect();
-            let mut pathfinded_cases = [[false;38]; 68];
+            let mut pathfinded_cases = [[false; 38]; 68];
             ball_pos.iter().for_each(|(pos_x, pos_y)| {
-            let mut visited = [[false;38]; 68];
-                pathfind_from((*pos_x, *pos_y), &world_c, tilemap, &mut visited)
-                    .iter()
-                    .for_each(|e| {
+                let mut visited = [[false; 38]; 68];
+                pathfind_from((*pos_x, *pos_y), &world_c, tilemap, &mut visited).iter().for_each(
+                    |e| {
                         pathfinded_cases[e.0][e.1] = true;
-                    });
+                    },
+                );
             });
 
             let mut open = 0;
@@ -86,8 +86,8 @@ impl SimpleGameLayer for TilemapUpdateLayer {
                     if !pathfinded_cases[i][j] {
                         let tmp_pos = Position::new(i, j, 0);
                         tilemap.modify_sprite_tile(tmp_pos, 2, &mut world_c);
-                    }else{
-                        open+=1;
+                    } else {
+                        open += 1;
                     }
                 }
             }
@@ -126,12 +126,13 @@ fn pathfind_from(
     sides.iter().for_each(|side_pos| {
         if !visited[side_pos.0][side_pos.1] {
             visited[side_pos.0][side_pos.1] = true;
-            let sprite = tilemap.retrieve_sprite_tile(&Position::new(side_pos.0, side_pos.1, 0), &world).unwrap_or(2);
+            let sprite = tilemap
+                .retrieve_sprite_tile(&Position::new(side_pos.0, side_pos.1, 0), &world)
+                .unwrap_or(2);
             if sprite != 2 {
                 res.push(side_pos.clone());
-                let mut recursive_call_result =
-                    pathfind_from(*side_pos, world, tilemap, visited);
-               res.append(&mut recursive_call_result);
+                let mut recursive_call_result = pathfind_from(*side_pos, world, tilemap, visited);
+                res.append(&mut recursive_call_result);
             }
         }
     });

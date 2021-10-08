@@ -1,9 +1,8 @@
-
 use scion::{
     core::{
         components::maths::transform::Transform,
         resources::{
-            inputs::{inputs_controller::InputsController},
+            inputs::{inputs_controller::InputsController, types::KeyCode},
             time::Timers,
         },
     },
@@ -15,7 +14,6 @@ use crate::{
     resources::{TetrisResource, TetrisState},
     systems::piece_system::initialize_bloc,
 };
-use scion::core::resources::inputs::types::KeyCode;
 
 #[system]
 pub fn piece_rotation(

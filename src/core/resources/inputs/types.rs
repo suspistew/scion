@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use serde::{Deserialize, Serialize};
 use winit::event::{ElementState, VirtualKeyCode};
 
@@ -115,16 +113,12 @@ pub enum Input {
     Mouse(MouseButton),
 }
 
-impl Into<Input> for KeyCode{
-    fn into(self) -> Input {
-        Input::Key(self)
-    }
+impl Into<Input> for KeyCode {
+    fn into(self) -> Input { Input::Key(self) }
 }
 
-impl Into<Input> for MouseButton{
-    fn into(self) -> Input {
-        Input::Mouse(self)
-    }
+impl Into<Input> for MouseButton {
+    fn into(self) -> Input { Input::Mouse(self) }
 }
 
 pub type Shortcut = Vec<Input>;

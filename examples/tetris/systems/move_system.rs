@@ -2,7 +2,7 @@ use scion::{
     core::{
         components::maths::transform::Transform,
         resources::{
-            inputs::{inputs_controller::InputsController},
+            inputs::{inputs_controller::InputsController, types::KeyCode},
             time::Timers,
         },
     },
@@ -13,7 +13,6 @@ use crate::{
     components::{Bloc, BlocKind, BLOC_SIZE, BOARD_WIDTH},
     resources::{TetrisResource, TetrisState},
 };
-use scion::core::resources::inputs::types::KeyCode;
 
 #[system]
 pub fn move_piece(

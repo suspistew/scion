@@ -1,11 +1,10 @@
 //! Everything that is relatives to the core.resources.inputs.
-use std::collections::HashSet;
 
-use legion::storage::IntoComponentSource;
-
-use crate::core::resources::inputs::{keyboard::Keyboard, mouse::Mouse};
-use crate::core::resources::inputs::mouse::MouseEvent;
-use crate::core::resources::inputs::types::{Input, InputState, KeyboardEvent, KeyCode, MouseButton, Shortcut};
+use crate::core::resources::inputs::{
+    keyboard::Keyboard,
+    mouse::{Mouse, MouseEvent},
+    types::{Input, InputState, KeyCode, KeyboardEvent, Shortcut},
+};
 
 /// A resource updated by `Scion` to keep track of the core.resources.inputs
 /// Can be used in any system.
@@ -17,64 +16,61 @@ pub struct InputsController {
 
 impl InputsController {
     /// Whether or not `key` is currently pressed
-    pub fn key_pressed(&self, key: &KeyCode) -> bool {
-        self.keyboard.pressed_keys.contains(key)
-    }
+    pub fn key_pressed(&self, key: &KeyCode) -> bool { self.keyboard.pressed_keys.contains(key) }
 
     /// convenient function to run `action` if `key` is pressed during the current frame
-    pub fn on_key_pressed<Body>(&self, key: KeyCode, mut action: Body)
-        where
-            Body: FnMut(), {
+    pub fn on_key_pressed<Body>(&self, key: KeyCode, action: Body)
+    where
+        Body: FnMut(), {
         self.keyboard.on_key_pressed(key, action);
     }
 
     /// convenient function to run `action` if `key` is released during the current frame
-    pub fn on_key_released<Body>(&self, key: KeyCode, mut action: Body)
-        where
-            Body: FnMut(), {
+    pub fn on_key_released<Body>(&self, key: KeyCode, action: Body)
+    where
+        Body: FnMut(), {
         self.keyboard.on_key_released(key, action);
     }
 
-
     /// Execute the action `action` if the left mouse button is clicked, actions params are mouse position x;y
     pub fn on_left_click_pressed<Body>(&self, action: Body)
-        where
-            Body: FnMut(f64, f64), {
+    where
+        Body: FnMut(f64, f64), {
         self.mouse.on_left_click_pressed(action);
     }
 
     /// Execute the action `action` if the right mouse button is clicked, actions params are mouse position x;y
     pub fn on_right_click_pressed<Body>(&self, action: Body)
-        where
-            Body: FnMut(f64, f64), {
+    where
+        Body: FnMut(f64, f64), {
         self.mouse.on_right_click_pressed(action);
     }
 
     /// Execute the action `action` if the middle mouse button is clicked, actions params are mouse position x;y
     pub fn on_middle_click_pressed<Body>(&self, action: Body)
-        where
-            Body: FnMut(f64, f64), {
+    where
+        Body: FnMut(f64, f64), {
         self.mouse.on_middle_click_pressed(action);
     }
 
     /// Execute the action `action` if the left mouse button is released, actions params are mouse position x;y
     pub fn on_left_click_released<Body>(&self, action: Body)
-        where
-            Body: FnMut(f64, f64), {
+    where
+        Body: FnMut(f64, f64), {
         self.mouse.on_left_click_released(action);
     }
 
     /// Execute the action `action` if the right mouse button is released, actions params are mouse position x;y
     pub fn on_right_click_released<Body>(&self, action: Body)
-        where
-            Body: FnMut(f64, f64), {
+    where
+        Body: FnMut(f64, f64), {
         self.mouse.on_right_click_released(action);
     }
 
     /// Execute the action `action` if the right mouse button is released, actions params are mouse position x;y
     pub fn on_middle_click_released<Body>(&self, action: Body)
-        where
-            Body: FnMut(f64, f64), {
+    where
+        Body: FnMut(f64, f64), {
         self.mouse.on_middle_click_released(action);
     }
 
@@ -97,9 +93,7 @@ impl InputsController {
     }
 
     /// Retrieve the mouse x and y position
-    pub fn mouse_xy(&self) -> (f64, f64) {
-        self.mouse.xy()
-    }
+    pub fn mouse_xy(&self) -> (f64, f64) { self.mouse.xy() }
 
     /// Whether or not `shortcut` is currently pressed
     pub fn shortcut_pressed(&self, shortcut: &Shortcut) -> bool {
@@ -109,16 +103,15 @@ impl InputsController {
     /// Whether or not `shortcut` has just been pressed
     pub fn shortcut_pressed_event(&self, shortcut: &Shortcut) -> bool {
         shortcut.iter().all(|input| self.input_pressed(input))
-            &&
-            shortcut.iter().any(|input| self.all_pressed_events().contains(input))
+            && shortcut.iter().any(|input| self.all_pressed_events().contains(input))
     }
 
     /// Whether or not `shortcut` has just been released
     pub fn shortcut_released_event(&self, shortcut: &Shortcut) -> bool {
         shortcut.iter().any(|input| self.all_released_events().contains(input))
-            &&
-            shortcut.iter().all(|input| self.input_pressed(input)
-                || self.all_released_events().contains(input))
+            && shortcut.iter().all(|input| {
+                self.input_pressed(input) || self.all_released_events().contains(input)
+            })
     }
 
     fn all_events_for_state(&self, input_state: InputState) -> Vec<Input> {
@@ -130,12 +123,8 @@ impl InputsController {
 
     fn input_pressed(&self, input: &Input) -> bool {
         match input {
-            Input::Key(keycode) => {
-                self.key_pressed(keycode)
-            }
-            Input::Mouse(mouse_button) => {
-                self.mouse.button_pressed(mouse_button)
-            }
+            Input::Key(keycode) => self.key_pressed(keycode),
+            Input::Mouse(mouse_button) => self.mouse.button_pressed(mouse_button),
         }
     }
 
@@ -144,9 +133,7 @@ impl InputsController {
         self.keyboard.clear_events();
     }
 
-    pub(crate) fn set_mouse_position(&mut self, x: f64, y: f64) {
-        self.mouse.set_position(x, y);
-    }
+    pub(crate) fn set_mouse_position(&mut self, x: f64, y: f64) { self.mouse.set_position(x, y); }
 
     pub(crate) fn add_click_event(&mut self, event: MouseEvent) {
         self.mouse.add_click_event(event);

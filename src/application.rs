@@ -154,9 +154,10 @@ impl Scion {
                                 .current_monitor()
                                 .expect("Missing the monitor")
                                 .scale_factor();
-                            self.resources
-                                .inputs()
-                                .set_mouse_position(position.x / dpi_factor, position.y / dpi_factor);
+                            self.resources.inputs().set_mouse_position(
+                                position.x / dpi_factor,
+                                position.y / dpi_factor,
+                            );
                         }
                         _ => {}
                     }

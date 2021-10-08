@@ -168,9 +168,7 @@ fn add_character(world: &mut World) -> Entity {
 fn main() {
     Scion::app_with_config(
         ScionConfigBuilder::new()
-            .with_window_config(
-                WindowConfigBuilder::new().with_dimensions((500, 640)).get(),
-            )
+            .with_window_config(WindowConfigBuilder::new().with_dimensions((500, 640)).get())
             .get(),
     )
     .with_game_layer(GameLayer::weak::<Mario>("Mario"))

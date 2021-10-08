@@ -1,16 +1,12 @@
 use std::{collections::HashMap, time::Duration};
 
 use scion::{
-    core::components::{
-        animations::{Animation, AnimationModifier, Animations},
-    },
-    utils::file::app_base_path,
+    core::components::animations::{Animation, AnimationModifier, Animations},
+    utils::{file::app_base_path, maths::Vector},
 };
-use scion::utils::maths::Vector;
 
 const ANIMATION_DURATION: Duration = Duration::from_millis(300);
 const BALL_SPEED: f32 = 30.;
-
 
 pub fn ball_asset() -> String { app_base_path().join("examples/jezzball/assets/ball.png").get() }
 
@@ -27,7 +23,7 @@ pub fn ball_animations() -> Animations {
         Animation::new(
             ANIMATION_DURATION,
             vec![
-                AnimationModifier::sprite(vec![10,9,8,3], 3),
+                AnimationModifier::sprite(vec![10, 9, 8, 3], 3),
                 AnimationModifier::transform(
                     15,
                     Some(Vector::new(-BALL_SPEED, -BALL_SPEED)),
@@ -42,7 +38,7 @@ pub fn ball_animations() -> Animations {
         Animation::new(
             ANIMATION_DURATION,
             vec![
-                AnimationModifier::sprite(vec![12,13,14,3], 3),
+                AnimationModifier::sprite(vec![12, 13, 14, 3], 3),
                 AnimationModifier::transform(
                     15,
                     Some(Vector::new(-BALL_SPEED, BALL_SPEED)),
@@ -57,7 +53,7 @@ pub fn ball_animations() -> Animations {
         Animation::new(
             ANIMATION_DURATION,
             vec![
-                AnimationModifier::sprite(vec![14,13,12,3], 3),
+                AnimationModifier::sprite(vec![14, 13, 12, 3], 3),
                 AnimationModifier::transform(
                     15,
                     Some(Vector::new(BALL_SPEED, -BALL_SPEED)),
@@ -72,7 +68,7 @@ pub fn ball_animations() -> Animations {
         Animation::new(
             ANIMATION_DURATION,
             vec![
-                AnimationModifier::sprite(vec![8,9,10,3], 3),
+                AnimationModifier::sprite(vec![8, 9, 10, 3], 3),
                 AnimationModifier::transform(
                     15,
                     Some(Vector::new(BALL_SPEED, BALL_SPEED)),

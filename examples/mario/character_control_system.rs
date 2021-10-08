@@ -2,7 +2,10 @@ use scion::{
     core::{
         components::maths::transform::Transform,
         resources::{
-            inputs::{inputs_controller::InputsController},
+            inputs::{
+                inputs_controller::InputsController,
+                types::{InputState, KeyCode},
+            },
             time::{TimerType, Timers},
         },
     },
@@ -10,7 +13,6 @@ use scion::{
 };
 
 use crate::{Hero, MAX_VELOCITY};
-use scion::core::resources::inputs::types::{InputState, KeyCode};
 
 #[system]
 pub fn move_char(
