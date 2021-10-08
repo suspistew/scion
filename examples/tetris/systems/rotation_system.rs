@@ -37,8 +37,9 @@ pub fn piece_rotation(
         if let TetrisState::MOVING(x, y) = tetris.state {
             let mut should_rotate_piece = true;
             for offset in rotation_offsets.iter() {
+                println!("x = {}", x as f32 + offset.0);
                 if x as f32 + offset.0 == 0.
-                    || x as f32 + offset.0 == (BOARD_WIDTH + 1) as f32
+                    || x as f32 + offset.0 >= (BOARD_WIDTH + 1) as f32
                     || y as f32 + offset.1 == (BOARD_HEIGHT + 1) as f32
                 {
                     should_rotate_piece = false;
