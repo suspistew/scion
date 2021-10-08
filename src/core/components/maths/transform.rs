@@ -1,5 +1,4 @@
-use crate::core::components::maths::{coordinates::Coordinates};
-use crate::utils::maths::Vector;
+use crate::{core::components::maths::coordinates::Coordinates, utils::maths::Vector};
 
 /// represents the bounds for a Transoform with min and max values
 #[derive(Default, Debug, Copy, Clone)]

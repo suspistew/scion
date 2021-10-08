@@ -2,10 +2,7 @@ use std::{collections::HashMap, io::Cursor, sync::mpsc, thread};
 
 use audrey::Reader;
 
-use crate::{
-    core::resources::sound::PlayConfig,
-    sound::CHANNELS
-};
+use crate::{core::resources::sound::PlayConfig, sound::CHANNELS};
 
 pub enum AudioEvent {
     AddSound { sound_id: usize, data: Reader<Cursor<Vec<u8>>> },
@@ -50,7 +47,9 @@ impl AudioController {
                     self.sounds.insert(sound_id, data);
                 }
                 AudioEvent::PlaySound { sound_id, config } => {
-                    if self.currently_played_sounds.contains_key(&sound_id) && !config.restart_on_conflict {
+                    if self.currently_played_sounds.contains_key(&sound_id)
+                        && !config.restart_on_conflict
+                    {
                         return;
                     }
                     self.currently_played_sounds
@@ -105,20 +104,24 @@ impl AudioController {
         let (sounds, currently_played_sounds) = self.split_loaded_and_playing();
         for frame in 0..frames {
             let (mut left_channel, mut right_channel) = (0., 0.);
-            currently_played_sounds.retain(|sound_id, state| match sounds.get(sound_id) {
-                Some(sound_data) => {
-                    left_channel += sound_data[state.sample_cursor][0] * 1.;
-                    right_channel += sound_data[state.sample_cursor][1] * 1.;
-                    state.sample_cursor += 1;
-                    if state.sample_cursor >= sound_data.len() {
-                        false
-                    } else {
+            currently_played_sounds.retain(|sound_id, state| {
+                match sounds.get(sound_id) {
+                    Some(sound_data) => {
+                        left_channel += sound_data[state.sample_cursor][0] * 1.;
+                        right_channel += sound_data[state.sample_cursor][1] * 1.;
+                        state.sample_cursor += 1;
+                        if state.sample_cursor >= sound_data.len() {
+                            false
+                        } else {
+                            true
+                        }
+                    }
+                    None => {
+                        log::error!(
+                            "A sound can't be played because it's not present in the datas"
+                        );
                         true
                     }
-                }
-                None => {
-                    log::error!("A sound can't be played because it's not present in the datas");
-                    true
                 }
             });
             buffer[CHANNELS as usize * frame as usize] = left_channel;

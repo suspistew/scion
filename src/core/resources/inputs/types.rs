@@ -1,7 +1,15 @@
 use serde::{Deserialize, Serialize};
-use winit::event::VirtualKeyCode;
+use winit::event::{ElementState, VirtualKeyCode};
 
-#[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize, Copy)]
+pub enum MouseButton {
+    Left,
+    Right,
+    Middle,
+    Other(u16),
+}
+
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize, Copy)]
 pub enum KeyCode {
     Escape,
     Left,
@@ -75,5 +83,55 @@ impl From<VirtualKeyCode> for KeyCode {
             VirtualKeyCode::Space => KeyCode::Space,
             _ => KeyCode::Any,
         }
+    }
+}
+
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize, Copy)]
+pub enum InputState {
+    Pressed,
+    Released,
+}
+
+impl From<ElementState> for InputState {
+    fn from(state: ElementState) -> Self {
+        match state {
+            ElementState::Pressed => InputState::Pressed,
+            ElementState::Released => InputState::Released,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct KeyboardEvent {
+    pub keycode: KeyCode,
+    pub state: InputState,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub enum Input {
+    Key(KeyCode),
+    Mouse(MouseButton),
+}
+
+impl Into<Input> for KeyCode {
+    fn into(self) -> Input { Input::Key(self) }
+}
+
+impl Into<Input> for MouseButton {
+    fn into(self) -> Input { Input::Mouse(self) }
+}
+
+pub type Shortcut = Vec<Input>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::resources::inputs::inputs_controller::InputsController;
+
+    #[test]
+    fn shortcut_test() {
+        let controller = InputsController::default();
+        let pressed = controller.all_pressed();
+        controller.shortcut_pressed(&pressed);
     }
 }

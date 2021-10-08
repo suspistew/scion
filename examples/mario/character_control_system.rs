@@ -2,7 +2,10 @@ use scion::{
     core::{
         components::maths::transform::Transform,
         resources::{
-            inputs::{inputs_controller::InputsController, keycode::KeyCode, InputState},
+            inputs::{
+                inputs_controller::InputsController,
+                types::{InputState, KeyCode},
+            },
             time::{TimerType, Timers},
         },
     },
@@ -26,13 +29,7 @@ pub fn move_char(
     }
 
     let input_velocity = read_velocity(inputs);
-    let jump = inputs
-        .keyboard()
-        .keyboard_events()
-        .iter()
-        .filter(|e| e.state.eq(&InputState::Pressed) && e.keycode.eq(&KeyCode::Up))
-        .count()
-        > 0;
+    let jump = inputs.key_pressed(&KeyCode::Up);
 
     if input_velocity != 0 {
         let timer = timers.get_timer("input").expect("Missing timer : input");
@@ -87,13 +84,13 @@ pub fn move_char(
 
 fn read_velocity(inputs: &InputsController) -> i32 {
     ({
-        if inputs.keyboard().key_pressed(&KeyCode::Left) {
+        if inputs.key_pressed(&KeyCode::Left) {
             -1
         } else {
             0
         }
     }) + ({
-        if inputs.keyboard().key_pressed(&KeyCode::Right) {
+        if inputs.key_pressed(&KeyCode::Right) {
             1
         } else {
             0

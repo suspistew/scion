@@ -64,7 +64,7 @@ fn taquin(
     case: &mut Case,
     transform: &mut Transform,
 ) {
-    inputs.mouse().on_left_click_pressed(|mouse_x, mouse_y| {
+    inputs.on_left_click_pressed(|mouse_x, mouse_y| {
         if mouse_x > (case.0.x() * 192.) as f64
             && mouse_y > (case.0.y() * 192.) as f64
             && mouse_x < (case.0.x() * 192. + 192.) as f64

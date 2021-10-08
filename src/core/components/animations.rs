@@ -6,8 +6,7 @@ use std::{
     time::Duration,
 };
 
-use crate::core::components::{color::Color};
-use crate::utils::maths::Vector;
+use crate::{core::components::color::Color, utils::maths::Vector};
 
 pub struct Animations {
     animations: HashMap<String, Animation>,

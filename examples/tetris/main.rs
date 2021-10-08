@@ -1,5 +1,7 @@
+use log::LevelFilter;
 use scion::{
     config::{
+        logger_config::LoggerConfig,
         scion_config::{ScionConfig, ScionConfigBuilder},
         window_config::WindowConfigBuilder,
     },
@@ -34,6 +36,7 @@ fn main() {
 fn app_config() -> ScionConfig {
     ScionConfigBuilder::new()
         .with_app_name("Tetris".to_string())
+        .with_logger_config(LoggerConfig { level_filter: LevelFilter::Warn })
         .with_window_config(
             WindowConfigBuilder::new().with_dimensions((544, 704)).with_resizable(true).get(),
         )

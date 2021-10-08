@@ -1,7 +1,7 @@
 use legion::{systems::CommandBuffer, *};
 use scion::core::{
     components::{animations::Animations, maths::transform::Transform, tiles::sprite::Sprite},
-    resources::inputs::{inputs_controller::InputsController, keycode::KeyCode},
+    resources::inputs::{inputs_controller::InputsController, types::KeyCode},
 };
 
 use crate::{bomb_animations, level_reader::Level, Bomb, BombermanInfos, BombermanRefs};
@@ -18,7 +18,7 @@ pub fn controller(
     let (posx, posy) = (character.pos_x, character.pos_y);
 
     if !animations.any_animation_running() {
-        inputs.keyboard_mut().on_key_pressed(KeyCode::Right, || {
+        inputs.on_key_pressed(KeyCode::Right, || {
             if level_data.pathing.get(posy).unwrap().get(posx + 1).unwrap() == &1
                 && level_data
                     .tilemap
@@ -35,7 +35,7 @@ pub fn controller(
                 animations.run_animation("MOVE_RIGHT");
             }
         });
-        inputs.keyboard_mut().on_key_pressed(KeyCode::Left, || {
+        inputs.on_key_pressed(KeyCode::Left, || {
             if level_data.pathing.get(posy).unwrap().get(posx - 1).unwrap() == &1
                 && level_data
                     .tilemap
@@ -52,7 +52,7 @@ pub fn controller(
                 animations.run_animation("MOVE_LEFT");
             }
         });
-        inputs.keyboard_mut().on_key_pressed(KeyCode::Up, || {
+        inputs.on_key_pressed(KeyCode::Up, || {
             if level_data.pathing.get(posy - 1).unwrap().get(posx).unwrap() == &1
                 && level_data
                     .tilemap
@@ -69,7 +69,7 @@ pub fn controller(
                 animations.run_animation("MOVE_TOP");
             }
         });
-        inputs.keyboard_mut().on_key_pressed(KeyCode::Down, || {
+        inputs.on_key_pressed(KeyCode::Down, || {
             if level_data.pathing.get(posy + 1).unwrap().get(posx).unwrap() == &1
                 && level_data
                     .tilemap
@@ -86,7 +86,7 @@ pub fn controller(
                 animations.run_animation("MOVE_BOTTOM");
             }
         });
-        inputs.keyboard_mut().on_key_pressed(KeyCode::Space, || {
+        inputs.on_key_pressed(KeyCode::Space, || {
             let mut animations = Animations::single("EXPLODE", bomb_animations::explode());
             animations.run_animation("EXPLODE");
             cmd.push((
