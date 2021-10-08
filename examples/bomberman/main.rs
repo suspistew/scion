@@ -93,12 +93,6 @@ impl SimpleGameLayer for BombermanLayer {
         resources.insert(level);
         resources.insert(BombermanRefs { tileset: Some(asset_ref), tilemap_entity: Some(tilemap) });
     }
-
-    fn update(&mut self, _world: &mut World, resources: &mut Resources) {
-        resources.inputs().mouse().on_left_click_pressed(|x, y| {
-            log::info!("Left click mouse clicked at {} {}", x, y);
-        });
-    }
 }
 
 fn create_char(

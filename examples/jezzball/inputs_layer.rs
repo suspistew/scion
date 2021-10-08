@@ -32,11 +32,10 @@ impl Default for InputLayer {
 impl SimpleGameLayer for InputLayer {
     fn update(&mut self, world: &mut World, resources: &mut Resources) {
         let mut change_mouse_state = false;
-        let mouse_pos = resources.inputs().mouse().xy();
+        let mouse_pos = resources.inputs().mouse_xy();
         if !self.compute_mouse_on_border(mouse_pos, resources) {
             resources
                 .inputs()
-                .mouse()
                 .on_right_click_released(|_pos_x, _pos_y| change_mouse_state = true);
             if change_mouse_state {
                 let new_icon = self.compute_new_icon(resources);
@@ -49,7 +48,7 @@ impl SimpleGameLayer for InputLayer {
                 }
             }
         }
-        resources.inputs().mouse().on_left_click_pressed(|pos_x, pos_y| {
+        resources.inputs().on_left_click_pressed(|pos_x, pos_y| {
             let len = <(&Rectangle,)>::query().iter(world).collect::<Vec<(&Rectangle,)>>().len();
 
             if len == 0 && pos_x > 10. && pos_y > 10. {

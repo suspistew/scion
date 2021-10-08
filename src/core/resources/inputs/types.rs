@@ -1,7 +1,16 @@
-use serde::{Deserialize, Serialize};
-use winit::event::VirtualKeyCode;
 
-#[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize, Copy)]
+pub enum MouseButton {
+    Left,
+    Right,
+    Middle,
+    Other(u16),
+}
+
+use serde::{Deserialize, Serialize};
+use winit::event::{VirtualKeyCode, ElementState};
+
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize, Copy)]
 pub enum KeyCode {
     Escape,
     Left,
@@ -76,4 +85,30 @@ impl From<VirtualKeyCode> for KeyCode {
             _ => KeyCode::Any,
         }
     }
+}
+
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize, Copy)]
+pub enum InputState {
+    Pressed,
+    Released,
+}
+
+impl From<ElementState> for InputState {
+    fn from(state: ElementState) -> Self {
+        match state {
+            ElementState::Pressed => InputState::Pressed,
+            ElementState::Released => InputState::Released,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct KeyboardEvent {
+    pub keycode: KeyCode,
+    pub state: InputState,
+}
+
+pub enum Input {
+    Key(KeyCode),
+    Mouse(MouseButton)
 }

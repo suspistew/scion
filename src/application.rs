@@ -156,8 +156,7 @@ impl Scion {
                                 .scale_factor();
                             self.resources
                                 .inputs()
-                                .mouse_mut()
-                                .set_position(position.x / dpi_factor, position.y / dpi_factor);
+                                .set_mouse_position(position.x / dpi_factor, position.y / dpi_factor);
                         }
                         _ => {}
                     }

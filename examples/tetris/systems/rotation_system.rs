@@ -1,8 +1,9 @@
+
 use scion::{
     core::{
         components::maths::transform::Transform,
         resources::{
-            inputs::{inputs_controller::InputsController, keycode::KeyCode},
+            inputs::{inputs_controller::InputsController},
             time::Timers,
         },
     },
@@ -14,6 +15,7 @@ use crate::{
     resources::{TetrisResource, TetrisState},
     systems::piece_system::initialize_bloc,
 };
+use scion::core::resources::inputs::types::KeyCode;
 
 #[system]
 pub fn piece_rotation(
@@ -24,7 +26,7 @@ pub fn piece_rotation(
     world: &mut SubWorld,
     query: &mut Query<(Entity, &mut Bloc, &mut Transform)>,
 ) {
-    let rotation = inputs.keyboard().key_pressed(&KeyCode::Up);
+    let rotation = inputs.key_pressed(&KeyCode::Up);
     let movement_timer = timers
         .get_timer("action_reset_timer")
         .expect("Missing a mandatory timer in the game : action_reset_timer");
@@ -37,7 +39,6 @@ pub fn piece_rotation(
         if let TetrisState::MOVING(x, y) = tetris.state {
             let mut should_rotate_piece = true;
             for offset in rotation_offsets.iter() {
-                println!("x = {}", x as f32 + offset.0);
                 if x as f32 + offset.0 == 0.
                     || x as f32 + offset.0 >= (BOARD_WIDTH + 1) as f32
                     || y as f32 + offset.1 == (BOARD_HEIGHT + 1) as f32

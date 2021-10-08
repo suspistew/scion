@@ -2,7 +2,7 @@ use scion::{
     core::{
         components::maths::transform::Transform,
         resources::{
-            inputs::{inputs_controller::InputsController, keycode::KeyCode},
+            inputs::{inputs_controller::InputsController},
             time::Timers,
         },
     },
@@ -13,6 +13,7 @@ use crate::{
     components::{Bloc, BlocKind, BLOC_SIZE, BOARD_WIDTH},
     resources::{TetrisResource, TetrisState},
 };
+use scion::core::resources::inputs::types::KeyCode;
 
 #[system]
 pub fn move_piece(
@@ -78,8 +79,8 @@ pub fn move_piece(
     }
 }
 
-fn handle_acceleration(input: &InputsController, timers: &mut Timers) {
-    if input.keyboard().key_pressed(&KeyCode::Down) {
+fn handle_acceleration(inputs: &InputsController, timers: &mut Timers) {
+    if inputs.key_pressed(&KeyCode::Down) {
         timers
             .get_timer("piece")
             .expect("Missing a mandatory timer in the game : piece")
@@ -92,15 +93,15 @@ fn handle_acceleration(input: &InputsController, timers: &mut Timers) {
     }
 }
 
-fn read_movements_actions(input: &InputsController) -> i32 {
+fn read_movements_actions(inputs: &InputsController) -> i32 {
     ({
-        if input.keyboard().key_pressed(&KeyCode::Left) {
+        if inputs.key_pressed(&KeyCode::Left) {
             -1
         } else {
             0
         }
     }) + ({
-        if input.keyboard().key_pressed(&KeyCode::Right) {
+        if inputs.key_pressed(&KeyCode::Right) {
             1
         } else {
             0

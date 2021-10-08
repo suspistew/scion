@@ -169,7 +169,7 @@ fn main() {
     Scion::app_with_config(
         ScionConfigBuilder::new()
             .with_window_config(
-                WindowConfigBuilder::new().with_dimensions((500, 640)).with_resizable(false).get(),
+                WindowConfigBuilder::new().with_dimensions((500, 640)).get(),
             )
             .get(),
     )

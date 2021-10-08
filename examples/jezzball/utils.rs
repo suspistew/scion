@@ -8,8 +8,8 @@ use scion::{
 };
 use scion::utils::maths::Vector;
 
-const ANIMATION_DURATION: Duration = Duration::from_millis(400);
-const BALL_SPEED: f32 = 75.;
+const ANIMATION_DURATION: Duration = Duration::from_millis(300);
+const BALL_SPEED: f32 = 30.;
 
 
 pub fn ball_asset() -> String { app_base_path().join("examples/jezzball/assets/ball.png").get() }
