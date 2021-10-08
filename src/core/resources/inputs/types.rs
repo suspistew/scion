@@ -1,3 +1,7 @@
+use std::marker::PhantomData;
+
+use serde::{Deserialize, Serialize};
+use winit::event::{ElementState, VirtualKeyCode};
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize, Copy)]
 pub enum MouseButton {
@@ -6,9 +10,6 @@ pub enum MouseButton {
     Middle,
     Other(u16),
 }
-
-use serde::{Deserialize, Serialize};
-use winit::event::{VirtualKeyCode, ElementState};
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize, Copy)]
 pub enum KeyCode {
@@ -108,7 +109,35 @@ pub struct KeyboardEvent {
     pub state: InputState,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub enum Input {
     Key(KeyCode),
-    Mouse(MouseButton)
+    Mouse(MouseButton),
+}
+
+impl Into<Input> for KeyCode{
+    fn into(self) -> Input {
+        Input::Key(self)
+    }
+}
+
+impl Into<Input> for MouseButton{
+    fn into(self) -> Input {
+        Input::Mouse(self)
+    }
+}
+
+pub type Shortcut = Vec<Input>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::resources::inputs::inputs_controller::InputsController;
+
+    #[test]
+    fn shortcut_test() {
+        let controller = InputsController::default();
+        let pressed = controller.all_pressed();
+        controller.shortcut_pressed(&pressed);
+    }
 }

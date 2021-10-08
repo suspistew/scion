@@ -117,11 +117,15 @@ impl Mouse {
     }
 
     /// Returns the current x value of the cursor
-    pub fn x(&self) -> f64 { self.x }
+    pub(crate) fn x(&self) -> f64 { self.x }
     /// Returns the current y value of the cursor
-    pub fn y(&self) -> f64 { self.y }
+    pub(crate) fn y(&self) -> f64 { self.y }
     /// Returns the current x and y value of the cursor
-    pub fn xy(&self) -> (f64, f64) { (self.x, self.y) }
+    pub(crate) fn xy(&self) -> (f64, f64) { (self.x, self.y) }
     /// Returns if the mouse has been clicked in the current frame
-    pub fn click_events(&self) -> &Vec<MouseEvent> { &self.click_events }
+    pub(crate) fn click_events(&self) -> &Vec<MouseEvent> { &self.click_events }
+
+    pub(crate) fn button_pressed(&self, button: &MouseButton) -> bool{
+        self.buttons_pressed.contains(button)
+    }
 }

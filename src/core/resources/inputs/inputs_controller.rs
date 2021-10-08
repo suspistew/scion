@@ -1,7 +1,11 @@
 //! Everything that is relatives to the core.resources.inputs.
+use std::collections::HashSet;
+
+use legion::storage::IntoComponentSource;
+
 use crate::core::resources::inputs::{keyboard::Keyboard, mouse::Mouse};
-use crate::core::resources::inputs::types::{KeyCode, Input, InputState, KeyboardEvent};
 use crate::core::resources::inputs::mouse::MouseEvent;
+use crate::core::resources::inputs::types::{Input, InputState, KeyboardEvent, KeyCode, MouseButton, Shortcut};
 
 /// A resource updated by `Scion` to keep track of the core.resources.inputs
 /// Can be used in any system.
@@ -13,7 +17,9 @@ pub struct InputsController {
 
 impl InputsController {
     /// Whether or not `key` is currently pressed
-    pub fn key_pressed(&self, key: &KeyCode) -> bool { self.keyboard.pressed_keys.contains(key) }
+    pub fn key_pressed(&self, key: &KeyCode) -> bool {
+        self.keyboard.pressed_keys.contains(key)
+    }
 
     /// convenient function to run `action` if `key` is pressed during the current frame
     pub fn on_key_pressed<Body>(&self, key: KeyCode, mut action: Body)
@@ -90,16 +96,47 @@ impl InputsController {
         pressed
     }
 
+    /// Retrieve the mouse x and y position
     pub fn mouse_xy(&self) -> (f64, f64) {
         self.mouse.xy()
     }
 
+    /// Whether or not `shortcut` is currently pressed
+    pub fn shortcut_pressed(&self, shortcut: &Shortcut) -> bool {
+        shortcut.iter().all(|input| self.input_pressed(input))
+    }
+
+    /// Whether or not `shortcut` has just been pressed
+    pub fn shortcut_pressed_event(&self, shortcut: &Shortcut) -> bool {
+        shortcut.iter().all(|input| self.input_pressed(input))
+            &&
+            shortcut.iter().any(|input| self.all_pressed_events().contains(input))
+    }
+
+    /// Whether or not `shortcut` has just been released
+    pub fn shortcut_released_event(&self, shortcut: &Shortcut) -> bool {
+        shortcut.iter().any(|input| self.all_released_events().contains(input))
+            &&
+            shortcut.iter().all(|input| self.input_pressed(input)
+                || self.all_released_events().contains(input))
+    }
 
     fn all_events_for_state(&self, input_state: InputState) -> Vec<Input> {
         let mut inputs = self.keyboard.all_keys_at_state(input_state);
         let mut mouse_inputs = self.mouse.all_click_at_state(input_state);
         inputs.append(&mut mouse_inputs);
         inputs
+    }
+
+    fn input_pressed(&self, input: &Input) -> bool {
+        match input {
+            Input::Key(keycode) => {
+                self.key_pressed(keycode)
+            }
+            Input::Mouse(mouse_button) => {
+                self.mouse.button_pressed(mouse_button)
+            }
+        }
     }
 
     pub(crate) fn reset_inputs(&mut self) {
@@ -111,11 +148,11 @@ impl InputsController {
         self.mouse.set_position(x, y);
     }
 
-    pub(crate) fn add_click_event(&mut self, event: MouseEvent){
+    pub(crate) fn add_click_event(&mut self, event: MouseEvent) {
         self.mouse.add_click_event(event);
     }
 
-    pub(crate) fn add_keyboard_event(&mut self, event: KeyboardEvent){
+    pub(crate) fn add_keyboard_event(&mut self, event: KeyboardEvent) {
         self.keyboard.add_keyboard_event(event);
     }
 }
