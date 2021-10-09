@@ -3,7 +3,7 @@ use std::ops::Range;
 use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
 use crate::{
-    core::components::{material::Material, maths::coordinates::Coordinates},
+    core::components::{material::Material, maths::{coordinates::Coordinates, Pivot}},
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
 
@@ -18,9 +18,23 @@ pub struct Line {
 impl Line {
     /// Creates a new line using `vertices`.
     pub fn new(vertices: [Coordinates; 2]) -> Self {
+        Line::new_with_offset(vertices, Coordinates::new(0., 0.))
+    }
+
+    /// Sets the pivot point of the line and returns it
+    pub fn pivot(self, pivot: Pivot) -> Self {
+        let offset = match pivot {
+            Pivot::TopLeft => Coordinates::new(0., 0.),
+            Pivot::Center => Coordinates::new(-(self.vertices[1].x - self.vertices[0].x).abs()/2., -(self.vertices[1].y - self.vertices[0].y).abs()/2.),
+        };
+        Line::new_with_offset(self.vertices, offset)
+    }
+
+    /// Creates a new line using `vertices`.
+    pub fn new_with_offset(vertices: [Coordinates; 2], offset: Coordinates) -> Self {
         let contents = [
-            TexturedGlVertex::from((&vertices[0], &Coordinates::new(0., 0.))),
-            TexturedGlVertex::from((&vertices[1], &Coordinates::new(0., 0.))),
+            TexturedGlVertex::from((&Coordinates::new(&vertices[0].x + offset.x, &vertices[0].y + offset.y), &Coordinates::new(0., 0.))),
+            TexturedGlVertex::from((&Coordinates::new(&vertices[1].x + offset.x, &vertices[1].y + offset.y), &Coordinates::new(0., 0.))),
         ];
         Self { vertices, contents }
     }
