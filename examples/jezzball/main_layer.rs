@@ -23,6 +23,7 @@ use scion::{
 use winit::window::CursorIcon;
 
 use crate::utils::{ball_animations, ball_asset, ball_bounce_effect};
+use scion::utils::maths::Vector;
 
 #[derive(Debug)]
 pub enum BallDirection {
@@ -109,8 +110,8 @@ pub fn init_balls(world: &mut World, assets: &JezzBallAssets) {
                 ColliderMask::Custom("BORDER_LEFT".to_string()),
                 ColliderMask::Custom("BORDER_RIGHT".to_string()),
             ],
-            ColliderType::Square(28),
-        ),
+            ColliderType::Square(38),
+        ).with_offset(Vector::new(-5., -5.)),
         ball_animations(),
     ));
 }
