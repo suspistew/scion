@@ -15,7 +15,7 @@ use scion::core::{
 
 use crate::{inputs_layer::Line, main_layer::LineDirection};
 
-const LINE_SPEED: f32 = 15.;
+const LINE_SPEED: f32 = 4.;
 
 #[system(for_each)]
 pub fn line_update(

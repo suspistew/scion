@@ -85,10 +85,11 @@ pub(crate) fn debug_colliders(
                 ColliderType::Square(size) => (*size as f32, *size as f32),
                 ColliderType::Rectangle(width, height) => (*width as f32 as f32, *height as f32),
             };
+            let offset = collider.offset();
             cmd.push((
                 Parent(*entity),
                 ColliderDebug,
-                Transform::from_xyz(0., 0., 99),
+                Transform::from_xyz(offset.x(), offset.y(), 99),
                 Polygon::new(vec![
                     Coordinates::new(0., 0.),
                     Coordinates::new(width, 0.),
