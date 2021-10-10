@@ -20,7 +20,7 @@ atomic_refcell = "0.1.6"
 
 # window & rendering
 winit = "0.25"
-wgpu = { version = "0.10", features = ["spirv"] }
+wgpu = { version = "0.11", features = ["spirv"] }
 futures = "0.3"
 
 # maths
