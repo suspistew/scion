@@ -33,7 +33,7 @@ impl Triangle {
 impl Renderable2D for Triangle {
     fn vertex_buffer_descriptor(&mut self, _material: Option<&Material>) -> BufferInitDescriptor {
         wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
+            label: Some("Triangle Vertex Buffer"),
             contents: bytemuck::cast_slice(&self.contents),
             usage: wgpu::BufferUsages::VERTEX,
         }
@@ -41,7 +41,7 @@ impl Renderable2D for Triangle {
 
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
         wgpu::util::BufferInitDescriptor {
-            label: Some("Square Index Buffer"),
+            label: Some("Triangle Index Buffer"),
             contents: bytemuck::cast_slice(&INDICES),
             usage: wgpu::BufferUsages::INDEX,
         }

@@ -117,7 +117,7 @@ fn main() {
         ScionConfigBuilder::new()
             .with_app_name("Scion's Bomberman".to_string())
             .with_window_config(
-                WindowConfigBuilder::new().with_resizable(false).with_dimensions((640, 640)).get(),
+                WindowConfigBuilder::new().with_resizable(true).with_dimensions((640, 640)).get(),
             )
             .get(),
     )

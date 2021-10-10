@@ -250,7 +250,7 @@ impl Scion2D {
                 self.vertex_buffers.insert(*entity, buffer);
 
                 let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("Square Index Buffer"),
+                    label: Some("TileMap Index Buffer"),
                     contents: bytemuck::cast_slice(&indexes),
                     usage: wgpu::BufferUsages::INDEX,
                 });

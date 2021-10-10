@@ -86,7 +86,7 @@ impl Renderable2D for Sprite {
 
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
         wgpu::util::BufferInitDescriptor {
-            label: Some("Square Index Buffer"),
+            label: Some("Sprite Index Buffer"),
             contents: bytemuck::cast_slice(&INDICES),
             usage: wgpu::BufferUsages::INDEX,
         }

@@ -21,6 +21,7 @@ impl RendererState {
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
+                force_fallback_adapter: false
             })
             .await
             .unwrap();
@@ -37,12 +38,14 @@ impl RendererState {
             .await
             .unwrap();
 
+        let w = window.inner_size();
+
         let swapchain_format = surface.get_preferred_format(&adapter).unwrap();
         let config = SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: swapchain_format,
-            width: size.width * window.scale_factor() as u32,
-            height: size.height * window.scale_factor() as u32,
+            width: w.width * window.scale_factor() as u32,
+            height: w.height * window.scale_factor() as u32,
             present_mode: wgpu::PresentMode::Immediate,
         };
         surface.configure(&device, &config);
@@ -52,9 +55,9 @@ impl RendererState {
         Self { surface, device, queue, config, scion_renderer }
     }
 
-    pub(crate) fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        self.config.width = new_size.width;
-        self.config.height = new_size.height;
+    pub(crate) fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>, scale_factor: f64) {
+        self.config.width = new_size.width * scale_factor as u32;
+        self.config.height = new_size.height * scale_factor as u32;
         self.surface.configure(&self.device, &self.config);
     }
 
@@ -72,7 +75,7 @@ impl RendererState {
         world: &mut World,
         config: &ScionConfig,
     ) -> Result<(), wgpu::SurfaceError> {
-        let frame = self.surface.get_current_frame()?.output;
+        let frame = self.surface.get_current_texture()?;
         let view = frame.texture.create_view(&TextureViewDescriptor::default());
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Render Encoder"),
@@ -81,6 +84,7 @@ impl RendererState {
         self.scion_renderer.render(world, config, &view, &mut encoder);
         self.queue.submit(std::iter::once(encoder.finish()));
 
+        frame.present();
         Ok(())
     }
 }

@@ -7,12 +7,13 @@ use winit::window::CursorIcon;
 pub struct Window {
     width: u32,
     height: u32,
+    dpi: f64,
     new_cursor: Option<CursorIcon>,
 }
 
 impl Window {
-    pub(crate) fn new(screen_size: (u32, u32)) -> Self {
-        Self { width: screen_size.0, height: screen_size.1, new_cursor: None }
+    pub(crate) fn new(screen_size: (u32, u32), dpi: f64) -> Self {
+        Self { width: screen_size.0, height: screen_size.1, new_cursor: None, dpi }
     }
 
     pub(crate) fn set_dimensions(&mut self, width: u32, height: u32) {
@@ -24,11 +25,13 @@ impl Window {
 
     pub(crate) fn reset_new_cursor(&mut self) { self.new_cursor = None }
 
-    pub fn dimensions(self) -> (u32, u32) { (self.width, self.height) }
+    pub fn dimensions(&self) -> (u32, u32) { (self.width, self.height) }
 
-    pub fn width(self) -> u32 { self.width }
+    pub fn width(&self) -> u32 { self.width }
 
-    pub fn height(self) -> u32 { self.height }
+    pub fn height(&self) -> u32 { self.height }
+
+    pub fn dpi(&self) -> f64 { self.dpi }
 
     pub fn new_cursor(&self) -> &Option<CursorIcon> { &self.new_cursor }
 }
