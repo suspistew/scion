@@ -94,10 +94,7 @@ impl SimpleGameLayer for TilemapUpdateLayer {
 
             if open < 150 {
                 let mut controller = resources.get_mut::<GameLayerController>().unwrap();
-                controller.replace_layer(
-                    "TILEMAP_LAYER",
-                    GameLayer::weak::<TilemapUpdateLayer>("TILEMAP_LAYER"),
-                );
+                controller.replace_layer::<TilemapUpdateLayer>("TILEMAP_LAYER");
             }
         }
     }

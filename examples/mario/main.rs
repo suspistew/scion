@@ -171,7 +171,7 @@ fn main() {
             .with_window_config(WindowConfigBuilder::new().with_dimensions((500, 640)).get())
             .get(),
     )
-    .with_game_layer(GameLayer::weak::<Mario>("Mario"))
+    .with_layer::<Mario>("Mario")
     .with_system(move_char_system())
     .with_system(collider_system())
     .run();

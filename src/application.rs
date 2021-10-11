@@ -32,24 +32,16 @@ use crate::{
             time::{Time, Timers, TimerType},
         },
         state::GameState,
-        systems::{
-            animations_system::animation_executer_system,
-            asset_ref_resolver_system::{asset_ref_resolver_system, MaterialAssetResolverFn},
-            collider_systems::{
-                colliders_cleaner_system, compute_collisions_system, debug_colliders_system,
-            },
-            default_camera_system::default_camera_system,
-            hide_propagation_system::{hide_propagated_deletion_system, hide_propagation_system},
-            hierarchy_system::children_manager_system,
-            missing_ui_component_system::missing_ui_component_system,
-            parent_transform_system::{dirty_child_system, dirty_transform_system},
-            ui_text_system::ui_text_bitmap_update_system,
-        },
     },
     rendering::{renderer_state::RendererState, RendererType},
     utils::debug_ecs::try_debug,
 };
 use crate::core::systems::default_camera_system::camera_dpi_system;
+use crate::core::game_layer::{SimpleGameLayer};
+use crate::core::systems::InternalPackage;
+use crate::core::package::Package;
+use crate::core::systems::collider_systems::colliders_cleaner_system;
+use futures::StreamExt;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -108,26 +100,6 @@ impl Scion {
                                                             window.inner_size().height),
                                                         window.scale_factor(),
             ));
-
-        let mut events = Events::default();
-        events
-            .create_topic("Inputs", TopicConfiguration::default())
-            .expect("Error while creating topic for inputs event");
-
-        let mut timers = Timers::default();
-
-        if cfg!(feature = "hot-reload") {
-            let _res = timers.add_timer("hot-reload-timer", TimerType::Cyclic, 5.);
-        }
-
-        self.resources.insert(Time::default());
-        self.resources.insert(events);
-        self.resources.insert(timers);
-        self.resources.insert(AssetManager::default());
-        self.resources.insert(InputsController::default());
-        self.resources.insert(GameState::default());
-        self.resources.insert(GameLayerController::default());
-        self.resources.insert(AudioPlayer::default());
     }
 
     fn run(mut self, event_loop: EventLoop<()>) {
@@ -229,6 +201,8 @@ pub struct ScionBuilder {
     schedule_builder: Builder,
     renderer: RendererType,
     game_layers: Vec<Box<GameLayer>>,
+    world: World,
+    resource: Resources
 }
 
 impl ScionBuilder {
@@ -238,9 +212,10 @@ impl ScionBuilder {
             schedule_builder: Default::default(),
             renderer: Default::default(),
             game_layers: Default::default(),
+            world: Default::default(),
+            resource: Default::default()
         };
-        builder.init_schedule_with_internal_systems();
-        builder
+        builder.with_package(InternalPackage)
     }
 
     /// Add a [legion](https://docs.rs/legion/latest/legion/) system to the scheduler.
@@ -282,15 +257,33 @@ impl ScionBuilder {
     }
 
     /// Specify which render type you want to use. Note that by default if not set, `Scion` will use [`crate::rendering::RendererType::Scion2D`].
+    pub fn with_flush(mut self) -> Self {
+        self.schedule_builder.flush();
+        self
+    }
+
+    /// Specify which render type you want to use. Note that by default if not set, `Scion` will use [`crate::rendering::RendererType::Scion2D`].
     pub fn with_renderer(mut self, renderer_type: RendererType) -> Self {
         self.renderer = renderer_type;
         self
     }
 
-    /// Add a game layer to the pile. Not that the order in which you add them is important if you use the concept of Strong layers.
-    pub fn with_game_layer(mut self, game_layer: Box<GameLayer>) -> Self {
-        self.game_layers.push(game_layer);
+    /// Add a blocking game layer to the pile. Every layer added before in the pile won't be called
+    pub fn with_blocking_layer<T: SimpleGameLayer + Default + 'static>(mut self, name: &str) -> Self {
+        self.game_layers.push(GameLayer::strong::<T>(name));
         self
+    }
+
+    /// Add a normal game layer to the pile. Every layer added before in the pile will be called
+    pub fn with_layer<T: SimpleGameLayer + Default + 'static>(mut self, name: &str) -> Self {
+        self.game_layers.push(GameLayer::weak::<T>(name));
+        self
+    }
+
+    ///
+    pub fn with_package<P: Package>(mut self, package: P) -> Self {
+        package.prepare(&mut self.world, &mut self.resource);
+        package.load(self)
     }
 
     /// Builds, setups and runs the Scion application, must be called at the end of the building process.
@@ -315,8 +308,8 @@ impl ScionBuilder {
 
         let mut scion = Scion {
             config: self.config,
-            world: Default::default(),
-            resources: Default::default(),
+            world: self.world,
+            resources: self.resource,
             schedule: self.schedule_builder.build(),
             layer_machine: GameLayerMachine { game_layers: self.game_layers },
             window: Some(window),
@@ -325,30 +318,6 @@ impl ScionBuilder {
 
         scion.setup();
         scion.run(event_loop);
-    }
-
-    fn init_schedule_with_internal_systems(&mut self) {
-        self.schedule_builder
-            .add_system(default_camera_system())
-            .add_system(camera_dpi_system())
-            .add_system(ui_text_bitmap_update_system())
-            .add_system(debug_colliders_system())
-            .flush()
-            .add_system(children_manager_system())
-            .add_system(hide_propagated_deletion_system())
-            .flush()
-            .add_system(hide_propagation_system())
-            .add_system(missing_ui_component_system::<UiImage>())
-            .add_system(missing_ui_component_system::<UiTextImage>())
-            .add_system(missing_ui_component_system::<UiText>())
-            .add_system(asset_ref_resolver_system::<Material, MaterialAssetResolverFn>())
-            .add_system(animation_executer_system())
-            .flush()
-            .add_system(dirty_child_system())
-            .flush()
-            .add_system(dirty_transform_system())
-            .add_system(compute_collisions_system())
-            .flush();
     }
 
     fn add_late_internal_systems_to_schedule(&mut self) {

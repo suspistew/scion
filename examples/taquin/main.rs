@@ -9,9 +9,9 @@ use scion::{
         legion_ext::{ScionResourcesExtension, ScionWorldExtension},
         resources::inputs::inputs_controller::InputsController,
     },
-    legion::{system, Resources, World},
-    utils::file::app_base_path,
+    legion::{Resources, system, World},
     Scion,
+    utils::file::app_base_path,
 };
 
 #[derive(Debug)]
@@ -131,7 +131,7 @@ fn main() {
             )
             .get(),
     )
-    .with_system(taquin_system())
-    .with_game_layer(GameLayer::weak::<Layer>("Taquin"))
-    .run();
+        .with_system(taquin_system())
+        .with_layer::<Layer>("Taquin")
+        .run();
 }

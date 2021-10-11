@@ -121,7 +121,7 @@ fn main() {
             )
             .get(),
     )
-    .with_game_layer(GameLayer::strong::<BombermanLayer>("Bomberman"))
+    .with_blocking_layer::<BombermanLayer>("Bomberman")
     .with_system(controller_system())
     .with_system(exposion_system())
     .run();
