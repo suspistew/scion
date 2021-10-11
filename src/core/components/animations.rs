@@ -219,6 +219,23 @@ impl AnimationModifier {
         AnimationModifier::new(number_of_blinks * 2, AnimationModifierType::Blink)
     }
 
+    /// Convenience function to create a text animation.
+    pub fn text(content: String) -> Self {
+        AnimationModifier::new(content.len(), AnimationModifierType::Text { content })
+    }
+
+    pub(crate) fn retrieve_keyframe_modifier(&self) -> &ComputedKeyframeModifier {
+        self.single_keyframe_modifier.as_ref().expect("single keyframe modifier is needed for transform animation")
+    }
+
+    pub(crate) fn retrieve_keyframe_modifier_mut(&mut self) -> &mut ComputedKeyframeModifier {
+        self.single_keyframe_modifier.as_mut().expect("single keyframe modifier is needed for transform animation")
+    }
+
+    pub(crate) fn modifier_type(&self) -> &AnimationModifierType {
+        &self.modifier_type
+    }
+
     pub(crate) fn compute_keyframe_modifier_for_animation(&mut self, initial_color: &Color) {
         self.single_keyframe_modifier = match &self.modifier_type {
             AnimationModifierType::Color { target } => {
@@ -247,12 +264,14 @@ pub enum AnimationModifierType {
     TransformModifier { vector: Option<Vector>, scale: Option<f32>, rotation: Option<f32> },
     SpriteModifier { tile_numbers: Vec<usize>, end_tile_number: usize },
     Color { target: Color },
+    Text { content: String },
     Blink,
 }
 
 pub(crate) enum ComputedKeyframeModifier {
     TransformModifier { vector: Option<Vector>, scale: Option<f32>, rotation: Option<f32> },
     Color { r: i16, g: i16, b: i16, a: f32 },
+    Text { cursor: usize }
 }
 
 impl Display for AnimationModifier {
@@ -273,6 +292,9 @@ impl Display for AnimationModifier {
                 AnimationModifierType::Blink => {
                     "Blink"
                 }
+                AnimationModifierType::Text { .. } => {
+                    "Text"
+                }
             }
         )
     }
@@ -289,13 +311,9 @@ fn compute_animation_keyframe_modifier(modifier: &mut AnimationModifier) {
                 scale: scale.map_or(None, |scale| Some(scale / keyframe_nb)),
                 rotation: rotation.map_or(None, |rotation| Some(rotation / keyframe_nb)),
             })
-        }
-        AnimationModifierType::SpriteModifier { .. } => None,
-        AnimationModifierType::Color { .. } => {
-            // We can't compute here because we need the initial color
-            None
-        }
-        AnimationModifierType::Blink => None,
+        },
+        AnimationModifierType::Text { .. } => Some(ComputedKeyframeModifier::Text { cursor: 0}),
+        _ => None
     };
 }
 
