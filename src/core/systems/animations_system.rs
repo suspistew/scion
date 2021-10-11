@@ -1,19 +1,20 @@
-use legion::{systems::CommandBuffer, *};
+use legion::{*, systems::CommandBuffer};
 
 use crate::core::{
     components::{
         animations::{
-            AnimationModifier, AnimationModifierType, AnimationStatus, Animations,
+            AnimationModifier, AnimationModifierType, Animations, AnimationStatus,
             ComputedKeyframeModifier,
         },
         color::Color,
+        Hide,
         material::Material,
         maths::transform::Transform,
         tiles::sprite::Sprite,
-        Hide,
     },
-    resources::time::{TimerType, Timers},
+    resources::time::{Timers, TimerType},
 };
+use crate::core::components::ui::ui_text::UiText;
 
 /// System responsible of applying modifiers data to the dedicated components
 /// It will use timers to keep track of the animation and will merge keyframes in case
@@ -27,6 +28,7 @@ pub(crate) fn animation_executer(
     mut transform: Option<&mut Transform>,
     mut sprite: Option<&mut Sprite>,
     mut material: Option<&mut Material>,
+    mut text: Option<&mut UiText>,
     hide: Option<&Hide>,
 ) {
     animations
@@ -79,6 +81,9 @@ pub(crate) fn animation_executer(
                         AnimationModifierType::Blink => {
                             apply_blink_modifier(cmd, entity, modifier, timer_cycle, hide)
                         }
+                        AnimationModifierType::Text { content } => {
+                            apply_text_modifier(modifier, text.as_mut())
+                        }
                     }
                     modifier.current_keyframe += timer_cycle;
                     if modifier.current_keyframe >= modifier.number_of_keyframes {
@@ -107,27 +112,22 @@ fn apply_transform_modifier(
     modifier: &mut AnimationModifier,
     timer_cycle: usize,
 ) {
-    match modifier
-        .single_keyframe_modifier
-        .as_ref()
-        .expect("single keyframe modifier is needed for transform animation")
+    if let ComputedKeyframeModifier::TransformModifier { vector: coordinates, scale, rotation }
+    = modifier.retrieve_keyframe_modifier()
     {
-        ComputedKeyframeModifier::TransformModifier { vector: coordinates, scale, rotation } => {
-            if let Some(ref mut transform) = transform {
-                for _i in 0..timer_cycle {
-                    if let Some(coordinates) = coordinates {
-                        transform.append_translation(coordinates.x(), coordinates.y());
-                    }
-                    if let Some(scale) = scale {
-                        transform.set_scale(transform.scale + scale);
-                    }
-                    if let Some(rotation) = rotation {
-                        transform.append_angle(*rotation);
-                    }
+        if let Some(ref mut transform) = transform {
+            for _i in 0..timer_cycle {
+                if let Some(coordinates) = coordinates {
+                    transform.append_translation(coordinates.x(), coordinates.y());
+                }
+                if let Some(scale) = scale {
+                    transform.set_scale(transform.scale + scale);
+                }
+                if let Some(rotation) = rotation {
+                    transform.append_angle(*rotation);
                 }
             }
         }
-        _ => {}
     }
 }
 
@@ -170,7 +170,7 @@ fn apply_color_modifier(
             modifier.compute_keyframe_modifier_for_animation(color);
         }
         if let Some(ComputedKeyframeModifier::Color { r, g, b, a }) =
-            &modifier.single_keyframe_modifier
+        &modifier.single_keyframe_modifier
         {
             for i in 0..timer_cycle {
                 if modifier.will_be_last_keyframe(i) {
@@ -207,4 +207,24 @@ fn apply_blink_modifier(
             cmd.remove_component::<Hide>(*entity);
         }
     }
+}
+
+fn apply_text_modifier(
+    modifier: &mut AnimationModifier,
+    mut text: Option<&mut &mut UiText>,
+) {
+    let mut next_cursor = 0;
+    if let ComputedKeyframeModifier::Text { cursor } = modifier.retrieve_keyframe_modifier() {
+        if let Some(ref mut uitext) = text {
+            if let AnimationModifierType::Text { content} = modifier.modifier_type() {
+                let res = content.as_str()[..*cursor].to_string();
+                uitext.set_text(res);
+                next_cursor = if *cursor < content.len() { cursor +1 } else { 0 };
+            }
+        }
+    }
+    if let ComputedKeyframeModifier::Text { ref mut cursor } = modifier.retrieve_keyframe_modifier_mut() {
+        *cursor = next_cursor;
+    }
+
 }
