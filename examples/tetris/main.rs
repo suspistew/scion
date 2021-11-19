@@ -25,7 +25,7 @@ mod systems;
 
 fn main() {
     Scion::app_with_config(app_config())
-        .with_game_layer(GameLayer::weak::<TetrisLayer>("Tetris"))
+        .with_layer::<TetrisLayer>("Tetris")
         .with_system(piece_update_system())
         .with_system(move_piece_system())
         .with_system(piece_rotation_system())

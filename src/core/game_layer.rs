@@ -31,7 +31,7 @@ pub struct GameLayer {
 
 impl GameLayer {
     /// Creates a weak layer of type T. A weak layer won't block the pile's next layer execution.
-    pub fn weak<T: SimpleGameLayer + Default + 'static>(name: &str) -> Box<GameLayer> {
+    pub(crate) fn weak<T: SimpleGameLayer + Default + 'static>(name: &str) -> Box<GameLayer> {
         Box::new(GameLayer {
             name: name.to_string(),
             layer: GameLayerType::Weak(Box::new(T::default())),
@@ -39,7 +39,7 @@ impl GameLayer {
     }
 
     /// Creates a strong layer of type T. A strong layer will be the last executed in the pile.
-    pub fn strong<T: SimpleGameLayer + Default + 'static>(name: &str) -> Box<GameLayer> {
+    pub(crate) fn strong<T: SimpleGameLayer + Default + 'static>(name: &str) -> Box<GameLayer> {
         Box::new(GameLayer {
             name: name.to_string(),
             layer: GameLayerType::Strong(Box::new(T::default())),
@@ -187,8 +187,14 @@ impl GameLayerController {
 
     /// Replace the layer with the name `layer_to_replace` with the layer `new_game_layer`. (Useful for level switching).
     /// If no layer exists with this name, won't do anything. Note that the layer's stop will happen at the end of the frame.
-    pub fn replace_layer(&mut self, layer_to_replace: &str, new_game_layer: Box<GameLayer>) {
-        self.actions.push(GameLayerTrans::Replace(layer_to_replace.to_string(), new_game_layer));
+    pub fn replace_layer<T: SimpleGameLayer + Default + 'static>(&mut self, layer_to_replace: &str){
+        self.actions.push(GameLayerTrans::Replace(layer_to_replace.to_string(), GameLayer::weak::<T>(layer_to_replace)));
+    }
+
+    /// Replace the layer with the name `layer_to_replace` with the layer `new_game_layer`. (Useful for level switching).
+    /// If no layer exists with this name, won't do anything. Note that the layer's stop will happen at the end of the frame.
+    pub fn replace_with_blocking_layer<T: SimpleGameLayer + Default + 'static>(&mut self, layer_to_replace: &str){
+        self.actions.push(GameLayerTrans::Replace(layer_to_replace.to_string(), GameLayer::strong::<T>(layer_to_replace)));
     }
 }
 
@@ -229,9 +235,9 @@ mod tests {
         resources
             .get_mut::<GameLayerController>()
             .expect("Missing mandatory ressource : GameLayerController")
-            .replace_layer("B", GameLayer::weak::<D>("D"));
+            .replace_layer::<D>("B");
         machine.apply_layers_action(LayerAction::EndFrame, &mut world, &mut resources);
 
-        assert_eq!(1, machine.game_layers.iter().position(|l| l.name.eq("D")).unwrap());
+        assert_eq!(1, machine.game_layers.iter().position(|l| l.name.eq("B")).unwrap());
     }
 }
