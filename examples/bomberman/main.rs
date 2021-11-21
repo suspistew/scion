@@ -20,7 +20,7 @@ use scion::{
                 tileset::Tileset,
             },
         },
-        game_layer::{GameLayer, SimpleGameLayer},
+        scene::Scene,
         legion_ext::{ScionResourcesExtension, ScionWorldExtension},
         resources::asset_manager::AssetRef,
     },
@@ -31,7 +31,7 @@ use scion::{
 use crate::level_reader::Level;
 
 #[derive(Default)]
-struct BombermanLayer {
+struct MainScene {
     character: Option<Entity>,
 }
 
@@ -52,7 +52,7 @@ pub struct BombermanInfos {
     pub pos_y: usize,
 }
 
-impl SimpleGameLayer for BombermanLayer {
+impl Scene for MainScene {
     fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
         let asset_ref = resources.assets().register_tileset(Tileset::new(
             app_base_path().join("examples/bomberman/assets/sokoban_tilesheet.png").get(),
@@ -121,7 +121,7 @@ fn main() {
             )
             .get(),
     )
-    .with_blocking_layer::<BombermanLayer>("Bomberman")
+    .with_scene::<MainScene>()
     .with_system(controller_system())
     .with_system(exposion_system())
     .run();

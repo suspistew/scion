@@ -22,7 +22,7 @@ use crate::{
             },
         },
         event_handler::update_input_events,
-        game_layer::{GameLayer, GameLayerController, GameLayerMachine, LayerAction},
+        scene::{},
         legion_ext::{PausableSystem, ScionResourcesExtension},
         resources::{
             asset_manager::AssetManager,
@@ -37,7 +37,7 @@ use crate::{
     utils::debug_ecs::try_debug,
 };
 use crate::core::systems::default_camera_system::camera_dpi_system;
-use crate::core::game_layer::{SimpleGameLayer};
+use crate::core::scene::{Scene, SceneAction, SceneMachine};
 use crate::core::systems::InternalPackage;
 use crate::core::package::Package;
 use crate::core::systems::collider_systems::colliders_cleaner_system;
@@ -50,7 +50,7 @@ pub struct Scion {
     world: World,
     resources: Resources,
     schedule: Schedule,
-    layer_machine: GameLayerMachine,
+    layer_machine: SceneMachine,
     window: Option<Window>,
     renderer: Option<RendererState>,
 }
@@ -85,8 +85,8 @@ impl Scion {
 
     fn setup(&mut self) {
         self.initialize_internal_resources();
-        self.layer_machine.apply_layers_action(
-            LayerAction::Start,
+        self.layer_machine.apply_scene_action(
+            SceneAction::Start,
             &mut self.world,
             &mut self.resources,
         );
@@ -141,8 +141,8 @@ impl Scion {
                     }
                 Event::MainEventsCleared => {
                     self.next_frame();
-                    self.layer_machine.apply_layers_action(
-                        LayerAction::EndFrame,
+                    self.layer_machine.apply_scene_action(
+                        SceneAction::EndFrame,
                         &mut self.world,
                         &mut self.resources,
                     );
@@ -169,14 +169,14 @@ impl Scion {
             .expect("Time is an internal resource and can't be missing")
             .frame();
         self.resources.timers().add_delta_duration(frame_duration);
-        self.layer_machine.apply_layers_action(
-            LayerAction::Update,
+        self.layer_machine.apply_scene_action(
+            SceneAction::Update,
             &mut self.world,
             &mut self.resources,
         );
         self.schedule.execute(&mut self.world, &mut self.resources);
-        self.layer_machine.apply_layers_action(
-            LayerAction::LateUpdate,
+        self.layer_machine.apply_scene_action(
+            SceneAction::LateUpdate,
             &mut self.world,
             &mut self.resources,
         );
@@ -200,7 +200,7 @@ pub struct ScionBuilder {
     config: ScionConfig,
     schedule_builder: Builder,
     renderer: RendererType,
-    game_layers: Vec<Box<GameLayer>>,
+    scene: Option<Box<Scene>>,
     world: World,
     resource: Resources
 }
@@ -211,7 +211,7 @@ impl ScionBuilder {
             config,
             schedule_builder: Default::default(),
             renderer: Default::default(),
-            game_layers: Default::default(),
+            scene: Default::default(),
             world: Default::default(),
             resource: Default::default()
         };
@@ -268,15 +268,9 @@ impl ScionBuilder {
         self
     }
 
-    /// Add a blocking game layer to the pile. Every layer added before in the pile won't be called
-    pub fn with_blocking_layer<T: SimpleGameLayer + Default + 'static>(mut self, name: &str) -> Self {
-        self.game_layers.push(GameLayer::strong::<T>(name));
-        self
-    }
-
     /// Add a normal game layer to the pile. Every layer added before in the pile will be called
-    pub fn with_layer<T: SimpleGameLayer + Default + 'static>(mut self, name: &str) -> Self {
-        self.game_layers.push(GameLayer::weak::<T>(name));
+    pub fn with_scene<T: Scene + Default + 'static>(mut self) -> Self {
+        self.scene = Some(Box::new(T::default()));
         self
     }
 
@@ -311,7 +305,7 @@ impl ScionBuilder {
             world: self.world,
             resources: self.resource,
             schedule: self.schedule_builder.build(),
-            layer_machine: GameLayerMachine { game_layers: self.game_layers },
+            layer_machine: SceneMachine { current_scene: self.scene },
             window: Some(window),
             renderer: Some(renderer_state),
         };

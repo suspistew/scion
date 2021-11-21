@@ -5,7 +5,7 @@ use scion::{
             maths::{coordinates::Coordinates, transform::Transform},
             tiles::{sprite::Sprite, tileset::Tileset},
         },
-        game_layer::{GameLayer, SimpleGameLayer},
+        scene::{Scene},
         legion_ext::{ScionResourcesExtension, ScionWorldExtension},
         resources::inputs::inputs_controller::InputsController,
     },
@@ -94,9 +94,9 @@ fn taquin(
 }
 
 #[derive(Default)]
-struct Layer;
+struct MainScene;
 
-impl SimpleGameLayer for Layer {
+impl Scene for MainScene {
     fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
         let tileset_ref = resources.assets().register_tileset(Tileset::new(
             app_base_path().join("examples/taquin/assets/taquin.png").get(),
@@ -132,6 +132,6 @@ fn main() {
             .get(),
     )
         .with_system(taquin_system())
-        .with_layer::<Layer>("Taquin")
+        .with_scene::<MainScene>()
         .run();
 }

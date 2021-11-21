@@ -19,7 +19,7 @@ use scion::{
             shapes::rectangle::Rectangle,
             Square,
         },
-        game_layer::{GameLayer, SimpleGameLayer},
+        scene::Scene,
     },
     legion::{Entity, Resources, World},
     utils::file::{app_base_path, read_file},
@@ -38,12 +38,12 @@ pub struct Hero {
 }
 
 #[derive(Default)]
-pub struct Mario {
+pub struct MainScene {
     hero: Option<Entity>,
     map: Vec<Vec<usize>>,
 }
 
-impl SimpleGameLayer for Mario {
+impl Scene for MainScene {
     fn on_start(&mut self, world: &mut World, _resources: &mut Resources) {
         add_background(world);
         self.hero = Some(add_character(world));
@@ -171,7 +171,7 @@ fn main() {
             .with_window_config(WindowConfigBuilder::new().with_dimensions((500, 640)).get())
             .get(),
     )
-    .with_layer::<Mario>("Mario")
+    .with_scene::<MainScene>()
     .with_system(move_char_system())
     .with_system(collider_system())
     .run();

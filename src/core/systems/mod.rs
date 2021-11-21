@@ -22,7 +22,7 @@ use crate::core::resources::events::topic::TopicConfiguration;
 use crate::core::resources::time::{TimerType, Timers, Time};
 use crate::core::resources::asset_manager::AssetManager;
 use crate::core::resources::inputs::inputs_controller::InputsController;
-use crate::core::game_layer::GameLayerController;
+use crate::core::scene::SceneController;
 use crate::core::resources::sound::AudioPlayer;
 
 pub(crate) mod animations_system;
@@ -58,7 +58,7 @@ impl Package for InternalPackage {
         resources.insert(AssetManager::default());
         resources.insert(InputsController::default());
         resources.insert(GameState::default());
-        resources.insert(GameLayerController::default());
+        resources.insert(SceneController::default());
         resources.insert(AudioPlayer::default());
     }
 

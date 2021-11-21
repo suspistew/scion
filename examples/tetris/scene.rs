@@ -5,7 +5,7 @@ use scion::{
             tiles::tileset::Tileset,
             ui::{font::Font, ui_image::UiImage, ui_text::UiText},
         },
-        game_layer::SimpleGameLayer,
+        scene::Scene,
         legion_ext::{ScionResourcesExtension, ScionWorldExtension},
         resources::time::TimerType,
     },
@@ -15,11 +15,11 @@ use scion::{
 use crate::{asset_path, resources::TetrisResource};
 
 #[derive(Default)]
-pub struct TetrisLayer {
+pub struct MainScene {
     score: Option<Entity>,
 }
 
-impl SimpleGameLayer for TetrisLayer {
+impl Scene for MainScene {
     fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
         add_main_ui_mask(world);
         add_ui_top_overflow(world);
@@ -37,7 +37,7 @@ impl SimpleGameLayer for TetrisLayer {
         resources.insert(tetris);
     }
 
-    fn update(&mut self, world: &mut World, resources: &mut Resources) {
+    fn on_update(&mut self, world: &mut World, resources: &mut Resources) {
         let tetris = resources.get::<TetrisResource>().unwrap();
         world
             .entry(self.score.unwrap())
