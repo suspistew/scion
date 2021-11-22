@@ -11,7 +11,7 @@ use scion::core::{
     resources::sound::{AudioPlayer, PlayConfig},
 };
 
-use crate::main_layer::{Ball, BallDirection};
+use crate::main_scene::{Ball, BallDirection};
 
 #[system(for_each)]
 pub fn ball_control(

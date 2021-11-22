@@ -1,7 +1,7 @@
 use winit::window::CursorIcon;
 
 /// [`Window`] is a Resource dedicated to have an access control over the current window.
-/// Its size is immediatly updated when the window resize event happens.
+/// Its size is immediately updated when the window resize event happens.
 /// new_cursor is set at the end of the current frame.
 #[derive(Default, Debug, Copy, Clone)]
 pub struct Window {

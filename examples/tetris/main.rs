@@ -5,13 +5,12 @@ use scion::{
         scion_config::{ScionConfig, ScionConfigBuilder},
         window_config::WindowConfigBuilder,
     },
-    core::game_layer::GameLayer,
     utils::file::{app_base_path, PathBuilder},
     Scion,
 };
 
 use crate::{
-    layer::TetrisLayer,
+    scene::MainScene,
     systems::{
         move_system::move_piece_system, piece_system::piece_update_system,
         rotation_system::piece_rotation_system, score_system::score_system,
@@ -19,13 +18,13 @@ use crate::{
 };
 
 mod components;
-mod layer;
+mod scene;
 pub mod resources;
 mod systems;
 
 fn main() {
     Scion::app_with_config(app_config())
-        .with_layer::<TetrisLayer>("Tetris")
+        .with_scene::<MainScene>()
         .with_system(piece_update_system())
         .with_system(move_piece_system())
         .with_system(piece_rotation_system())

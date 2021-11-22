@@ -5,18 +5,13 @@ use scion::{
         logger_config::LoggerConfig, scion_config::ScionConfigBuilder,
         window_config::WindowConfigBuilder,
     },
-    core::{components::color::Color, game_layer::GameLayer},
+    core::{components::color::Color},
     Scion,
 };
+use crate::main_scene::MainScene;
 
-use crate::{
-    inputs_layer::InputLayer, main_layer::JezzBallLayer, tilemap_update_layer::TilemapUpdateLayer,
-};
-
-mod inputs_layer;
-mod main_layer;
+mod main_scene;
 mod systems;
-mod tilemap_update_layer;
 mod utils;
 
 fn main() {
@@ -33,9 +28,7 @@ fn main() {
             )
             .get(),
     )
-        .with_layer::<JezzBallLayer>("MAIN")
-        .with_layer::<InputLayer>("INPUTS")
-        .with_layer::<TilemapUpdateLayer>("TILEMAP_LAYER")
+        .with_scene::<MainScene>()
         .with_system(systems::ball::ball_control_system())
         .with_system(systems::lines::line_update_system())
         .run();
