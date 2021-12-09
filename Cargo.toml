@@ -19,7 +19,7 @@ legion = { version = "0.4", default-features = false, features = ["codegen"] }
 atomic_refcell = "0.1.6"
 
 # window & rendering
-winit = "0.25"
+winit = "0.26"
 wgpu = { version = "0.11", features = ["spirv"] }
 futures = "0.3"
 

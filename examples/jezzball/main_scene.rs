@@ -96,9 +96,9 @@ impl Scene for MainScene {
 
         // Creating the level
 
-        for i in 0..200 {
-            init_balls(world, &assets);
-        }
+
+        init_balls(world, &assets);
+
         add_border(world);
 
         let _r = resources.audio().register_sound(

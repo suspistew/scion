@@ -22,7 +22,7 @@ pub fn pipeline(
     });
 
     let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        label: Some("Square render pipeline"),
+        label: Some("Scion's render pipeline"),
         layout: Some(&render_pipeline_layout),
         vertex: wgpu::VertexState {
             module: &vs_module,
