@@ -23,7 +23,7 @@ use crate::core::resources::time::{TimerType, Timers, Time};
 use crate::core::resources::asset_manager::AssetManager;
 use crate::core::resources::inputs::inputs_controller::InputsController;
 use crate::core::scene::SceneController;
-use crate::core::resources::sound::AudioPlayer;
+use crate::core::resources::audio::Audio;
 
 pub(crate) mod animations_system;
 pub(crate) mod asset_ref_resolver_system;
@@ -59,7 +59,7 @@ impl Package for InternalPackage {
         resources.insert(InputsController::default());
         resources.insert(GameState::default());
         resources.insert(SceneController::default());
-        resources.insert(AudioPlayer::default());
+        resources.insert(Audio::default());
     }
 
     fn load(self, builder: ScionBuilder) -> ScionBuilder {

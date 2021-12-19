@@ -30,7 +30,7 @@ pub fn read_file_modification_time(path: &Path) -> Result<SystemTime, FileReader
     }
 }
 
-fn open_file(path: &Path) -> Result<File, FileReaderError> {
+pub fn open_file(path: &Path) -> Result<File, FileReaderError> {
     match File::open(path) {
         Ok(file) => Ok(file),
         Err(e) => Err(FileReaderError { _msg: e.to_string() }),

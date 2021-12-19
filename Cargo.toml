@@ -37,11 +37,8 @@ log = { version = "0.4.14", features = ["serde"] }
 fern = { version = "0.6.0", features = ["colored"] }
 
 # sound
-audrey = { version = "0.3.0", default-features = false, features = ["ogg_vorbis"] }
 
-[target.'cfg(target_os = "linux")'.dependencies]
-quad-alsa-sys = "0.3.2"
-libc = "0.2"
+rodio = "0.14.0"
 
 [profile.dev.package]
 image = { opt-level = 3 }

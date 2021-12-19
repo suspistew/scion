@@ -11,7 +11,7 @@ use crate::{
         components::maths::camera::DefaultCamera,
         resources::{
             asset_manager::AssetManager, events::Events,
-            inputs::inputs_controller::InputsController, sound::AudioPlayer, time::Timers,
+            inputs::inputs_controller::InputsController, audio::Audio, time::Timers,
             window::Window,
         },
         state::GameState,
@@ -65,7 +65,7 @@ pub trait ScionResourcesExtension {
     fn timers(&mut self) -> AtomicRefMut<Timers>;
     fn inputs(&mut self) -> AtomicRefMut<InputsController>;
     fn events(&mut self) -> AtomicRefMut<Events>;
-    fn audio(&mut self) -> AtomicRefMut<AudioPlayer>;
+    fn audio(&mut self) -> AtomicRefMut<Audio>;
     fn window(&mut self) -> AtomicRefMut<Window>;
     fn scene_controller(&mut self) -> AtomicRefMut<SceneController>;
 }
@@ -94,8 +94,8 @@ impl ScionResourcesExtension for Resources {
     }
 
     /// retrieves the audio player from the resources
-    fn audio(&mut self) -> AtomicRefMut<AudioPlayer> {
-        self.get_mut::<AudioPlayer>()
+    fn audio(&mut self) -> AtomicRefMut<Audio> {
+        self.get_mut::<Audio>()
             .expect("The engine is missing the mandatory audio player resource")
     }
 

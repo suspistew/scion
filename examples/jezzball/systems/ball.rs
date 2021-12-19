@@ -8,10 +8,11 @@ use scion::core::{
             transform::Transform,
         },
     },
-    resources::sound::{AudioPlayer, PlayConfig},
+    resources::audio::{Audio, PlayConfig},
 };
 
 use crate::main_scene::{Ball, BallDirection};
+use crate::utils::ball_bounce_effect;
 
 #[system(for_each)]
 pub fn ball_control(
@@ -19,7 +20,7 @@ pub fn ball_control(
     transform: &mut Transform,
     collider: &Collider,
     animations: &mut Animations,
-    #[resource] audio_player: &mut AudioPlayer,
+    #[resource] audio_player: &mut Audio,
 ) {
     // Init the ball direction
     if ball.direction.is_none() {
@@ -113,7 +114,7 @@ pub fn ball_control(
                 animations.stop_all_animation(true);
                 animations.loop_animation(direction.to_string().as_str());
                 ball.direction = Some(direction);
-                audio_player.play("BOUNCE", PlayConfig::default());
+                audio_player.play(ball_bounce_effect(), PlayConfig::default());
             }
         }
     })

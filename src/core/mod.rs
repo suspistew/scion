@@ -6,3 +6,4 @@ pub mod resources;
 pub mod state;
 pub mod systems;
 pub mod package;
+pub(crate) mod audio_controller;

@@ -28,7 +28,7 @@ use crate::{
             asset_manager::AssetManager,
             events::{Events, topic::TopicConfiguration},
             inputs::inputs_controller::InputsController,
-            sound::AudioPlayer,
+            audio::Audio,
             time::{Time, Timers, TimerType},
         },
         state::GameState,
@@ -146,7 +146,6 @@ impl Scion {
                         &mut self.world,
                         &mut self.resources,
                     );
-                    self.resources.audio().system_ready();
                     self.window.as_mut().unwrap().request_redraw();
                 }
                 Event::RedrawRequested(_) => {
