@@ -17,7 +17,7 @@ use scion::{
         legion_ext::{ScionResourcesExtension, ScionWorldExtension},
         resources::{
             asset_manager::AssetRef,
-            sound::{Sound, SoundLoadingType},
+            audio::{Sound},
         },
     },
     legion::{Resources, World},
@@ -100,11 +100,6 @@ impl Scene for MainScene {
         init_balls(world, &assets);
 
         add_border(world);
-
-        let _r = resources.audio().register_sound(
-            "BOUNCE",
-            Sound::new(ball_bounce_effect(), SoundLoadingType::AlwaysInMemory),
-        );
 
         // default mouse cursor
         resources.window().set_cursor(CursorIcon::NResize);

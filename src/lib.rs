@@ -31,5 +31,4 @@ mod application;
 pub mod config;
 pub mod core;
 pub mod rendering;
-pub(crate) mod sound;
 pub mod utils;
