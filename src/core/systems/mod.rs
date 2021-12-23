@@ -78,6 +78,8 @@ impl Package for InternalPackage {
             .with_system(asset_ref_resolver_system::<Material, MaterialAssetResolverFn>())
             .with_system(animation_executer_system())
             .with_flush()
+            .with_system(dirty_child_system())
+            .with_flush()
             .with_system(dirty_transform_system())
             .with_system(compute_collisions_system())
             .with_flush()
