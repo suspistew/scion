@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
@@ -103,6 +104,7 @@ impl Scene for MainScene {
             4,
             4,
             192,
+            HashMap::new()
         ));
         for line in 0..4 {
             for column in 0..4 {

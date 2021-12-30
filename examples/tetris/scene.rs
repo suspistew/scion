@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use scion::{
     core::{
         components::{
@@ -5,9 +7,9 @@ use scion::{
             tiles::tileset::Tileset,
             ui::{font::Font, ui_image::UiImage, ui_text::UiText},
         },
-        scene::Scene,
         legion_ext::{ScionResourcesExtension, ScionWorldExtension},
         resources::time::TimerType,
+        scene::Scene,
     },
     legion::{Entity, Resources, World},
 };
@@ -33,6 +35,7 @@ impl Scene for MainScene {
             8,
             1,
             32,
+            HashMap::new()
         )));
         resources.insert(tetris);
     }

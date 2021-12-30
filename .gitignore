@@ -3,3 +3,5 @@ Cargo.lock
 .idea
 .vscode
 scion.json
+*.iml
+**/.DS_Store

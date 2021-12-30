@@ -43,7 +43,7 @@ impl Default for WindowConfig {
         Self {
             fullscreen: false,
             dimensions: Some((1024, 768)),
-            min_dimensions: Some((500, 480)),
+            min_dimensions: Some((384, 336)),
             max_dimensions: None,
             visibility: true,
             icon: None,

@@ -36,11 +36,11 @@ impl Sprite {
     pub fn get_tile_nb(&self) -> usize { self.tile_number }
 
     fn uv_refs(&self, tileset: &Tileset) -> [Coordinates; 4] {
-        let line = (self.tile_number / tileset.length) as f32;
-        let column = (self.tile_number % tileset.length) as f32;
+        let line = (self.tile_number / tileset.width) as f32;
+        let column = (self.tile_number % tileset.width) as f32;
 
         let unit_line = 1.0 / tileset.height as f32;
-        let unit_column = 1.0 / tileset.length as f32;
+        let unit_column = 1.0 / tileset.width as f32;
 
         let a = Coordinates::new(column * unit_column, line * unit_line);
         let b = Coordinates::new(a.x(), a.y() + unit_line);
