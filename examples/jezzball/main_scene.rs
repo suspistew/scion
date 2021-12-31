@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use legion::{Entity, EntityStore, IntoQuery};
 use legion::world::SubWorld;
@@ -91,7 +92,7 @@ impl Scene for MainScene {
     fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
         world.add_default_camera();
 
-        let ball_asset = resources.assets().register_tileset(Tileset::new(ball_asset(), 4, 4, 28));
+        let ball_asset = resources.assets().register_tileset(Tileset::new(ball_asset(), 4, 4, 28, HashMap::new()));
         let assets = JezzBallAssets { ball_asset };
 
         // Creating the level
@@ -453,7 +454,7 @@ fn compute_sides(pos: (usize, usize)) -> Vec<(usize, usize)> {
 }
 
 fn add_tilemap(world: &mut World, resources: &mut Resources) -> Entity {
-    let cases_asset = resources.assets().register_tileset(Tileset::new(cases_asset(), 3, 2, 16));
+    let cases_asset = resources.assets().register_tileset(Tileset::new(cases_asset(), 3, 2, 16, HashMap::new()));
     let infos = TilemapInfo::new(
         Dimensions::new(68, 38, 1),
         Transform::from_xyz(10., 10., 10),

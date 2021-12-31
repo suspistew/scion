@@ -1,12 +1,9 @@
-mod bomb_animations;
-mod bomb_system;
-mod char_animations;
-mod character_control_system;
-mod level_reader;
+use std::collections::HashMap;
+
+use legion::{Entity, Resources, World};
 
 use bomb_system::exposion_system;
 use character_control_system::controller_system;
-use legion::{Entity, Resources, World};
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
@@ -20,15 +17,21 @@ use scion::{
                 tileset::Tileset,
             },
         },
-        scene::Scene,
         legion_ext::{ScionResourcesExtension, ScionWorldExtension},
         resources::asset_manager::AssetRef,
+        scene::Scene,
     },
-    utils::{file::app_base_path, maths::Dimensions},
     Scion,
+    utils::{file::app_base_path, maths::Dimensions},
 };
 
 use crate::level_reader::Level;
+
+mod bomb_animations;
+mod bomb_system;
+mod char_animations;
+mod character_control_system;
+mod level_reader;
 
 #[derive(Default)]
 struct MainScene {
@@ -59,6 +62,7 @@ impl Scene for MainScene {
             13,
             9,
             64,
+            HashMap::default()
         ));
 
         let level = level_reader::read_level("examples/bomberman/assets/test_map.json");

@@ -1,7 +1,10 @@
 use std::{collections::HashMap, ops::Range};
 
 use legion::{world::SubWorld, Entity, EntityStore, World};
+use serde_json::map::Values;
+use serde_json::Value;
 use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     core::{
@@ -17,6 +20,18 @@ use crate::{
     utils::maths::{Dimensions, Position},
 };
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TileEvent {
+    event_type: String,
+    properties: HashMap<String, String>,
+}
+
+impl TileEvent {
+    pub fn new(event_type: String, properties: HashMap<String, String>) -> Self {
+        Self { event_type, properties }
+    }
+}
+
 pub(crate) struct Tile {
     pub(crate) position: Position,
     pub(crate) tilemap: Entity,
@@ -27,12 +42,24 @@ pub(crate) struct Tile {
 pub struct TileInfos {
     tile_nb: Option<usize>,
     animation: Option<Animation>,
+    event: Option<TileEvent>,
+    pathing: usize,
 }
 
 impl TileInfos {
     /// Creates a new TileInfos struct
     pub fn new(tile_nb: Option<usize>, animation: Option<Animation>) -> Self {
-        Self { tile_nb, animation }
+        Self { tile_nb, animation, event: None, pathing: 0 }
+    }
+
+    pub fn with_event(mut self, event: Option<TileEvent>) -> Self {
+        self.event = event;
+        self
+    }
+
+    pub fn with_pathing(mut self, pathing: usize) -> Self {
+        self.pathing = pathing;
+        self
     }
 }
 
@@ -64,8 +91,8 @@ impl Tilemap {
     /// tile_resolver is a function taking a 3D position as parameter and a `TileInfos`
     /// as a return. This way, the tilemap knows exactly what to add at which coordinates.
     pub fn create<F>(infos: TilemapInfo, world: &mut World, mut tile_resolver: F) -> Entity
-    where
-        F: FnMut(&Position) -> TileInfos, {
+        where
+            F: FnMut(&Position) -> TileInfos, {
         let self_entity = Tilemap::create_tilemap(world, infos.tileset_ref, infos.transform);
 
         for x in 0..infos.dimensions.width() {
