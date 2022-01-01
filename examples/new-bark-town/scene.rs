@@ -1,3 +1,4 @@
+use legion::{Entity, EntityStore};
 use scion::core::components::material::Material;
 use scion::core::components::maths::transform::Transform;
 use scion::core::components::tiles::tilemap::{TileEvent, TileInfos, Tilemap, TilemapInfo};
@@ -8,12 +9,12 @@ use scion::core::resources::audio::PlayConfig;
 use scion::core::scene::Scene;
 use scion::legion::{Resources, World};
 use scion::utils::file::app_base_path;
-use scion::utils::maths::Dimensions;
+use scion::utils::maths::{Dimensions, Position};
 use crate::level_reader::read_level;
 
 #[derive(Default)]
 pub struct MainScene{
-    tileset_ref: Option<AssetRef<Material>>
+    tilemap: Option<Entity>
 }
 
 impl Scene for MainScene {
@@ -24,24 +25,22 @@ impl Scene for MainScene {
             looped: true,
             category: None,
         });
-        let asset_ref = load_map("examples/new-bark-town/assets/scenes/main_house_bedroom.json".to_string(), world, resources);
-        self.tileset_ref = Some(asset_ref);
+        let tilemap = load_map("examples/new-bark-town/assets/scenes/main_house_bedroom.json".to_string(), world, resources);
+        self.tilemap = Some(tilemap);
     }
 
-    fn on_update(&mut self, _world: &mut World, resources: &mut Resources) {
-        let ar = self.tileset_ref.as_ref().unwrap();
-        let assetManager = resources.assets();
-        let tileset = assetManager.retrieve_tileset(ar);
+    fn on_update(&mut self, world: &mut World, resources: &mut Resources) {
+        let ar = self.tilemap.as_ref().unwrap();
+        let mut tilemap_entry = world.entry_mut(*ar).unwrap();
+        let tilemap = tilemap_entry.get_component_mut::<Tilemap>().unwrap();
 
-        match tileset {
-            None => {}
-            Some(t) => { println!("{:?}", t);}
-        }
-
+        let event = tilemap.retrieve_event(&Position::new(7, 0, 0)).unwrap();
+        let mut props = event.properties();
+        props.insert("SALOPRIE".to_string(), "valeur".to_string());
     }
 }
 
-fn load_map(level: String, world: &mut World, resources: &mut Resources) -> AssetRef<Material> {
+fn load_map(level: String, world: &mut World, resources: &mut Resources) -> Entity {
     let asset_ref = resources.assets().register_tileset(Tileset::from_atlas("examples/new-bark-town/assets/tileset_atlas.json").unwrap());
     let mut level = read_level(level.as_str());
     let mut scale = Transform::default();
@@ -55,8 +54,7 @@ fn load_map(level: String, world: &mut World, resources: &mut Resources) -> Asse
     Tilemap::create(tilemap_infos, world, |p| {
         TileInfos::new(Some(level.tile_at(p)), None)
             .with_event(level.event_at(p))
-    });
-    asset_ref
+    })
 }
 
 

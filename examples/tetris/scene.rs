@@ -34,8 +34,7 @@ impl Scene for MainScene {
             asset_path().join("blocs.png").get(),
             8,
             1,
-            32,
-            HashMap::new()
+            32
         )));
         resources.insert(tetris);
     }

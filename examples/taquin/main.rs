@@ -103,8 +103,7 @@ impl Scene for MainScene {
             app_base_path().join("examples/taquin/assets/taquin.png").get(),
             4,
             4,
-            192,
-            HashMap::new()
+            192
         ));
         for line in 0..4 {
             for column in 0..4 {

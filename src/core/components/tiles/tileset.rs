@@ -21,10 +21,14 @@ pub struct Tileset {
 }
 
 impl Tileset {
-    pub fn new(texture: String, width: usize, height: usize, tile_size: usize, pathing: HashMap<String, HashSet<usize>>) -> Self {
-        Self { width, height, tile_size, texture, pathing }
+    pub fn new(texture: String, width: usize, height: usize, tile_size: usize) -> Self {
+        Self { width, height, tile_size, texture, pathing:HashMap::default() }
     }
 
+    pub fn with_pathing(mut self, pathing: HashMap<String, HashSet<usize>>) -> Self{
+        self.pathing = pathing;
+        self
+    }
 
     pub fn from_atlas(path_to_atlas: &str) -> Result<Self, ()> {
         let path = Path::new(path_to_atlas);
