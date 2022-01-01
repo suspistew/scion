@@ -61,8 +61,7 @@ impl Scene for MainScene {
             app_base_path().join("examples/bomberman/assets/sokoban_tilesheet.png").get(),
             13,
             9,
-            64,
-            HashMap::default()
+            64
         ));
 
         let level = level_reader::read_level("examples/bomberman/assets/test_map.json");

@@ -73,7 +73,7 @@ mod tests {
     #[test]
     fn register_tileset_test() {
         let mut manager = AssetManager::default();
-        let asset_ref = manager.register_tileset(Tileset::new("test".to_string(), 1, 1, 1, HashMap::default()));
+        let asset_ref = manager.register_tileset(Tileset::new("test".to_string(), 1, 1, 1));
         assert_eq!(0, asset_ref.0);
         assert_eq!(1, manager.materials.len());
     }

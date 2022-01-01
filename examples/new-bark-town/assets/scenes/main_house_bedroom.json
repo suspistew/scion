@@ -29,6 +29,10 @@
           "y": 0,
           "properties": [
             {
+              "name": "type",
+              "value": "DOOR"
+            },
+            {
               "name": "destination",
               "value": "ground_floor_main_house"
             },

@@ -1,4 +1,5 @@
 use std::{collections::HashMap, ops::Range};
+use image::imageops::tile;
 
 use legion::{world::SubWorld, Entity, EntityStore, World};
 use serde_json::map::Values;
@@ -19,6 +20,13 @@ use crate::{
     rendering::Renderable2D,
     utils::maths::{Dimensions, Position},
 };
+use crate::core::resources::asset_manager::AssetManager;
+use crate::core::resources::events::Events;
+
+#[derive(Debug)]
+pub struct Pathing {
+    pathing_type: String,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TileEvent {
@@ -28,7 +36,18 @@ pub struct TileEvent {
 
 impl TileEvent {
     pub fn new(event_type: String, properties: HashMap<String, String>) -> Self {
+        if event_type.as_str() == ""{
+            panic!("An event must have a type");
+        }
         Self { event_type, properties }
+    }
+
+    pub fn event_type(&self) -> String{
+        self.event_type.to_string()
+    }
+
+    pub fn properties(&mut self) -> &mut HashMap<String, String>{
+        &mut self.properties
     }
 }
 
@@ -43,30 +62,27 @@ pub struct TileInfos {
     tile_nb: Option<usize>,
     animation: Option<Animation>,
     event: Option<TileEvent>,
-    pathing: usize,
+    pathing_type: Option<String>,
 }
 
 impl TileInfos {
     /// Creates a new TileInfos struct
     pub fn new(tile_nb: Option<usize>, animation: Option<Animation>) -> Self {
-        Self { tile_nb, animation, event: None, pathing: 0 }
+        Self { tile_nb, animation, event: None, pathing_type: None }
     }
 
+    /// Adds an event to the current tile.
     pub fn with_event(mut self, event: Option<TileEvent>) -> Self {
         self.event = event;
         self
     }
 
-    pub fn with_pathing(mut self, pathing: usize) -> Self {
-        self.pathing = pathing;
+    /// Force a pathing value for this position. If this exists, the engine won't check in the
+    /// tileset atlas to retrive pathing value for this tile
+    pub fn with_pathing(mut self, pathing: String) -> Self {
+        self.pathing_type = Some(pathing);
         self
     }
-}
-
-#[derive(Default)]
-/// `Tilemap` is `Scion` convenience component to create a full multi layered tilemap.
-pub struct Tilemap {
-    tile_entities: HashMap<Position, Entity>,
 }
 
 /// `TilemapInfo` regroups all the needed informations that a Tilemap needs to be created
@@ -86,7 +102,18 @@ impl TilemapInfo {
     }
 }
 
+/// `Tilemap` is `Scion` convenience component to create a full multi layered tilemap.
+pub struct Tilemap {
+    tile_entities: HashMap<Position, Entity>,
+    events: HashMap<Position, TileEvent>,
+    tileset_ref: AssetRef<Material>,
+}
+
 impl Tilemap {
+    pub(crate) fn new(tileset_ref: AssetRef<Material>) -> Self{
+        Self{ tile_entities: Default::default(), events: HashMap::default(),tileset_ref }
+    }
+
     /// Convenience fn to create a tilemap and add it to the world.
     /// tile_resolver is a function taking a 3D position as parameter and a `TileInfos`
     /// as a return. This way, the tilemap knows exactly what to add at which coordinates.
@@ -116,6 +143,23 @@ impl Tilemap {
                             .unwrap()
                             .add_component(Animations::single("TileAnimation", animation));
                     }
+
+                    if let Some(pathing) = tile_infos.pathing_type {
+                        world
+                            .entry(entity)
+                            .unwrap()
+                            .add_component(Pathing { pathing_type: pathing });
+                    }
+
+                    if let Some(event) = tile_infos.event{
+                        world
+                            .entry(self_entity)
+                            .unwrap()
+                            .get_component_mut::<Tilemap>()
+                            .unwrap()
+                            .events.insert(position.clone(), event);
+                    }
+
                     world
                         .entry(self_entity)
                         .unwrap()
@@ -164,12 +208,46 @@ impl Tilemap {
         None
     }
 
+    /// Retrieves the pathing value associated with this position in the tilemap
+    pub fn retrieve_pathing(
+        &self,
+        tile_position: &Position,
+        world: &SubWorld,
+        asset_manager: &AssetManager
+    ) -> Option<String> {
+        if self.tile_entities.contains_key(&tile_position) {
+            let entity = self.tile_entities.get(&tile_position).unwrap();
+            if let Ok(entry) = world.entry_ref(*entity) {
+                let pathing = entry.get_component::<Pathing>();
+                if let Ok(path_value) = pathing {
+                    return Some(path_value.pathing_type.to_string());
+                }
+            }
+        }
+        if let Some(tileset) = asset_manager.retrieve_tileset(&self.tileset_ref) {
+            if let Some(sprite) = self.retrieve_sprite_tile(tile_position, world){
+                let val = tileset.pathing.iter().filter(|(k, v)| v.contains(&sprite)).next();
+                if let Some(entry) = val {
+                    return Some(entry.0.to_string());
+                }
+            }
+        }
+        None
+    }
+
+    /// Retrieves the mutable tile event associated with this position in the tilemap
+    pub fn retrieve_event(&mut self,
+                             tile_position: &Position) -> Option<&mut TileEvent> {
+        return self.events.get_mut(&tile_position);
+    }
+
+
     fn create_tilemap(
         world: &mut World,
         tileset_ref: AssetRef<Material>,
         transform: Transform,
     ) -> Entity {
-        world.push((Self::default(), tileset_ref, transform))
+        world.push((Self::new(tileset_ref.clone()), tileset_ref, transform))
     }
 }
 
