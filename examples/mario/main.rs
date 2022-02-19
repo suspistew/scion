@@ -25,6 +25,7 @@ use scion::{
     utils::file::{app_base_path, read_file},
     Scion,
 };
+use scion::core::components::maths::transform::TransformBuilder;
 
 use crate::{character_control_system::move_char_system, collisions_system::collider_system};
 

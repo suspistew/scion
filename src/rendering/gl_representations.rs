@@ -160,7 +160,7 @@ impl From<UniformData<'_>> for GlUniform {
             y: uniform_data.transform.global_translation.y(),
             z: uniform_data.transform.global_translation.z() as f32,
         });
-        if !uniform_data.is_ui_component {
+        if !uniform_data.is_ui_component && !uniform_data.transform.use_screen_as_origin {
             model_trans.append_translation(Vec3 {
                 x: -1. * uniform_data.camera.1.global_translation().x(),
                 y: -1. * uniform_data.camera.1.global_translation().y(),

@@ -19,6 +19,7 @@ pub struct Transform {
     pub(crate) angle: f32,
     pub(crate) dirty: bool,
     pub(crate) dirty_child: bool,
+    pub(crate) use_screen_as_origin: bool,
     bounds: Bounds,
 }
 
@@ -31,6 +32,7 @@ impl Default for Transform {
             angle: 0.0,
             dirty: false,
             dirty_child: true,
+            use_screen_as_origin: false,
             bounds: Default::default(),
         }
     }
@@ -46,6 +48,7 @@ impl Transform {
             angle,
             dirty: false,
             dirty_child: true,
+            use_screen_as_origin: false,
             bounds: Default::default(),
         }
     }
@@ -134,6 +137,11 @@ impl Transform {
         self.handle_bounds();
     }
 
+    pub fn set_use_screen_as_origin(&mut self, new_value: bool) {
+        self.use_screen_as_origin = new_value;
+        self.handle_bounds();
+    }
+
     /// Configure the minimum and maximum global values of x and y
     pub fn set_global_translation_bounds(
         &mut self,
@@ -214,6 +222,11 @@ impl TransformBuilder {
 
     pub fn with_angle(mut self, angle: f32) -> Self {
         self.transform.angle = angle;
+        self
+    }
+
+    pub fn with_screen_as_origin(mut self) -> Self{
+        self.transform.use_screen_as_origin = true;
         self
     }
 
