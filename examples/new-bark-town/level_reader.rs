@@ -17,25 +17,6 @@ impl ScionMap{
             .get(pos.x())
             .unwrap()
     }
-
-    pub fn event_at(&mut self, pos: &Position) -> Option<TileEvent> {
-        if let Some(layer) = self.layers
-            .get_mut(pos.z()) {
-            if let Some(event) = layer.events.iter().filter(|event| event.x == pos.x() && event.y == pos.y()).next(){
-                let mut event_type = String::default();
-                let mut properties = HashMap::new();
-                for item in event.properties.iter() {
-                    if item.name.as_str().eq("type") {
-                        event_type = item.value.to_string();
-                    }else{
-                        properties.insert(item.name.to_string(), item.value.to_string());
-                    }
-                }
-                return Some(TileEvent::new(event_type, properties));
-            }
-        }
-        None
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -45,17 +26,46 @@ pub struct Property {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ScionLevel{
+    pub map: ScionMap,
+    pub events: Vec<ScionEvent>
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ScionEvent{
+    pub event_type: String,
+    pub x: usize,
+    pub y: usize,
+    pub properties: HashMap<String, String>
+}
+
+impl ScionLevel {
+    pub fn event_at(&mut self, pos: &Position) -> Option<TileEvent> {
+        for event in self.events.iter() {
+            if event.x == pos.x() && event.y == pos.y() {
+                return Some(TileEvent::new(event.event_type.to_string(), event.properties.clone()));
+            }
+        }
+        None
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ScionMap{
     pub width: usize,
     pub height: usize,
+    #[serde(default)]
     pub properties: Vec<Property>,
+    #[serde(default)]
     pub layers: Vec<ScionLayer>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ScionLayer {
     pub name: String,
+    #[serde(default)]
     pub tiles: Vec<Vec<usize>>,
+    #[serde(default)]
     pub events: Vec<Event>
 }
 
@@ -63,12 +73,12 @@ pub struct ScionLayer {
 pub struct Event {
     pub x: usize,
     pub y: usize,
+    #[serde(default)]
     pub properties: Vec<Property>,
 }
 
 
-pub fn read_level(name: &str) -> ScionMap {
-    println!("name : {:?}", name);
+pub fn read_level(name: &str) -> ScionLevel {
     match scion::utils::file::read_file(Path::new(name)) {
         Ok(file) => {
             return serde_json::from_slice(file.as_slice()).expect("level error");

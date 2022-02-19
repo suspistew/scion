@@ -2,6 +2,7 @@ mod character_control_system;
 mod collisions_system;
 
 use std::{path::Path, str::from_utf8};
+use std::time::Duration;
 
 use legion::IntoQuery;
 use scion::{
@@ -25,6 +26,7 @@ use scion::{
     utils::file::{app_base_path, read_file},
     Scion,
 };
+use scion::core::components::animations::{Animation, AnimationModifier, Animations};
 use scion::core::components::maths::transform::TransformBuilder;
 
 use crate::{character_control_system::move_char_system, collisions_system::collider_system};

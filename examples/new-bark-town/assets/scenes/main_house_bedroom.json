@@ -1,56 +1,15 @@
 {
-  "width": 8,
-  "height": 7,
-  "properties": [
-    {
-      "name": "character_x",
-      "value": "1"
-    },
-    {
-      "name": "character_y",
-      "value": "5"
+  "map":{"width":8,"height":7,"properties":[],"layers":[{"name":"Background","tiles":[[0,0,3,0,6,9,26,4],[60,60,15,16,18,21,60,60],[60,60,24,25,60,60,60,60],[60,60,60,60,60,60,60,60],[60,60,60,60,60,60,60,60],[5,60,60,60,12,13,60,60],[17,60,60,60,24,25,60,60]]}]},
+  "events": [{
+    "event_type": "DOOR",
+    "x": 7,
+    "y": 0,
+    "z": 0,
+    "properties": {
+      "go_to": "main_house_floor",
+      "target_x": "9",
+      "target_y": "0",
+      "direction": "BOTTOM"
     }
-  ],
-  "layers": [
-    {
-      "name": "Main",
-      "tiles": [
-        [0, 0, 4, 0, 2, 3, 133, 69],
-        [61,61,65,66,63,64,61,61],
-        [61,61,183,184,61,61,61,61],
-        [61,61,61,61,61,61,61,61],
-        [61,61,61,61,122,123,61,61],
-        [132,61,61,61,183,184,61,61],
-        [193,61,61,61,61,61,61,61]
-      ],
-      "events": [
-        {
-          "x": 7,
-          "y": 0,
-          "properties": [
-            {
-              "name": "type",
-              "value": "DOOR"
-            },
-            {
-              "name": "destination",
-              "value": "ground_floor_main_house"
-            },
-            {
-              "name": "destination_movement",
-              "value": "DOWN"
-            },
-            {
-              "name": "destination_x",
-              "value": "9"
-            },
-            {
-              "name": "destination_y",
-              "value": "0"
-            }
-          ]
-        }
-      ]
-    }
-  ]
+  }]
 }
