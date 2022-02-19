@@ -37,7 +37,9 @@ pub struct ScionConfigBuilder {
 
 impl ScionConfigBuilder {
     /// Create a new `ScionConfigBuilder` builder
-    pub fn new() -> Self { Self { config: Default::default() } }
+    pub fn new() -> Self {
+        Self { config: Default::default() }
+    }
 
     /// Sets the app name for scion. Will also be used for the window name
     pub fn with_app_name(mut self, app_name: String) -> Self {
@@ -58,7 +60,9 @@ impl ScionConfigBuilder {
     }
 
     /// Retrieves the configuration built
-    pub fn get(self) -> ScionConfig { self.config }
+    pub fn get(self) -> ScionConfig {
+        self.config
+    }
 }
 
 pub(crate) struct ScionConfigReader;

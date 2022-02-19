@@ -33,12 +33,19 @@ impl Triangle {
     pub fn pivot(self, pivot: Pivot) -> Self {
         let offset = match pivot {
             Pivot::TopLeft => Vector::new(0., 0.),
-            Pivot::Center => Vector::new((self.vertices[0].x + self.vertices[1].x + self.vertices[2].x).abs() / 3., (self.vertices[0].y + self.vertices[1].y + self.vertices[2].y) / 3.),
+            Pivot::Center => Vector::new(
+                (self.vertices[0].x + self.vertices[1].x + self.vertices[2].x).abs() / 3.,
+                (self.vertices[0].y + self.vertices[1].y + self.vertices[2].y) / 3.,
+            ),
         };
         Triangle::new_with_offset(self.vertices, self.uvs, offset)
     }
 
-    fn new_with_offset(vertices: [Coordinates; 3], uvs: Option<[Coordinates; 3]>, offset: Vector) -> Self {
+    fn new_with_offset(
+        vertices: [Coordinates; 3],
+        uvs: Option<[Coordinates; 3]>,
+        offset: Vector,
+    ) -> Self {
         let a = Coordinates::new(&vertices[0].x - offset.x, &vertices[0].y - offset.y);
         let b = Coordinates::new(&vertices[1].x - offset.x, &vertices[1].y - offset.y);
         let c = Coordinates::new(&vertices[2].x - offset.x, &vertices[2].y - offset.y);
@@ -69,11 +76,17 @@ impl Renderable2D for Triangle {
         }
     }
 
-    fn range(&self) -> Range<u32> { 0..3 as u32 }
+    fn range(&self) -> Range<u32> {
+        0..3 as u32
+    }
 
-    fn topology() -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
+    fn topology() -> PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleList
+    }
 
-    fn dirty(&self) -> bool { false }
+    fn dirty(&self) -> bool {
+        false
+    }
 
     fn set_dirty(&mut self, _is_dirty: bool) {}
 }

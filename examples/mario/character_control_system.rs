@@ -4,7 +4,7 @@ use scion::{
         resources::{
             inputs::{
                 inputs_controller::InputsController,
-                types::{InputState, KeyCode},
+                types::{KeyCode},
             },
             time::{TimerType, Timers},
         },

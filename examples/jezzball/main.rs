@@ -1,14 +1,14 @@
 use log::LevelFilter;
 
+use crate::main_scene::MainScene;
 use scion::{
     config::{
         logger_config::LoggerConfig, scion_config::ScionConfigBuilder,
         window_config::WindowConfigBuilder,
     },
-    core::{components::color::Color},
+    core::components::color::Color,
     Scion,
 };
-use crate::main_scene::MainScene;
 
 mod main_scene;
 mod systems;
@@ -28,8 +28,8 @@ fn main() {
             )
             .get(),
     )
-        .with_scene::<MainScene>()
-        .with_system(systems::ball::ball_control_system())
-        .with_system(systems::lines::line_update_system())
-        .run();
+    .with_scene::<MainScene>()
+    .with_system(systems::ball::ball_control_system())
+    .with_system(systems::lines::line_update_system())
+    .run();
 }

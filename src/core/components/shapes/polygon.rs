@@ -28,7 +28,9 @@ impl Polygon {
     }
 
     /// Retrieves the vertices list
-    pub fn get_vertices(&self) -> &Vec<Coordinates> { &self.vertices }
+    pub fn get_vertices(&self) -> &Vec<Coordinates> {
+        &self.vertices
+    }
 
     /// Append x to the nth vertice
     pub fn append_x(&mut self, index: usize, x: f32) {
@@ -70,11 +72,19 @@ impl Renderable2D for Polygon {
         }
     }
 
-    fn range(&self) -> Range<u32> { 0..self.indices.len() as u32 }
+    fn range(&self) -> Range<u32> {
+        0..self.indices.len() as u32
+    }
 
-    fn topology() -> PrimitiveTopology { wgpu::PrimitiveTopology::LineStrip }
+    fn topology() -> PrimitiveTopology {
+        wgpu::PrimitiveTopology::LineStrip
+    }
 
-    fn dirty(&self) -> bool { self.dirty }
+    fn dirty(&self) -> bool {
+        self.dirty
+    }
 
-    fn set_dirty(&mut self, is_dirty: bool) { self.dirty = is_dirty; }
+    fn set_dirty(&mut self, is_dirty: bool) {
+        self.dirty = is_dirty;
+    }
 }

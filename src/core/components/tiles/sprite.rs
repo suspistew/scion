@@ -25,7 +25,9 @@ pub struct Sprite {
 impl Sprite {
     /// Creates a new sprite that will use the `tile_number` from the tileset associated in the same
     /// entity
-    pub fn new(tile_number: usize) -> Self { Self { tile_number, contents: None, dirty: false } }
+    pub fn new(tile_number: usize) -> Self {
+        Self { tile_number, contents: None, dirty: false }
+    }
 
     /// Modify the current sprite tile number
     pub fn set_tile_nb(&mut self, new_tile_nb: usize) {
@@ -33,7 +35,9 @@ impl Sprite {
         self.dirty = true;
     }
 
-    pub fn get_tile_nb(&self) -> usize { self.tile_number }
+    pub fn get_tile_nb(&self) -> usize {
+        self.tile_number
+    }
 
     fn uv_refs(&self, tileset: &Tileset) -> [Coordinates; 4] {
         let line = (self.tile_number / tileset.width) as f32;
@@ -69,7 +73,9 @@ impl Sprite {
         self.contents.as_ref().expect("A computed content is missing in Sprite component").clone()
     }
 
-    pub(crate) fn indices() -> Vec<u16> { INDICES.to_vec() }
+    pub(crate) fn indices() -> Vec<u16> {
+        INDICES.to_vec()
+    }
 }
 
 impl Renderable2D for Sprite {
@@ -92,11 +98,19 @@ impl Renderable2D for Sprite {
         }
     }
 
-    fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
+    fn range(&self) -> Range<u32> {
+        0..INDICES.len() as u32
+    }
 
-    fn topology() -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
+    fn topology() -> PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleList
+    }
 
-    fn dirty(&self) -> bool { self.dirty }
+    fn dirty(&self) -> bool {
+        self.dirty
+    }
 
-    fn set_dirty(&mut self, is_dirty: bool) { self.dirty = is_dirty; }
+    fn set_dirty(&mut self, is_dirty: bool) {
+        self.dirty = is_dirty;
+    }
 }

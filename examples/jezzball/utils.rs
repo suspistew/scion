@@ -8,9 +8,13 @@ use scion::{
 const ANIMATION_DURATION: Duration = Duration::from_millis(300);
 const BALL_SPEED: f32 = 30.;
 
-pub fn ball_asset() -> String { app_base_path().join("examples/jezzball/assets/ball.png").get() }
+pub fn ball_asset() -> String {
+    app_base_path().join("examples/jezzball/assets/ball.png").get()
+}
 
-pub fn cases_asset() -> String { app_base_path().join("examples/jezzball/assets/cases.png").get() }
+pub fn cases_asset() -> String {
+    app_base_path().join("examples/jezzball/assets/cases.png").get()
+}
 
 pub fn ball_bounce_effect() -> String {
     app_base_path().join("examples/jezzball/assets/bounce.ogg").get()

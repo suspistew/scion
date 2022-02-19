@@ -28,7 +28,9 @@ impl GlVec3 {
 }
 
 impl From<&Coordinates> for GlVec3 {
-    fn from(position: &Coordinates) -> Self { Self { x: position.x(), y: position.y(), z: 0. } }
+    fn from(position: &Coordinates) -> Self {
+        Self { x: position.x(), y: position.y(), z: 0. }
+    }
 }
 
 #[repr(C)]
@@ -50,7 +52,9 @@ pub(crate) struct GlVec4 {
 }
 
 impl From<Vec4> for GlVec4 {
-    fn from(vec: Vec4) -> Self { GlVec4 { x: vec.x, y: vec.y, z: vec.z, w: vec.w } }
+    fn from(vec: Vec4) -> Self {
+        GlVec4 { x: vec.x, y: vec.y, z: vec.z, w: vec.w }
+    }
 }
 
 #[repr(C)]
@@ -143,7 +147,9 @@ pub(crate) fn create_glmat4(t: &mut Mat4) -> [[f32; 4]; 4] {
     result
 }
 
-pub(crate) fn create_glmat(t: &Vec4) -> [f32; 4] { [t.x, t.y, t.z, t.w] }
+pub(crate) fn create_glmat(t: &Vec4) -> [f32; 4] {
+    [t.x, t.y, t.z, t.w]
+}
 
 pub(crate) struct UniformData<'a> {
     pub transform: &'a Transform,

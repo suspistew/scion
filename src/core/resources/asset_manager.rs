@@ -3,7 +3,6 @@ use std::{collections::HashMap, marker::PhantomData};
 use legion::storage::Component;
 
 use crate::core::components::{material::Material, tiles::tileset::Tileset};
-use crate::core::components::tiles::tileset::TilesetAtlas;
 
 /// `AssetManager` is resource that will link assets to an asset ref to allow reusability of assets
 #[derive(Default)]
@@ -34,29 +33,27 @@ impl AssetManager {
     pub fn retrieve_tileset(&self, asset_ref: &AssetRef<Material>) -> Option<&Tileset> {
         match self.materials.get(&asset_ref.0) {
             None => None,
-            Some(material) => {
-                match material {
-                    Material::Tileset(tileset) => { Some(tileset) }
-                    _ => None
-                }
-            }
+            Some(material) => match material {
+                Material::Tileset(tileset) => Some(tileset),
+                _ => None,
+            },
         }
     }
 }
 
 #[derive(Clone)]
 pub struct AssetRef<T>(pub(crate) usize, PhantomData<T>)
-    where
-        T: Component;
+where
+    T: Component;
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-    use rodio::cpal::BufferSize::Default;
     use crate::core::{
         components::{color::Color, material::Material, tiles::tileset::Tileset},
         resources::asset_manager::AssetManager,
     };
+    
+    
 
     #[test]
     fn register_material_test() {

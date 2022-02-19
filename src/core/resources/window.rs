@@ -21,17 +21,31 @@ impl Window {
         self.height = height;
     }
 
-    pub fn set_cursor(&mut self, icon: CursorIcon) { self.new_cursor = Some(icon); }
+    pub fn set_cursor(&mut self, icon: CursorIcon) {
+        self.new_cursor = Some(icon);
+    }
 
-    pub(crate) fn reset_new_cursor(&mut self) { self.new_cursor = None }
+    pub(crate) fn reset_new_cursor(&mut self) {
+        self.new_cursor = None
+    }
 
-    pub fn dimensions(&self) -> (u32, u32) { (self.width, self.height) }
+    pub fn dimensions(&self) -> (u32, u32) {
+        (self.width, self.height)
+    }
 
-    pub fn width(&self) -> u32 { self.width }
+    pub fn width(&self) -> u32 {
+        self.width
+    }
 
-    pub fn height(&self) -> u32 { self.height }
+    pub fn height(&self) -> u32 {
+        self.height
+    }
 
-    pub fn dpi(&self) -> f64 { self.dpi }
+    pub fn dpi(&self) -> f64 {
+        self.dpi
+    }
 
-    pub fn new_cursor(&self) -> &Option<CursorIcon> { &self.new_cursor }
+    pub fn new_cursor(&self) -> &Option<CursorIcon> {
+        &self.new_cursor
+    }
 }

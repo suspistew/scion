@@ -1,9 +1,15 @@
-use std::collections::HashMap;
-use std::fmt::{Display, Formatter};
-use legion::{Entity, EntityStore, IntoQuery};
 use legion::world::SubWorld;
+use legion::{Entity, EntityStore, IntoQuery};
+
+use std::fmt::{Display, Formatter};
 
 use rand::{thread_rng, Rng};
+use scion::core::components::color::Color;
+use scion::core::components::shapes::rectangle::Rectangle;
+use scion::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
+use scion::core::resources::events::topic::TopicConfiguration;
+use scion::core::resources::events::{PollConfiguration, SubscriberId};
+use scion::core::scene::SceneController;
 use scion::{
     core::{
         components::{
@@ -14,24 +20,15 @@ use scion::{
             },
             tiles::{sprite::Sprite, tileset::Tileset},
         },
-        scene::Scene,
         legion_ext::{ScionResourcesExtension, ScionWorldExtension},
-        resources::{
-            asset_manager::AssetRef,
-            audio::{Sound},
-        },
+        resources::{asset_manager::AssetRef},
+        scene::Scene,
     },
     legion::{Resources, World},
 };
 use winit::window::CursorIcon;
-use scion::core::components::color::Color;
-use scion::core::components::shapes::rectangle::Rectangle;
-use scion::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
-use scion::core::scene::SceneController;
-use scion::core::resources::events::{PollConfiguration, SubscriberId};
-use scion::core::resources::events::topic::TopicConfiguration;
 
-use crate::utils::{ball_animations, ball_asset, ball_bounce_effect, cases_asset};
+use crate::utils::{ball_animations, ball_asset, cases_asset};
 use scion::utils::maths::{Dimensions, Position, Vector};
 
 #[derive(Debug)]
@@ -61,7 +58,9 @@ pub enum CursorState {
 }
 
 impl Display for BallDirection {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result { write!(f, "{:?}", self) }
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 #[derive(Default)]
@@ -77,7 +76,7 @@ pub struct Line {
     pub direction: LineDirection,
 }
 
-pub struct MainScene{
+pub struct MainScene {
     tilemap: Option<Entity>,
     subscriber_id: Option<SubscriberId>,
     mouse_state: CursorState,
@@ -85,7 +84,14 @@ pub struct MainScene{
 }
 
 impl Default for MainScene {
-    fn default() -> Self { Self { tilemap: None, subscriber_id: None, mouse_state: CursorState::ROW, state_before_border: None } }
+    fn default() -> Self {
+        Self {
+            tilemap: None,
+            subscriber_id: None,
+            mouse_state: CursorState::ROW,
+            state_before_border: None,
+        }
+    }
 }
 
 impl Scene for MainScene {
@@ -96,7 +102,6 @@ impl Scene for MainScene {
         let assets = JezzBallAssets { ball_asset };
 
         // Creating the level
-
 
         init_balls(world, &assets);
 
@@ -273,7 +278,7 @@ impl Scene for MainScene {
         });
     }
 
-    fn on_stop(&mut self, world: &mut World, resources: &mut Resources) {
+    fn on_stop(&mut self, world: &mut World, _resources: &mut Resources) {
         world.remove(self.tilemap.unwrap());
         let mut to_delete: Vec<Entity> =
             <(Entity, &Line)>::query().iter(world).map(|(e, _)| *e).collect();
@@ -283,7 +288,7 @@ impl Scene for MainScene {
     }
 }
 
-impl MainScene{
+impl MainScene {
     fn compute_mouse_on_border(
         &mut self,
         mouse_pos: (f64, f64),
@@ -364,7 +369,8 @@ pub fn init_balls(world: &mut World, assets: &JezzBallAssets) {
                 ColliderMask::Custom("BORDER_RIGHT".to_string()),
             ],
             ColliderType::Square(38),
-        ).with_offset(Vector::new(-5., -5.)),
+        )
+        .with_offset(Vector::new(-5., -5.)),
         ball_animations(),
     ));
 }
@@ -406,7 +412,6 @@ fn add_border(world: &mut World) {
         ),
     ));
 }
-
 
 fn pathfind_from(
     pos: (usize, usize),

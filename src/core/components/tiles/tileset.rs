@@ -1,9 +1,8 @@
+use crate::utils::file::read_file;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use std::hash::Hash;
 use std::iter::FromIterator;
 use std::path::Path;
-use serde::{Serialize, Deserialize};
-use crate::utils::file::{FileReaderError, read_file};
 
 #[derive(Clone, Debug)]
 /// Struct representing a tileset definition.
@@ -22,10 +21,10 @@ pub struct Tileset {
 
 impl Tileset {
     pub fn new(texture: String, width: usize, height: usize, tile_size: usize) -> Self {
-        Self { width, height, tile_size, texture, pathing:HashMap::default() }
+        Self { width, height, tile_size, texture, pathing: HashMap::default() }
     }
 
-    pub fn with_pathing(mut self, pathing: HashMap<String, HashSet<usize>>) -> Self{
+    pub fn with_pathing(mut self, pathing: HashMap<String, HashSet<usize>>) -> Self {
         self.pathing = pathing;
         self
     }
@@ -34,24 +33,22 @@ impl Tileset {
         let path = Path::new(path_to_atlas);
         if path.exists() {
             match read_file(path) {
-                Ok(bytes) => {
-                    match serde_json::from_slice::<TilesetAtlas>(bytes.as_slice()) {
-                        Ok(atlas) => {
-                            let mut pathing = HashMap::new();
-                            for item in atlas.pathing.iter() {
-                                pathing.insert(item.pathing_type.to_string(), item.tiles.clone());
-                            }
-                            return Ok(Self {
-                                width: atlas.width,
-                                height: atlas.height,
-                                tile_size: atlas.tile_size,
-                                texture: atlas.texture,
-                                pathing,
-                            });
+                Ok(bytes) => match serde_json::from_slice::<TilesetAtlas>(bytes.as_slice()) {
+                    Ok(atlas) => {
+                        let mut pathing = HashMap::new();
+                        for item in atlas.pathing.iter() {
+                            pathing.insert(item.pathing_type.to_string(), item.tiles.clone());
                         }
-                        Err(_) => {}
+                        return Ok(Self {
+                            width: atlas.width,
+                            height: atlas.height,
+                            tile_size: atlas.tile_size,
+                            texture: atlas.texture,
+                            pathing,
+                        });
                     }
-                }
+                    Err(_) => {}
+                },
                 Err(_) => {}
             }
         }
@@ -75,7 +72,7 @@ pub(crate) struct PathingValue {
 }
 
 impl FromIterator<PathingValue> for HashMap<String, HashSet<usize>> {
-    fn from_iter<T: IntoIterator<Item=PathingValue>>(iter: T) -> Self {
+    fn from_iter<T: IntoIterator<Item = PathingValue>>(iter: T) -> Self {
         let mut c = HashMap::new();
         for item in iter {
             c.insert(item.pathing_type, item.tiles);

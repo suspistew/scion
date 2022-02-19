@@ -96,8 +96,12 @@ impl Rectangle {
         self.width = new_width;
     }
 
-    pub fn height(&self) -> f32 { self.height }
-    pub fn width(&self) -> f32 { self.width }
+    pub fn height(&self) -> f32 {
+        self.height
+    }
+    pub fn width(&self) -> f32 {
+        self.width
+    }
 }
 
 fn default_uvs() -> [Coordinates; 4] {
@@ -126,11 +130,19 @@ impl Renderable2D for Rectangle {
         }
     }
 
-    fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
+    fn range(&self) -> Range<u32> {
+        0..INDICES.len() as u32
+    }
 
-    fn topology() -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
+    fn topology() -> PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleList
+    }
 
-    fn dirty(&self) -> bool { self.dirty }
+    fn dirty(&self) -> bool {
+        self.dirty
+    }
 
-    fn set_dirty(&mut self, is_dirty: bool) { self.dirty = is_dirty }
+    fn set_dirty(&mut self, is_dirty: bool) {
+        self.dirty = is_dirty
+    }
 }

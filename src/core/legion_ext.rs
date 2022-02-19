@@ -6,19 +6,18 @@ use legion::{
     Read, Resources, World,
 };
 
+use crate::core::scene::SceneController;
 use crate::{
     core::{
         components::maths::camera::DefaultCamera,
         resources::{
-            asset_manager::AssetManager, events::Events,
-            inputs::inputs_controller::InputsController, audio::Audio, time::Timers,
-            window::Window,
+            asset_manager::AssetManager, audio::Audio, events::Events,
+            inputs::inputs_controller::InputsController, time::Timers, window::Window,
         },
         state::GameState,
     },
     legion::Entity,
 };
-use crate::core::scene::SceneController;
 
 pub(crate) struct PausableSystem<S> {
     pub(crate) system: S,
@@ -30,18 +29,26 @@ impl<S> Runnable for PausableSystem<S>
 where
     S: Runnable,
 {
-    fn name(&self) -> Option<&SystemId> { self.system.name() }
+    fn name(&self) -> Option<&SystemId> {
+        self.system.name()
+    }
 
     fn reads(&self) -> (&[ResourceTypeId], &[ComponentTypeId]) {
         let (_, components) = self.system.reads();
         (&self.resource_reads[..], components)
     }
 
-    fn writes(&self) -> (&[ResourceTypeId], &[ComponentTypeId]) { self.system.writes() }
+    fn writes(&self) -> (&[ResourceTypeId], &[ComponentTypeId]) {
+        self.system.writes()
+    }
 
-    fn prepare(&mut self, world: &World) { self.system.prepare(world) }
+    fn prepare(&mut self, world: &World) {
+        self.system.prepare(world)
+    }
 
-    fn accesses_archetypes(&self) -> &ArchetypeAccess { self.system.accesses_archetypes() }
+    fn accesses_archetypes(&self) -> &ArchetypeAccess {
+        self.system.accesses_archetypes()
+    }
 
     unsafe fn run_unsafe(&mut self, world: &World, resources: &UnsafeResources) {
         let resources_static = &*(resources as *const UnsafeResources);
@@ -95,8 +102,7 @@ impl ScionResourcesExtension for Resources {
 
     /// retrieves the audio player from the resources
     fn audio(&mut self) -> AtomicRefMut<Audio> {
-        self.get_mut::<Audio>()
-            .expect("The engine is missing the mandatory audio player resource")
+        self.get_mut::<Audio>().expect("The engine is missing the mandatory audio player resource")
     }
 
     /// retrieves the window from the resources
@@ -106,7 +112,8 @@ impl ScionResourcesExtension for Resources {
 
     /// retrieves the window from the resources
     fn scene_controller(&mut self) -> AtomicRefMut<SceneController> {
-        self.get_mut::<SceneController>().expect("The engine is missing the mandatory scene controller resource")
+        self.get_mut::<SceneController>()
+            .expect("The engine is missing the mandatory scene controller resource")
     }
 }
 
@@ -116,5 +123,7 @@ pub trait ScionWorldExtension {
 
 impl ScionWorldExtension for World {
     /// Adds a default camera that will be bind to the window size
-    fn add_default_camera(&mut self) -> Entity { self.push((DefaultCamera,)) }
+    fn add_default_camera(&mut self) -> Entity {
+        self.push((DefaultCamera,))
+    }
 }

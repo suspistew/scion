@@ -38,7 +38,9 @@ mod time {
         }
 
         /// Returns the duration of the last executed frame
-        pub fn delta_duration(&self) -> Duration { self.delta_duration }
+        pub fn delta_duration(&self) -> Duration {
+            self.delta_duration
+        }
     }
 }
 
@@ -115,10 +117,14 @@ mod timer {
         }
 
         // returns the elapsed time of the current timer's run
-        pub fn elapsed(&self) -> f32 { self.current_duration }
+        pub fn elapsed(&self) -> f32 {
+            self.current_duration
+        }
 
         /// returns whether or not the timer has ended
-        pub fn ended(&self) -> bool { !self.running }
+        pub fn ended(&self) -> bool {
+            !self.running
+        }
 
         /// reset the timer end start it
         pub fn reset(&mut self) {
@@ -129,7 +135,9 @@ mod timer {
         }
 
         /// changes the total duration of this timer
-        pub fn change_cycle(&mut self, new_cycle: f32) { self.total_duration = new_cycle; }
+        pub fn change_cycle(&mut self, new_cycle: f32) {
+            self.total_duration = new_cycle;
+        }
 
         /// Returns the number of cycles elapsed since the last call of this fn
         pub fn cycle(&mut self) -> usize {
@@ -172,7 +180,9 @@ mod timer {
         }
 
         /// Returns whether or not a timer with the `name` identifier exists
-        pub fn exists(&mut self, name: &str) -> bool { self.timers.contains_key(name) }
+        pub fn exists(&mut self, name: &str) -> bool {
+            self.timers.contains_key(name)
+        }
 
         /// Returns the timer identified by the `name` if it exist
         pub fn get_timer(&mut self, name: &str) -> Result<&mut Timer, Error> {

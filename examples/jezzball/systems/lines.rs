@@ -13,8 +13,8 @@ use scion::core::{
     },
 };
 
-use crate::{main_scene::LineDirection};
 use crate::main_scene::Line;
+use crate::main_scene::LineDirection;
 
 const LINE_SPEED: f32 = 4.;
 

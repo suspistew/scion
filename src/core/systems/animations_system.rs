@@ -1,21 +1,20 @@
-use std::env::var;
-use legion::{*, systems::CommandBuffer};
+use legion::{systems::CommandBuffer, *};
 
+use crate::core::components::ui::ui_text::UiText;
 use crate::core::{
     components::{
         animations::{
-            AnimationModifier, AnimationModifierType, Animations, AnimationStatus,
+            AnimationModifier, AnimationModifierType, AnimationStatus, Animations,
             ComputedKeyframeModifier,
         },
         color::Color,
-        Hide,
         material::Material,
         maths::transform::Transform,
         tiles::sprite::Sprite,
+        Hide,
     },
-    resources::time::{Timers, TimerType},
+    resources::time::{TimerType, Timers},
 };
-use crate::core::components::ui::ui_text::UiText;
 
 /// System responsible of applying modifiers data to the dedicated components
 /// It will use timers to keep track of the animation and will merge keyframes in case
@@ -35,7 +34,7 @@ pub(crate) fn animation_executer(
     animations
         .animations_mut()
         .iter_mut()
-        .filter(|(_, v)| v.status != AnimationStatus::STOPPED)
+        .filter(|(_, v)| v.status != AnimationStatus::Stopped)
         .for_each(|(key, animation)| {
             for mut modifier in animation.modifiers.iter_mut() {
                 let mut timer_created = false;
@@ -63,28 +62,33 @@ pub(crate) fn animation_executer(
                     }
                 };
 
-                if timer_cycle > 0 || timer_created || &animation.status == &AnimationStatus::FORCE_STOPPED {
+                if timer_cycle > 0
+                    || timer_created
+                    || &animation.status == &AnimationStatus::ForceStopped
+                {
                     match modifier.modifier_type.clone() {
                         AnimationModifierType::TransformModifier { .. } => {
                             apply_transform_modifier(transform.as_mut(), modifier, timer_cycle)
                         }
-                        AnimationModifierType::SpriteModifier { tile_numbers, tile_numbers_variant, end_tile_number } => {
-                            apply_sprite_modifier(
-                                sprite.as_mut(),
-                                &animation.status,
-                                modifier,
-                                &tile_numbers,
-                                &tile_numbers_variant,
-                                end_tile_number,
-                            )
-                        }
+                        AnimationModifierType::SpriteModifier {
+                            tile_numbers,
+                            tile_numbers_variant,
+                            end_tile_number,
+                        } => apply_sprite_modifier(
+                            sprite.as_mut(),
+                            &animation.status,
+                            modifier,
+                            &tile_numbers,
+                            &tile_numbers_variant,
+                            end_tile_number,
+                        ),
                         AnimationModifierType::Color { .. } => {
                             apply_color_modifier(material.as_mut(), modifier, timer_cycle)
                         }
                         AnimationModifierType::Blink => {
                             apply_blink_modifier(cmd, entity, modifier, timer_cycle, hide)
                         }
-                        AnimationModifierType::Text { content } => {
+                        AnimationModifierType::Text { content: _ } => {
                             apply_text_modifier(modifier, text.as_mut())
                         }
                     }
@@ -101,7 +105,7 @@ pub(crate) fn animation_executer(
     animations
         .animations_mut()
         .iter_mut()
-        .filter(|(_, v)| v.status == AnimationStatus::STOPPED)
+        .filter(|(_, v)| v.status == AnimationStatus::Stopped)
         .for_each(|(key, animation)| {
             for modifier in animation.modifiers.iter_mut() {
                 let timer_id = format!("{:?}-{}-{}", *entity, key, modifier.to_string());
@@ -115,8 +119,8 @@ fn apply_transform_modifier(
     modifier: &mut AnimationModifier,
     timer_cycle: usize,
 ) {
-    if let ComputedKeyframeModifier::TransformModifier { vector: coordinates, scale, rotation }
-    = modifier.retrieve_keyframe_modifier()
+    if let ComputedKeyframeModifier::TransformModifier { vector: coordinates, scale, rotation } =
+        modifier.retrieve_keyframe_modifier()
     {
         if let Some(ref mut transform) = transform {
             for _i in 0..timer_cycle {
@@ -143,7 +147,7 @@ fn apply_sprite_modifier(
     end_tile_number: usize,
 ) {
     if let Some(ref mut animation_sprite) = sprite {
-        if status == &AnimationStatus::FORCE_STOPPED {
+        if status == &AnimationStatus::ForceStopped {
             animation_sprite.set_tile_nb(end_tile_number);
             return;
         }
@@ -152,15 +156,20 @@ fn apply_sprite_modifier(
             modifier.next_sprite_index = Some(0);
         }
         if modifier.current_keyframe == (modifier.number_of_keyframes - 1)
-            && status != &AnimationStatus::LOOPING
+            && status != &AnimationStatus::Looping
         {
             animation_sprite.set_tile_nb(end_tile_number);
             modifier.next_sprite_index = None;
             modifier.variant = !modifier.variant;
         } else {
             if tile_numbers_variant.is_some() && modifier.variant {
-                animation_sprite
-                    .set_tile_nb(*tile_numbers_variant.as_ref().unwrap().get(modifier.next_sprite_index.unwrap()).unwrap());
+                animation_sprite.set_tile_nb(
+                    *tile_numbers_variant
+                        .as_ref()
+                        .unwrap()
+                        .get(modifier.next_sprite_index.unwrap())
+                        .unwrap(),
+                );
             } else {
                 animation_sprite
                     .set_tile_nb(*tile_numbers.get(modifier.next_sprite_index.unwrap()).unwrap());
@@ -186,7 +195,7 @@ fn apply_color_modifier(
             modifier.compute_keyframe_modifier_for_animation(color);
         }
         if let Some(ComputedKeyframeModifier::Color { r, g, b, a }) =
-        &modifier.single_keyframe_modifier
+            &modifier.single_keyframe_modifier
         {
             for i in 0..timer_cycle {
                 if modifier.will_be_last_keyframe(i) {
@@ -225,22 +234,20 @@ fn apply_blink_modifier(
     }
 }
 
-fn apply_text_modifier(
-    modifier: &mut AnimationModifier,
-    mut text: Option<&mut &mut UiText>,
-) {
+fn apply_text_modifier(modifier: &mut AnimationModifier, mut text: Option<&mut &mut UiText>) {
     let mut next_cursor = 0;
     if let ComputedKeyframeModifier::Text { cursor } = modifier.retrieve_keyframe_modifier() {
         if let Some(ref mut uitext) = text {
-            if let AnimationModifierType::Text { content} = modifier.modifier_type() {
+            if let AnimationModifierType::Text { content } = modifier.modifier_type() {
                 let res = content.as_str()[..*cursor].to_string();
                 uitext.set_text(res);
-                next_cursor = if *cursor < content.len() { cursor +1 } else { 0 };
+                next_cursor = if *cursor < content.len() { cursor + 1 } else { 0 };
             }
         }
     }
-    if let ComputedKeyframeModifier::Text { ref mut cursor } = modifier.retrieve_keyframe_modifier_mut() {
+    if let ComputedKeyframeModifier::Text { ref mut cursor } =
+        modifier.retrieve_keyframe_modifier_mut()
+    {
         *cursor = next_cursor;
     }
-
 }

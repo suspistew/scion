@@ -18,8 +18,8 @@ use crate::{
 };
 
 mod components;
-mod scene;
 pub mod resources;
+mod scene;
 mod systems;
 
 fn main() {
@@ -42,4 +42,6 @@ fn app_config() -> ScionConfig {
         .get()
 }
 
-pub fn asset_path() -> PathBuilder { app_base_path().join("examples/tetris/assets/") }
+pub fn asset_path() -> PathBuilder {
+    app_base_path().join("examples/tetris/assets/")
+}

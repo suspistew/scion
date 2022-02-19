@@ -16,61 +16,71 @@ pub struct InputsController {
 
 impl InputsController {
     /// Whether or not `key` is currently pressed
-    pub fn key_pressed(&self, key: &KeyCode) -> bool { self.keyboard.pressed_keys.contains(key) }
+    pub fn key_pressed(&self, key: &KeyCode) -> bool {
+        self.keyboard.pressed_keys.contains(key)
+    }
 
     /// convenient function to run `action` if `key` is pressed during the current frame
     pub fn on_key_pressed<Body>(&self, key: KeyCode, action: Body)
     where
-        Body: FnMut(), {
+        Body: FnMut(),
+    {
         self.keyboard.on_key_pressed(key, action);
     }
 
     /// convenient function to run `action` if `key` is released during the current frame
     pub fn on_key_released<Body>(&self, key: KeyCode, action: Body)
     where
-        Body: FnMut(), {
+        Body: FnMut(),
+    {
         self.keyboard.on_key_released(key, action);
     }
 
     /// Execute the action `action` if the left mouse button is clicked, actions params are mouse position x;y
     pub fn on_left_click_pressed<Body>(&self, action: Body)
     where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         self.mouse.on_left_click_pressed(action);
     }
 
     /// Execute the action `action` if the right mouse button is clicked, actions params are mouse position x;y
     pub fn on_right_click_pressed<Body>(&self, action: Body)
     where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         self.mouse.on_right_click_pressed(action);
     }
 
     /// Execute the action `action` if the middle mouse button is clicked, actions params are mouse position x;y
     pub fn on_middle_click_pressed<Body>(&self, action: Body)
     where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         self.mouse.on_middle_click_pressed(action);
     }
 
     /// Execute the action `action` if the left mouse button is released, actions params are mouse position x;y
     pub fn on_left_click_released<Body>(&self, action: Body)
     where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         self.mouse.on_left_click_released(action);
     }
 
     /// Execute the action `action` if the right mouse button is released, actions params are mouse position x;y
     pub fn on_right_click_released<Body>(&self, action: Body)
     where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         self.mouse.on_right_click_released(action);
     }
 
     /// Execute the action `action` if the right mouse button is released, actions params are mouse position x;y
     pub fn on_middle_click_released<Body>(&self, action: Body)
     where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         self.mouse.on_middle_click_released(action);
     }
 
@@ -93,7 +103,9 @@ impl InputsController {
     }
 
     /// Retrieve the mouse x and y position
-    pub fn mouse_xy(&self) -> (f64, f64) { self.mouse.xy() }
+    pub fn mouse_xy(&self) -> (f64, f64) {
+        self.mouse.xy()
+    }
 
     /// Whether or not `shortcut` is currently pressed
     pub fn shortcut_pressed(&self, shortcut: &Shortcut) -> bool {
@@ -133,7 +145,9 @@ impl InputsController {
         self.keyboard.clear_events();
     }
 
-    pub(crate) fn set_mouse_position(&mut self, x: f64, y: f64) { self.mouse.set_position(x, y); }
+    pub(crate) fn set_mouse_position(&mut self, x: f64, y: f64) {
+        self.mouse.set_position(x, y);
+    }
 
     pub(crate) fn add_click_event(&mut self, event: MouseEvent) {
         self.mouse.add_click_event(event);

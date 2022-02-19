@@ -47,7 +47,9 @@ pub enum RendererType {
 }
 
 impl Default for RendererType {
-    fn default() -> Self { RendererType::Scion2D }
+    fn default() -> Self {
+        RendererType::Scion2D
+    }
 }
 
 impl RendererType {
@@ -69,5 +71,7 @@ pub(crate) trait Renderable2D {
 }
 
 pub(crate) trait RenderableUi: Renderable2D {
-    fn get_texture_path(&self) -> Option<String> { None }
+    fn get_texture_path(&self) -> Option<String> {
+        None
+    }
 }
