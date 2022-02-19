@@ -1,3 +1,4 @@
+use std::env::var;
 use legion::{*, systems::CommandBuffer};
 
 use crate::core::{
@@ -61,17 +62,19 @@ pub(crate) fn animation_executer(
                         cycles
                     }
                 };
-                if timer_cycle > 0 || timer_created {
+
+                if timer_cycle > 0 || timer_created || &animation.status == &AnimationStatus::FORCE_STOPPED {
                     match modifier.modifier_type.clone() {
                         AnimationModifierType::TransformModifier { .. } => {
                             apply_transform_modifier(transform.as_mut(), modifier, timer_cycle)
                         }
-                        AnimationModifierType::SpriteModifier { tile_numbers, end_tile_number } => {
+                        AnimationModifierType::SpriteModifier { tile_numbers, tile_numbers_variant, end_tile_number } => {
                             apply_sprite_modifier(
                                 sprite.as_mut(),
                                 &animation.status,
                                 modifier,
                                 &tile_numbers,
+                                &tile_numbers_variant,
                                 end_tile_number,
                             )
                         }
@@ -136,9 +139,15 @@ fn apply_sprite_modifier(
     status: &AnimationStatus,
     modifier: &mut AnimationModifier,
     tile_numbers: &Vec<usize>,
+    tile_numbers_variant: &Option<Vec<usize>>,
     end_tile_number: usize,
 ) {
     if let Some(ref mut animation_sprite) = sprite {
+        if status == &AnimationStatus::FORCE_STOPPED {
+            animation_sprite.set_tile_nb(end_tile_number);
+            return;
+        }
+
         if modifier.next_sprite_index.is_none() {
             modifier.next_sprite_index = Some(0);
         }
@@ -147,12 +156,19 @@ fn apply_sprite_modifier(
         {
             animation_sprite.set_tile_nb(end_tile_number);
             modifier.next_sprite_index = None;
+            modifier.variant = !modifier.variant;
         } else {
-            animation_sprite
-                .set_tile_nb(*tile_numbers.get(modifier.next_sprite_index.unwrap()).unwrap());
+            if tile_numbers_variant.is_some() && modifier.variant {
+                animation_sprite
+                    .set_tile_nb(*tile_numbers_variant.as_ref().unwrap().get(modifier.next_sprite_index.unwrap()).unwrap());
+            } else {
+                animation_sprite
+                    .set_tile_nb(*tile_numbers.get(modifier.next_sprite_index.unwrap()).unwrap());
+            }
 
             if modifier.next_sprite_index.unwrap() >= modifier.number_of_keyframes {
                 modifier.next_sprite_index.replace(0);
+                modifier.variant = !modifier.variant;
             } else {
                 modifier.next_sprite_index.replace(modifier.next_sprite_index.unwrap() + 1);
             }
@@ -182,7 +198,7 @@ fn apply_color_modifier(
                         (r + color.red() as i16) as u8,
                         (g + color.green() as i16) as u8,
                         (b + color.blue() as i16) as u8,
-                        a + color.alpha(),
+                        (a + color.alpha()).max(0.).min(1.0),
                     );
                     color.replace(new_color);
                 }

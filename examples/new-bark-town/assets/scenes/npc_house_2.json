@@ -1,0 +1,28 @@
+{
+  "map":{"width":8,"height":8,"properties":[],"layers":[{"name":"Tile Layer 1","tiles":[[9,8,6,1,0,26,0,0],[21,20,18,60,60,60,60,27],[60,60,60,60,60,60,60,60],[60,60,38,36,37,38,60,60],[60,60,38,48,49,38,60,60],[60,60,60,24,25,60,60,60],[60,60,60,60,60,60,60,60],[60,60,29,29,60,60,60,60]]}]},
+  "events": [
+    {
+      "event_type": "EXIT",
+      "x": 2,
+      "y": 7,
+      "z": 0,
+      "properties": {
+        "go_to": "new_bark_town",
+        "target_x": "13",
+        "target_y": "13",
+        "direction": "BOTTOM"
+      }
+    },
+    {
+      "event_type": "EXIT",
+      "x": 3,
+      "y": 7,
+      "z": 0,
+      "properties": {
+        "go_to": "new_bark_town",
+        "target_x": "13",
+        "target_y": "13",
+        "direction": "BOTTOM"
+      }
+    }]
+}

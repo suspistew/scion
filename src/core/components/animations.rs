@@ -7,6 +7,7 @@ use std::{
 };
 
 use crate::{core::components::color::Color, utils::maths::Vector};
+use crate::core::components::animations::AnimationStatus::{FORCE_STOPPED, STOPPED};
 
 pub struct Animations {
     animations: HashMap<String, Animation>,
@@ -45,6 +46,11 @@ impl Animations {
         self.run(animation_name, AnimationStatus::RUNNING)
     }
 
+    /// return whether or not an animation with the given name is running
+    pub fn animation_running(&mut self, animation_name: &str) -> bool {
+        self.animations.contains_key(animation_name) && vec![AnimationStatus::RUNNING, AnimationStatus::LOOPING, AnimationStatus::STOPPING].contains(&self.animations.get(animation_name).expect("Animation must be present").status)
+    }
+
     /// Runs the animation `name`. Returns true is the animation has been started, false if it does not exist or was already running
     pub fn loop_animation(&mut self, animation_name: &str) -> bool {
         self.run(animation_name, AnimationStatus::LOOPING)
@@ -75,7 +81,7 @@ impl Animations {
             || animation.status == AnimationStatus::RUNNING
         {
             if force {
-                animation.status = AnimationStatus::STOPPED;
+                animation.status = AnimationStatus::FORCE_STOPPED;
             } else {
                 animation.status = AnimationStatus::STOPPING;
             }
@@ -93,15 +99,16 @@ impl Animations {
         self.animations
             .values()
             .filter(|v| {
-                v.status.eq(&AnimationStatus::RUNNING) || v.status.eq(&AnimationStatus::LOOPING)
+                v.status.eq(&AnimationStatus::RUNNING) || v.status.eq(&AnimationStatus::LOOPING) || v.status.eq(&AnimationStatus::STOPPING)
             })
             .count()
             > 0
     }
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Debug)]
 pub(crate) enum AnimationStatus {
+    FORCE_STOPPED,
     STOPPED,
     RUNNING,
     LOOPING,
@@ -148,6 +155,10 @@ impl Animation {
 
     /// Will compute the status of the current animation
     pub(crate) fn try_update_status(&mut self) {
+        if self.status == FORCE_STOPPED {
+            self.status = STOPPED;
+            return;
+        }
         if self
             .modifiers
             .iter()
@@ -171,6 +182,7 @@ pub struct AnimationModifier {
     pub(crate) single_keyframe_modifier: Option<ComputedKeyframeModifier>,
     /// In case of a sprite modifier we need to keep track of the next index position in the vec
     pub(crate) next_sprite_index: Option<usize>,
+    pub(crate) variant: bool
 }
 
 impl AnimationModifier {
@@ -183,6 +195,7 @@ impl AnimationModifier {
             single_keyframe_duration: None,
             single_keyframe_modifier: None,
             next_sprite_index: None,
+            variant: false
         }
     }
 
@@ -202,7 +215,16 @@ impl AnimationModifier {
     pub fn sprite(tile_numbers: Vec<usize>, end_tile_number: usize) -> Self {
         AnimationModifier::new(
             tile_numbers.len() - 1,
-            AnimationModifierType::SpriteModifier { tile_numbers, end_tile_number },
+            AnimationModifierType::SpriteModifier { tile_numbers, tile_numbers_variant: None, end_tile_number },
+        )
+    }
+
+    /// Convenience function to directly create an AnimationModifier of type Sprite with the needed informations, with a variant animation
+    pub fn sprite_with_variant(tile_numbers: Vec<usize>, tile_numbers_variant: Vec<usize>, end_tile_number: usize) -> Self {
+        assert_eq!(tile_numbers_variant.len(), tile_numbers_variant.len());
+        AnimationModifier::new(
+            tile_numbers.len() - 1,
+            AnimationModifierType::SpriteModifier { tile_numbers, tile_numbers_variant: Some(tile_numbers_variant), end_tile_number},
         )
     }
 
@@ -262,7 +284,7 @@ impl AnimationModifier {
 #[derive(Debug, Clone)]
 pub enum AnimationModifierType {
     TransformModifier { vector: Option<Vector>, scale: Option<f32>, rotation: Option<f32> },
-    SpriteModifier { tile_numbers: Vec<usize>, end_tile_number: usize },
+    SpriteModifier { tile_numbers: Vec<usize>, tile_numbers_variant: Option<Vec<usize>>, end_tile_number: usize },
     Color { target: Color },
     Text { content: String },
     Blink,
