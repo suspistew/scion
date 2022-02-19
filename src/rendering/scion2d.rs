@@ -522,83 +522,81 @@ impl Scion2D {
             false
         };
 
-        <(Entity, &Material)>::query().for_each(world, |(_entity, material)| {
-            match material {
-                Material::Texture(texture_path) => {
-                    let path = Path::new(texture_path.as_str());
-                    let new_timestamp = if hot_timer_cycle
-                        || !self.diffuse_bind_groups.contains_key(texture_path.as_str())
-                    {
-                        Some(read_file_modification_time(path))
-                    } else {
-                        None
-                    };
+        <(Entity, &Material)>::query().for_each(world, |(_entity, material)| match material {
+            Material::Texture(texture_path) => {
+                let path = Path::new(texture_path.as_str());
+                let new_timestamp = if hot_timer_cycle
+                    || !self.diffuse_bind_groups.contains_key(texture_path.as_str())
+                {
+                    Some(read_file_modification_time(path))
+                } else {
+                    None
+                };
 
-                    if self.texture_should_be_reloaded(&texture_path, &new_timestamp) {
-                        if self.diffuse_bind_groups.contains_key(texture_path.as_str()) {
-                            self.diffuse_bind_groups
-                                .get(texture_path.as_str())
-                                .expect("Unreachable diffuse bind group after check")
-                                .1
-                                .destroy();
-                            self.diffuse_bind_groups.remove(texture_path.as_str());
-                        }
+                if self.texture_should_be_reloaded(&texture_path, &new_timestamp) {
+                    if self.diffuse_bind_groups.contains_key(texture_path.as_str()) {
+                        self.diffuse_bind_groups
+                            .get(texture_path.as_str())
+                            .expect("Unreachable diffuse bind group after check")
+                            .1
+                            .destroy();
+                        self.diffuse_bind_groups.remove(texture_path.as_str());
+                    }
 
-                        let loaded_texture = Texture::from_png(path);
-                        self.diffuse_bind_groups.insert(
-                            texture_path.clone(),
-                            load_texture_to_queue(
-                                &loaded_texture,
-                                queue,
-                                device,
-                                self.texture_bind_group_layout.as_ref().unwrap(),
-                            ),
-                        );
+                    let loaded_texture = Texture::from_png(path);
+                    self.diffuse_bind_groups.insert(
+                        texture_path.clone(),
+                        load_texture_to_queue(
+                            &loaded_texture,
+                            queue,
+                            device,
+                            self.texture_bind_group_layout.as_ref().unwrap(),
+                        ),
+                    );
 
-                        if let Some(Ok(timestamp)) = new_timestamp {
-                            self.assets_timestamps.insert(texture_path.clone(), timestamp);
-                        }
+                    if let Some(Ok(timestamp)) = new_timestamp {
+                        self.assets_timestamps.insert(texture_path.clone(), timestamp);
                     }
                 }
-                Material::Color(color) => {
-                    let path = get_path_from_color(&color);
-                    if !self.diffuse_bind_groups.contains_key(path.as_str()) {
-                        let loaded_texture = Texture::from_color(&color);
-                        self.diffuse_bind_groups.insert(
-                            path.clone(),
-                            load_texture_to_queue(
-                                &loaded_texture,
-                                queue,
-                                device,
-                                self.texture_bind_group_layout.as_ref().unwrap(),
-                            ),
-                        );
-                    }
+            }
+            Material::Color(color) => {
+                let path = get_path_from_color(&color);
+                if !self.diffuse_bind_groups.contains_key(path.as_str()) {
+                    let loaded_texture = Texture::from_color(&color);
+                    self.diffuse_bind_groups.insert(
+                        path.clone(),
+                        load_texture_to_queue(
+                            &loaded_texture,
+                            queue,
+                            device,
+                            self.texture_bind_group_layout.as_ref().unwrap(),
+                        ),
+                    );
                 }
-                Material::Tileset(tileset) => {
-                    let path = Path::new(tileset.texture.as_str());
-                    let new_timestamp = if hot_timer_cycle
-                        || !self.diffuse_bind_groups.contains_key(tileset.texture.as_str())
-                    {
-                        Some(read_file_modification_time(path))
-                    } else {
-                        None
-                    };
+            }
+            Material::Tileset(tileset) => {
+                let path = Path::new(tileset.texture.as_str());
+                let new_timestamp = if hot_timer_cycle
+                    || !self.diffuse_bind_groups.contains_key(tileset.texture.as_str())
+                {
+                    Some(read_file_modification_time(path))
+                } else {
+                    None
+                };
 
-                    if self.texture_should_be_reloaded(&tileset.texture, &new_timestamp) {
-                        let loaded_texture = Texture::from_png(Path::new(tileset.texture.as_str()));
-                        self.diffuse_bind_groups.insert(
-                            tileset.texture.clone(),
-                            load_texture_to_queue(
-                                &loaded_texture,
-                                queue,
-                                device,
-                                self.texture_bind_group_layout.as_ref().unwrap(),
-                            ),
-                        );
-                        if let Some(Ok(timestamp)) = new_timestamp {
-                            self.assets_timestamps.insert(tileset.texture.clone(), timestamp);
-                        }
+                if self.texture_should_be_reloaded(&tileset.texture, &new_timestamp) {
+                    let loaded_texture = Texture::from_png(Path::new(tileset.texture.as_str()));
+                    self.diffuse_bind_groups.insert(
+                        tileset.texture.clone(),
+                        load_texture_to_queue(
+                            &loaded_texture,
+                            queue,
+                            device,
+                            self.texture_bind_group_layout.as_ref().unwrap(),
+                        ),
+                    );
+                    if let Some(Ok(timestamp)) = new_timestamp {
+                        self.assets_timestamps.insert(tileset.texture.clone(), timestamp);
                     }
                 }
             }
@@ -747,4 +745,6 @@ fn get_path_from_color(color: &Color) -> String {
     format!("color-{}-{}-{}-{}", color.red(), color.green(), color.blue(), color.alpha())
 }
 
-fn world_contains_camera(world: &mut World) -> bool { <&Camera>::query().iter(world).count() > 0 }
+fn world_contains_camera(world: &mut World) -> bool {
+    <&Camera>::query().iter(world).count() > 0
+}

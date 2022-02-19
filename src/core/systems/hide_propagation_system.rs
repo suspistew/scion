@@ -53,8 +53,7 @@ mod tests {
             maths::hierarchy::{Children, Parent},
             Hide, HidePropagated,
         },
-        legion::{EntityStore, Resources, Schedule, World},
-        *,
+        legion::{Resources, Schedule, World},
     };
 
     #[test]

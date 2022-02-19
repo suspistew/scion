@@ -1,23 +1,10 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::Path;
-use std::sync::mpsc;
-use std::thread;
-use std::time::Duration;
-use rodio::{Decoder, OutputStream, OutputStreamHandle, Sample, Sink, source::Source};
-use rodio::source::SamplesConverter;
 use crate::core::audio_controller;
 use crate::core::audio_controller::AudioController;
-use crate::core::resources::inputs::types::KeyCode::N;
-use crate::utils::file::{open_file, read_file};
+use rodio::{OutputStream, Sink};
+use std::sync::mpsc;
 
 /// `AudioPlayer` is the resource responsible to handle musics, sound effects, and action on them
 pub struct Audio {
-    sounds_data: HashMap<String, Sound>,
-    system_ready: bool,
-    stream_handle: OutputStreamHandle,
-    sink: Sink,
     event_sender: mpsc::Sender<AudioEvent>,
     sounds_cursor: usize,
 }
@@ -25,18 +12,14 @@ pub struct Audio {
 impl Audio {
     pub(crate) fn default() -> Self {
         let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-        let sink = Sink::try_new(&stream_handle).unwrap();
+        let _sink = Sink::try_new(&stream_handle).unwrap();
         let (event_sender, receiver) = mpsc::channel();
 
-        std::thread::spawn(move || unsafe {
+        std::thread::spawn(move || {
             audio_controller::audio_thread(AudioController::new(receiver))
         });
 
         Audio {
-            sounds_data: HashMap::default(),
-            system_ready: false,
-            stream_handle,
-            sink,
             event_sender,
             sounds_cursor: 0,
         }
@@ -52,7 +35,6 @@ impl Audio {
         return Err(Error::ImpossibleToLoadSound);
     }
 }
-
 
 /// Error that can be thrown by the AudioPlayer
 #[derive(Debug)]
@@ -83,13 +65,9 @@ pub struct PlayConfig {
     pub category: Option<String>,
 }
 
-impl Default for PlayConfig{
+impl Default for PlayConfig {
     fn default() -> Self {
-        Self{
-            volume: 0.2,
-            looped: false,
-            category: None
-        }
+        Self { volume: 0.2, looped: false, category: None }
     }
 }
 

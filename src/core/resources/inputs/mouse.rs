@@ -48,47 +48,55 @@ impl Mouse {
         self.click_events.push(event);
     }
 
-    pub(crate) fn clear_events(&mut self) { self.click_events.clear(); }
+    pub(crate) fn clear_events(&mut self) {
+        self.click_events.clear();
+    }
 
     /// Execute the action `action` if the left mouse button is clicked, actions params are mouse position x;y
     pub(crate) fn on_left_click_pressed<Body>(&self, action: Body)
     where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         self.on_mouse_event(MouseButton::Left, InputState::Pressed, action);
     }
 
     /// Execute the action `action` if the right mouse button is clicked, actions params are mouse position x;y
     pub(crate) fn on_right_click_pressed<Body>(&self, action: Body)
     where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         self.on_mouse_event(MouseButton::Right, InputState::Pressed, action);
     }
 
     /// Execute the action `action` if the middle mouse button is clicked, actions params are mouse position x;y
     pub(crate) fn on_middle_click_pressed<Body>(&self, action: Body)
     where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         self.on_mouse_event(MouseButton::Middle, InputState::Pressed, action);
     }
 
     /// Execute the action `action` if the left mouse button is released, actions params are mouse position x;y
     pub(crate) fn on_left_click_released<Body>(&self, action: Body)
     where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         self.on_mouse_event(MouseButton::Left, InputState::Released, action);
     }
 
     /// Execute the action `action` if the right mouse button is released, actions params are mouse position x;y
     pub(crate) fn on_right_click_released<Body>(&self, action: Body)
     where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         self.on_mouse_event(MouseButton::Right, InputState::Pressed, action);
     }
 
     /// Execute the action `action` if the right mouse button is released, actions params are mouse position x;y
     pub(crate) fn on_middle_click_released<Body>(&self, action: Body)
     where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         self.on_mouse_event(MouseButton::Middle, InputState::Pressed, action);
     }
 
@@ -98,7 +106,8 @@ impl Mouse {
         target_state: InputState,
         mut action: Body,
     ) where
-        Body: FnMut(f64, f64), {
+        Body: FnMut(f64, f64),
+    {
         for event in self.click_events.iter() {
             if event.button == target_button && event.state == target_state {
                 return action(self.x, self.y);
@@ -119,7 +128,9 @@ impl Mouse {
     }
 
     /// Returns the current x and y value of the cursor
-    pub(crate) fn xy(&self) -> (f64, f64) { (self.x, self.y) }
+    pub(crate) fn xy(&self) -> (f64, f64) {
+        (self.x, self.y)
+    }
     pub(crate) fn button_pressed(&self, button: &MouseButton) -> bool {
         self.buttons_pressed.contains(button)
     }

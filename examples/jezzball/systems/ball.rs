@@ -43,70 +43,66 @@ pub fn ball_control(
                 ("BORDER_TOP", BallDirection::TopLeft) => Some(BallDirection::BottomLeft),
                 ("BORDER_BOTTOM", BallDirection::BottomRight) => Some(BallDirection::TopRight),
                 ("BORDER_BOTTOM", BallDirection::BottomLeft) => Some(BallDirection::TopLeft),
-                ("BORDER_CUSTOM_VERTICAL", e) => {
-                    match e {
-                        BallDirection::TopLeft => {
-                            if collision.coordinates().x() + 8. <= transform.translation().x() {
-                                Some(BallDirection::TopRight)
-                            } else {
-                                None
-                            }
-                        }
-                        BallDirection::TopRight => {
-                            if collision.coordinates().x() > transform.translation().x() {
-                                Some(BallDirection::TopLeft)
-                            } else {
-                                None
-                            }
-                        }
-                        BallDirection::BottomLeft => {
-                            if collision.coordinates().x() + 8. <= transform.translation().x() {
-                                Some(BallDirection::BottomRight)
-                            } else {
-                                None
-                            }
-                        }
-                        BallDirection::BottomRight => {
-                            if collision.coordinates().x() > transform.translation().x() {
-                                Some(BallDirection::BottomLeft)
-                            } else {
-                                None
-                            }
+                ("BORDER_CUSTOM_VERTICAL", e) => match e {
+                    BallDirection::TopLeft => {
+                        if collision.coordinates().x() + 8. <= transform.translation().x() {
+                            Some(BallDirection::TopRight)
+                        } else {
+                            None
                         }
                     }
-                }
-                ("BORDER_CUSTOM_HORIZONTAL", e) => {
-                    match e {
-                        BallDirection::TopLeft => {
-                            if collision.coordinates().y() + 8. <= transform.translation().y() {
-                                Some(BallDirection::BottomLeft)
-                            } else {
-                                None
-                            }
-                        }
-                        BallDirection::TopRight => {
-                            if collision.coordinates().y() + 8. <= transform.translation().y() {
-                                Some(BallDirection::BottomRight)
-                            } else {
-                                None
-                            }
-                        }
-                        BallDirection::BottomLeft => {
-                            if collision.coordinates().y() > transform.translation().y() {
-                                Some(BallDirection::TopLeft)
-                            } else {
-                                None
-                            }
-                        }
-                        BallDirection::BottomRight => {
-                            if collision.coordinates().y() > transform.translation().y() {
-                                Some(BallDirection::TopRight)
-                            } else {
-                                None
-                            }
+                    BallDirection::TopRight => {
+                        if collision.coordinates().x() > transform.translation().x() {
+                            Some(BallDirection::TopLeft)
+                        } else {
+                            None
                         }
                     }
-                }
+                    BallDirection::BottomLeft => {
+                        if collision.coordinates().x() + 8. <= transform.translation().x() {
+                            Some(BallDirection::BottomRight)
+                        } else {
+                            None
+                        }
+                    }
+                    BallDirection::BottomRight => {
+                        if collision.coordinates().x() > transform.translation().x() {
+                            Some(BallDirection::BottomLeft)
+                        } else {
+                            None
+                        }
+                    }
+                },
+                ("BORDER_CUSTOM_HORIZONTAL", e) => match e {
+                    BallDirection::TopLeft => {
+                        if collision.coordinates().y() + 8. <= transform.translation().y() {
+                            Some(BallDirection::BottomLeft)
+                        } else {
+                            None
+                        }
+                    }
+                    BallDirection::TopRight => {
+                        if collision.coordinates().y() + 8. <= transform.translation().y() {
+                            Some(BallDirection::BottomRight)
+                        } else {
+                            None
+                        }
+                    }
+                    BallDirection::BottomLeft => {
+                        if collision.coordinates().y() > transform.translation().y() {
+                            Some(BallDirection::TopLeft)
+                        } else {
+                            None
+                        }
+                    }
+                    BallDirection::BottomRight => {
+                        if collision.coordinates().y() > transform.translation().y() {
+                            Some(BallDirection::TopRight)
+                        } else {
+                            None
+                        }
+                    }
+                },
                 (_a, _b) => None,
             };
 

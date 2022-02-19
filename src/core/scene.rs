@@ -1,8 +1,7 @@
 //! Everything that is linked to the running of scenes.
-use std::collections::VecDeque;
 
-use legion::{Resources, World};
 use crate::core::legion_ext::ScionResourcesExtension;
+use legion::{Resources, World};
 
 /// Trait to implement in order to define a `Scene`.
 pub trait Scene {
@@ -26,7 +25,7 @@ pub(crate) enum SceneAction {
 /// `SceneMachine` is the Resource used to control the game scene.
 #[derive(Default)]
 pub(crate) struct SceneMachine {
-    pub(crate) current_scene: Option<Box<Scene>>,
+    pub(crate) current_scene: Option<Box<dyn Scene>>,
 }
 
 impl SceneMachine {
@@ -36,7 +35,7 @@ impl SceneMachine {
         world: &mut World,
         resources: &mut Resources,
     ) {
-        if let Some(mut scene) = self.current_scene.as_mut() {
+        if let Some(scene) = self.current_scene.as_mut() {
             match action {
                 SceneAction::Update => scene.on_update(world, resources),
                 SceneAction::Start => scene.on_start(world, resources),
@@ -65,7 +64,7 @@ impl SceneMachine {
 }
 
 pub(crate) enum SceneTrans {
-    Switch(Box<Scene>),
+    Switch(Box<dyn Scene>),
 }
 
 /// `SceneController` is the Resource used to control the game scenes.

@@ -7,11 +7,16 @@ struct RectangleColliderInfo<'a> {
     width: &'a usize,
     height: &'a usize,
     transform: &'a Transform,
-    offset: &'a Vector
+    offset: &'a Vector,
 }
 
 impl<'a> RectangleColliderInfo<'a> {
-    fn of(width: &'a usize, height: &'a usize, transform: &'a Transform, offset: &'a Vector) -> Self {
+    fn of(
+        width: &'a usize,
+        height: &'a usize,
+        transform: &'a Transform,
+        offset: &'a Vector,
+    ) -> Self {
         Self { width, height, transform, offset }
     }
 }
@@ -74,29 +79,47 @@ impl Collider {
     }
 
     /// Return whether or not this collider colliding to any other collider ?
-    pub fn is_colliding(&self) -> bool { !self.collisions.is_empty() }
+    pub fn is_colliding(&self) -> bool {
+        !self.collisions.is_empty()
+    }
 
     /// Returns an iterator of current collisions
-    pub fn collisions(&self) -> &Vec<Collision> { &self.collisions }
+    pub fn collisions(&self) -> &Vec<Collision> {
+        &self.collisions
+    }
 
     /// The mask of this collider
-    pub fn mask(&self) -> &ColliderMask { &self.collider_mask }
+    pub fn mask(&self) -> &ColliderMask {
+        &self.collider_mask
+    }
 
     /// The mask of this collider
-    pub fn mask_cloned(&self) -> ColliderMask { self.collider_mask.clone() }
+    pub fn mask_cloned(&self) -> ColliderMask {
+        self.collider_mask.clone()
+    }
 
     /// The filters of this collider
-    pub fn filters(&self) -> &Vec<ColliderMask> { &self.collision_filter }
+    pub fn filters(&self) -> &Vec<ColliderMask> {
+        &self.collision_filter
+    }
 
     /// Retrieve the collider type of this collider
-    pub fn collider_type(&self) -> &ColliderType { &self.collider_type }
+    pub fn collider_type(&self) -> &ColliderType {
+        &self.collider_type
+    }
 
     /// Retrieve the offset of this collider
-    pub fn offset(&self) -> &Vector { &self.offset }
+    pub fn offset(&self) -> &Vector {
+        &self.offset
+    }
 
-    pub(crate) fn debug_lines(&self) -> bool { self.debug_lines }
+    pub(crate) fn debug_lines(&self) -> bool {
+        self.debug_lines
+    }
 
-    pub(crate) fn clear_collisions(&mut self) { self.collisions.clear(); }
+    pub(crate) fn clear_collisions(&mut self) {
+        self.collisions.clear();
+    }
 
     pub(crate) fn can_collide_with(&self, other: &Collider) -> bool {
         self.collision_filter.is_empty() || self.collision_filter.contains(&other.collider_mask)
@@ -112,37 +135,66 @@ impl Collider {
             && match (&self.collider_type, &target_collider.collider_type) {
                 (ColliderType::Square(self_size), ColliderType::Square(target_size)) => {
                     rectangle_collider_vs_square_collider(
-                        RectangleColliderInfo::of(self_size, self_size, self_transform, &self.offset),
-                        RectangleColliderInfo::of(target_size, target_size, target_transform, &target_collider.offset),
+                        RectangleColliderInfo::of(
+                            self_size,
+                            self_size,
+                            self_transform,
+                            &self.offset,
+                        ),
+                        RectangleColliderInfo::of(
+                            target_size,
+                            target_size,
+                            target_transform,
+                            &target_collider.offset,
+                        ),
                     )
                 }
                 (
                     ColliderType::Rectangle(self_width, self_height),
                     ColliderType::Rectangle(target_width, target_height),
-                ) => {
-                    rectangle_collider_vs_square_collider(
-                        RectangleColliderInfo::of(self_width, self_height, self_transform, &self.offset),
-                        RectangleColliderInfo::of(target_width, target_height, target_transform, &target_collider.offset),
-                    )
-                }
+                ) => rectangle_collider_vs_square_collider(
+                    RectangleColliderInfo::of(
+                        self_width,
+                        self_height,
+                        self_transform,
+                        &self.offset,
+                    ),
+                    RectangleColliderInfo::of(
+                        target_width,
+                        target_height,
+                        target_transform,
+                        &target_collider.offset,
+                    ),
+                ),
                 (
                     ColliderType::Square(self_size),
                     ColliderType::Rectangle(target_width, target_height),
-                ) => {
-                    rectangle_collider_vs_square_collider(
-                        RectangleColliderInfo::of(self_size, self_size, self_transform, &self.offset),
-                        RectangleColliderInfo::of(target_width, target_height, target_transform, &target_collider.offset),
-                    )
-                }
+                ) => rectangle_collider_vs_square_collider(
+                    RectangleColliderInfo::of(self_size, self_size, self_transform, &self.offset),
+                    RectangleColliderInfo::of(
+                        target_width,
+                        target_height,
+                        target_transform,
+                        &target_collider.offset,
+                    ),
+                ),
                 (
                     ColliderType::Rectangle(self_width, self_height),
                     ColliderType::Square(target_size),
-                ) => {
-                    rectangle_collider_vs_square_collider(
-                        RectangleColliderInfo::of(self_width, self_height, self_transform, &self.offset),
-                        RectangleColliderInfo::of(target_size, target_size, target_transform, &target_collider.offset),
-                    )
-                }
+                ) => rectangle_collider_vs_square_collider(
+                    RectangleColliderInfo::of(
+                        self_width,
+                        self_height,
+                        self_transform,
+                        &self.offset,
+                    ),
+                    RectangleColliderInfo::of(
+                        target_size,
+                        target_size,
+                        target_transform,
+                        &target_collider.offset,
+                    ),
+                ),
             }
     }
 
@@ -179,9 +231,15 @@ pub struct Collision {
 }
 
 impl Collision {
-    pub fn entity(&self) -> &Entity { &self.entity }
-    pub fn mask(&self) -> &ColliderMask { &self.mask }
-    pub fn coordinates(&self) -> &Coordinates { &self.coordinates }
+    pub fn entity(&self) -> &Entity {
+        &self.entity
+    }
+    pub fn mask(&self) -> &ColliderMask {
+        &self.mask
+    }
+    pub fn coordinates(&self) -> &Coordinates {
+        &self.coordinates
+    }
 }
 
 /// Internal component used to keep track of a collider debug display
@@ -220,10 +278,18 @@ mod tests {
 
     #[test]
     fn test_does_notcollides_with_square_if_offsets_too_far() {
-        let mut bullet = Collider::new(ColliderMask::Bullet, vec![ColliderMask::Character], ColliderType::Square(5));
+        let mut bullet = Collider::new(
+            ColliderMask::Bullet,
+            vec![ColliderMask::Character],
+            ColliderType::Square(5),
+        );
         bullet = bullet.with_offset(Vector::new(-3., -3.));
 
-        let mut ship = Collider::new(ColliderMask::Character, vec![ColliderMask::Bullet], ColliderType::Square(5));
+        let mut ship = Collider::new(
+            ColliderMask::Character,
+            vec![ColliderMask::Bullet],
+            ColliderType::Square(5),
+        );
         ship = ship.with_offset(Vector::new(3., 3.));
 
         let bullet_transform = Transform::from_xy(5., 5.);
@@ -234,10 +300,18 @@ mod tests {
 
     #[test]
     fn test_does_collides_with_square_if_offsets_close_enough() {
-        let mut bullet = Collider::new(ColliderMask::Bullet, vec![ColliderMask::Character], ColliderType::Square(5));
+        let mut bullet = Collider::new(
+            ColliderMask::Bullet,
+            vec![ColliderMask::Character],
+            ColliderType::Square(5),
+        );
         bullet = bullet.with_offset(Vector::new(-1., -1.));
 
-        let mut ship = Collider::new(ColliderMask::Character, vec![ColliderMask::Bullet], ColliderType::Square(5));
+        let mut ship = Collider::new(
+            ColliderMask::Character,
+            vec![ColliderMask::Bullet],
+            ColliderType::Square(5),
+        );
         ship = ship.with_offset(Vector::new(1., 1.));
 
         let bullet_transform = Transform::from_xy(5., 5.);

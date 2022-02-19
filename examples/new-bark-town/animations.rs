@@ -1,10 +1,10 @@
 use std::{collections::HashMap, time::Duration};
 
+use scion::core::components::color::Color;
 use scion::{
     core::components::animations::{Animation, AnimationModifier},
     utils::maths::Vector,
 };
-use scion::core::components::color::Color;
 
 pub const MOVE_DURATION: Duration = Duration::from_millis(250);
 pub const FADE_DURATION: Duration = Duration::from_millis(100);
@@ -33,7 +33,7 @@ fn move_left() -> Animation {
         MOVE_DURATION,
         vec![
             AnimationModifier::transform(12, Some(Vector::new(-48., 0.)), None, None),
-            AnimationModifier::sprite(vec![7,6,7], 6),
+            AnimationModifier::sprite(vec![7, 6, 7], 6),
         ],
     )
 }
@@ -43,7 +43,7 @@ fn move_top() -> Animation {
         MOVE_DURATION,
         vec![
             AnimationModifier::transform(12, Some(Vector::new(0., -48.)), None, None),
-            AnimationModifier::sprite_with_variant(vec![3,4,5],vec![5,4, 3], 4),
+            AnimationModifier::sprite_with_variant(vec![3, 4, 5], vec![5, 4, 3], 4),
         ],
     )
 }
@@ -53,7 +53,7 @@ fn move_bottom() -> Animation {
         MOVE_DURATION,
         vec![
             AnimationModifier::transform(12, Some(Vector::new(0., 48.)), None, None),
-            AnimationModifier::sprite_with_variant(vec![0,1,2],vec![2,1,0], 1),
+            AnimationModifier::sprite_with_variant(vec![0, 1, 2], vec![2, 1, 0], 1),
         ],
     )
 }
@@ -65,21 +65,13 @@ pub fn switch_scene_animation() -> HashMap<String, Animation> {
     animations
 }
 
-
 fn fade_in() -> Animation {
-    Animation::new(
-        FADE_DURATION,
-        vec![
-            AnimationModifier::color(10, Color::new(255,255,255,1.)),
-        ],
-    )
+    Animation::new(FADE_DURATION, vec![AnimationModifier::color(10, Color::new(255, 255, 255, 1.))])
 }
 
 fn fade_out() -> Animation {
     Animation::running(
         FADE_DURATION,
-        vec![
-            AnimationModifier::color(10, Color::new(255,255,255,0.)),
-        ],
+        vec![AnimationModifier::color(10, Color::new(255, 255, 255, 0.))],
     )
 }

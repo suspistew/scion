@@ -6,8 +6,8 @@ use std::{
     time::Duration,
 };
 
+use crate::core::components::animations::AnimationStatus::{ForceStopped, Stopped};
 use crate::{core::components::color::Color, utils::maths::Vector};
-use crate::core::components::animations::AnimationStatus::{FORCE_STOPPED, STOPPED};
 
 pub struct Animations {
     animations: HashMap<String, Animation>,
@@ -15,7 +15,9 @@ pub struct Animations {
 
 impl Animations {
     /// Creates a new Animations component
-    pub fn new(animations: HashMap<String, Animation>) -> Self { Animations { animations } }
+    pub fn new(animations: HashMap<String, Animation>) -> Self {
+        Animations { animations }
+    }
 
     /// Create a new Animations component with a single animation provided
     pub fn single(name: &str, animation: Animation) -> Self {
@@ -30,7 +32,7 @@ impl Animations {
                 .animations
                 .get_mut(animation_name)
                 .expect("An animation has not been found after the security check");
-            if AnimationStatus::STOPPED == animation.status {
+            if AnimationStatus::Stopped == animation.status {
                 animation.status = status;
                 true
             } else {
@@ -43,17 +45,21 @@ impl Animations {
 
     /// Runs the animation `name`. Returns true is the animation has been started, false if it does not exist or was already running
     pub fn run_animation(&mut self, animation_name: &str) -> bool {
-        self.run(animation_name, AnimationStatus::RUNNING)
+        self.run(animation_name, AnimationStatus::Running)
     }
 
     /// return whether or not an animation with the given name is running
     pub fn animation_running(&mut self, animation_name: &str) -> bool {
-        self.animations.contains_key(animation_name) && vec![AnimationStatus::RUNNING, AnimationStatus::LOOPING, AnimationStatus::STOPPING].contains(&self.animations.get(animation_name).expect("Animation must be present").status)
+        self.animations.contains_key(animation_name)
+            && vec![AnimationStatus::Running, AnimationStatus::Looping, AnimationStatus::Stopping]
+                .contains(
+                    &self.animations.get(animation_name).expect("Animation must be present").status,
+                )
     }
 
     /// Runs the animation `name`. Returns true is the animation has been started, false if it does not exist or was already running
     pub fn loop_animation(&mut self, animation_name: &str) -> bool {
-        self.run(animation_name, AnimationStatus::LOOPING)
+        self.run(animation_name, AnimationStatus::Looping)
     }
 
     /// Stops the animation `name`. Returns true is the animation has been stopped, false if it does not exist or was already stopped
@@ -77,13 +83,13 @@ impl Animations {
     }
 
     fn stop_single_animation(force: bool, animation: &mut Animation) -> bool {
-        if animation.status == AnimationStatus::LOOPING
-            || animation.status == AnimationStatus::RUNNING
+        if animation.status == AnimationStatus::Looping
+            || animation.status == AnimationStatus::Running
         {
             if force {
-                animation.status = AnimationStatus::FORCE_STOPPED;
+                animation.status = AnimationStatus::ForceStopped;
             } else {
-                animation.status = AnimationStatus::STOPPING;
+                animation.status = AnimationStatus::Stopping;
             }
             true
         } else {
@@ -92,14 +98,18 @@ impl Animations {
     }
 
     /// Returns the mutable animations
-    pub fn animations_mut(&mut self) -> &mut HashMap<String, Animation> { &mut self.animations }
+    pub fn animations_mut(&mut self) -> &mut HashMap<String, Animation> {
+        &mut self.animations
+    }
 
     /// Return whether or not any animations is currently running. Useful to avoid double call
     pub fn any_animation_running(&self) -> bool {
         self.animations
             .values()
             .filter(|v| {
-                v.status.eq(&AnimationStatus::RUNNING) || v.status.eq(&AnimationStatus::LOOPING) || v.status.eq(&AnimationStatus::STOPPING)
+                v.status.eq(&AnimationStatus::Running)
+                    || v.status.eq(&AnimationStatus::Looping)
+                    || v.status.eq(&AnimationStatus::Stopping)
             })
             .count()
             > 0
@@ -108,11 +118,11 @@ impl Animations {
 
 #[derive(Eq, PartialEq, Debug)]
 pub(crate) enum AnimationStatus {
-    FORCE_STOPPED,
-    STOPPED,
-    RUNNING,
-    LOOPING,
-    STOPPING,
+    ForceStopped,
+    Stopped,
+    Running,
+    Looping,
+    Stopping,
 }
 
 pub struct Animation {
@@ -126,21 +136,21 @@ impl Animation {
     pub fn new(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
         Animation::initialise_animation(duration, &mut modifiers);
 
-        Self { _duration: duration, modifiers, status: AnimationStatus::STOPPED }
+        Self { _duration: duration, modifiers, status: AnimationStatus::Stopped }
     }
 
     /// Creates a new animation with the status running
     pub fn running(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
         Animation::initialise_animation(duration, &mut modifiers);
 
-        Self { _duration: duration, modifiers, status: AnimationStatus::RUNNING }
+        Self { _duration: duration, modifiers, status: AnimationStatus::Running }
     }
 
     ///Creates a new animation with the status looping
     pub fn looping(duration: Duration, mut modifiers: Vec<AnimationModifier>) -> Self {
         Animation::initialise_animation(duration, &mut modifiers);
 
-        Self { _duration: duration, modifiers, status: AnimationStatus::LOOPING }
+        Self { _duration: duration, modifiers, status: AnimationStatus::Looping }
     }
 
     fn initialise_animation(duration: Duration, modifiers: &mut Vec<AnimationModifier>) {
@@ -155,8 +165,8 @@ impl Animation {
 
     /// Will compute the status of the current animation
     pub(crate) fn try_update_status(&mut self) {
-        if self.status == FORCE_STOPPED {
-            self.status = STOPPED;
+        if self.status == ForceStopped {
+            self.status = Stopped;
             return;
         }
         if self
@@ -167,8 +177,8 @@ impl Animation {
             == self.modifiers.len()
         {
             self.modifiers.iter_mut().for_each(|modifier| modifier.current_keyframe = 0);
-            if self.status == AnimationStatus::RUNNING || self.status == AnimationStatus::STOPPING {
-                self.status = AnimationStatus::STOPPED;
+            if self.status == AnimationStatus::Running || self.status == AnimationStatus::Stopping {
+                self.status = AnimationStatus::Stopped;
             }
         }
     }
@@ -182,7 +192,7 @@ pub struct AnimationModifier {
     pub(crate) single_keyframe_modifier: Option<ComputedKeyframeModifier>,
     /// In case of a sprite modifier we need to keep track of the next index position in the vec
     pub(crate) next_sprite_index: Option<usize>,
-    pub(crate) variant: bool
+    pub(crate) variant: bool,
 }
 
 impl AnimationModifier {
@@ -195,7 +205,7 @@ impl AnimationModifier {
             single_keyframe_duration: None,
             single_keyframe_modifier: None,
             next_sprite_index: None,
-            variant: false
+            variant: false,
         }
     }
 
@@ -215,16 +225,28 @@ impl AnimationModifier {
     pub fn sprite(tile_numbers: Vec<usize>, end_tile_number: usize) -> Self {
         AnimationModifier::new(
             tile_numbers.len() - 1,
-            AnimationModifierType::SpriteModifier { tile_numbers, tile_numbers_variant: None, end_tile_number },
+            AnimationModifierType::SpriteModifier {
+                tile_numbers,
+                tile_numbers_variant: None,
+                end_tile_number,
+            },
         )
     }
 
     /// Convenience function to directly create an AnimationModifier of type Sprite with the needed informations, with a variant animation
-    pub fn sprite_with_variant(tile_numbers: Vec<usize>, tile_numbers_variant: Vec<usize>, end_tile_number: usize) -> Self {
+    pub fn sprite_with_variant(
+        tile_numbers: Vec<usize>,
+        tile_numbers_variant: Vec<usize>,
+        end_tile_number: usize,
+    ) -> Self {
         assert_eq!(tile_numbers_variant.len(), tile_numbers_variant.len());
         AnimationModifier::new(
             tile_numbers.len() - 1,
-            AnimationModifierType::SpriteModifier { tile_numbers, tile_numbers_variant: Some(tile_numbers_variant), end_tile_number},
+            AnimationModifierType::SpriteModifier {
+                tile_numbers,
+                tile_numbers_variant: Some(tile_numbers_variant),
+                end_tile_number,
+            },
         )
     }
 
@@ -247,11 +269,15 @@ impl AnimationModifier {
     }
 
     pub(crate) fn retrieve_keyframe_modifier(&self) -> &ComputedKeyframeModifier {
-        self.single_keyframe_modifier.as_ref().expect("single keyframe modifier is needed for transform animation")
+        self.single_keyframe_modifier
+            .as_ref()
+            .expect("single keyframe modifier is needed for transform animation")
     }
 
     pub(crate) fn retrieve_keyframe_modifier_mut(&mut self) -> &mut ComputedKeyframeModifier {
-        self.single_keyframe_modifier.as_mut().expect("single keyframe modifier is needed for transform animation")
+        self.single_keyframe_modifier
+            .as_mut()
+            .expect("single keyframe modifier is needed for transform animation")
     }
 
     pub(crate) fn modifier_type(&self) -> &AnimationModifierType {
@@ -274,7 +300,9 @@ impl AnimationModifier {
         }
     }
 
-    pub(crate) fn is_first_frame(&self) -> bool { self.current_keyframe == 0 }
+    pub(crate) fn is_first_frame(&self) -> bool {
+        self.current_keyframe == 0
+    }
 
     pub(crate) fn will_be_last_keyframe(&self, added_keyframes: usize) -> bool {
         self.current_keyframe + added_keyframes >= self.number_of_keyframes
@@ -283,17 +311,29 @@ impl AnimationModifier {
 
 #[derive(Debug, Clone)]
 pub enum AnimationModifierType {
-    TransformModifier { vector: Option<Vector>, scale: Option<f32>, rotation: Option<f32> },
-    SpriteModifier { tile_numbers: Vec<usize>, tile_numbers_variant: Option<Vec<usize>>, end_tile_number: usize },
-    Color { target: Color },
-    Text { content: String },
+    TransformModifier {
+        vector: Option<Vector>,
+        scale: Option<f32>,
+        rotation: Option<f32>,
+    },
+    SpriteModifier {
+        tile_numbers: Vec<usize>,
+        tile_numbers_variant: Option<Vec<usize>>,
+        end_tile_number: usize,
+    },
+    Color {
+        target: Color,
+    },
+    Text {
+        content: String,
+    },
     Blink,
 }
 
 pub(crate) enum ComputedKeyframeModifier {
     TransformModifier { vector: Option<Vector>, scale: Option<f32>, rotation: Option<f32> },
     Color { r: i16, g: i16, b: i16, a: f32 },
-    Text { cursor: usize }
+    Text { cursor: usize },
 }
 
 impl Display for AnimationModifier {
@@ -333,9 +373,9 @@ fn compute_animation_keyframe_modifier(modifier: &mut AnimationModifier) {
                 scale: scale.map_or(None, |scale| Some(scale / keyframe_nb)),
                 rotation: rotation.map_or(None, |rotation| Some(rotation / keyframe_nb)),
             })
-        },
-        AnimationModifierType::Text { .. } => Some(ComputedKeyframeModifier::Text { cursor: 0}),
-        _ => None
+        }
+        AnimationModifierType::Text { .. } => Some(ComputedKeyframeModifier::Text { cursor: 0 }),
+        _ => None,
     };
 }
 
@@ -379,7 +419,7 @@ mod tests {
             Animation {
                 _duration: Default::default(),
                 modifiers: vec![],
-                status: AnimationStatus::RUNNING,
+                status: AnimationStatus::Running,
             },
         );
         let a = Animations::new(h);
@@ -391,7 +431,7 @@ mod tests {
             Animation {
                 _duration: Default::default(),
                 modifiers: vec![],
-                status: AnimationStatus::STOPPED,
+                status: AnimationStatus::Stopped,
             },
         );
         let a = Animations::new(h);

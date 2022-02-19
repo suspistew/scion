@@ -114,18 +114,22 @@ pub enum Input {
 }
 
 impl Into<Input> for KeyCode {
-    fn into(self) -> Input { Input::Key(self) }
+    fn into(self) -> Input {
+        Input::Key(self)
+    }
 }
 
 impl Into<Input> for MouseButton {
-    fn into(self) -> Input { Input::Mouse(self) }
+    fn into(self) -> Input {
+        Input::Mouse(self)
+    }
 }
 
 pub type Shortcut = Vec<Input>;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    
     use crate::core::resources::inputs::inputs_controller::InputsController;
 
     #[test]

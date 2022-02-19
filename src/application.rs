@@ -1,8 +1,8 @@
 use std::path::Path;
 
 use legion::{
-    Resources,
-    Schedule, systems::{Builder, ParallelRunnable, ResourceTypeId}, World,
+    systems::{Builder, ParallelRunnable, ResourceTypeId},
+    Resources, Schedule, World,
 };
 use log::info;
 use winit::{
@@ -11,37 +11,22 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
+use crate::core::package::Package;
+use crate::core::resources::time::Time;
+use crate::core::scene::{Scene, SceneAction, SceneMachine};
+use crate::core::systems::collider_systems::colliders_cleaner_system;
+use crate::core::systems::InternalPackage;
 use crate::{
     config::scion_config::{ScionConfig, ScionConfigReader},
     core::{
-        components::{
-            material::Material,
-            ui::{
-                ui_image::UiImage,
-                ui_text::{UiText, UiTextImage},
-            },
-        },
         event_handler::update_input_events,
-        scene::{},
         legion_ext::{PausableSystem, ScionResourcesExtension},
-        resources::{
-            asset_manager::AssetManager,
-            events::{Events, topic::TopicConfiguration},
-            inputs::inputs_controller::InputsController,
-            audio::Audio,
-            time::{Time, Timers, TimerType},
-        },
+        resources::events::Events,
         state::GameState,
     },
     rendering::{renderer_state::RendererState, RendererType},
     utils::debug_ecs::try_debug,
 };
-use crate::core::systems::default_camera_system::camera_dpi_system;
-use crate::core::scene::{Scene, SceneAction, SceneMachine};
-use crate::core::systems::InternalPackage;
-use crate::core::package::Package;
-use crate::core::systems::collider_systems::colliders_cleaner_system;
-use futures::StreamExt;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -94,12 +79,10 @@ impl Scion {
 
     fn initialize_internal_resources(&mut self) {
         let window = self.window.as_ref().expect("No window found during setup");
-        self.resources.insert(
-            crate::core::resources::window::Window::new((
-                                                            window.inner_size().width,
-                                                            window.inner_size().height),
-                                                        window.scale_factor(),
-            ));
+        self.resources.insert(crate::core::resources::window::Window::new(
+            (window.inner_size().width, window.inner_size().height),
+            window.scale_factor(),
+        ));
     }
 
     fn run(mut self, event_loop: EventLoop<()>) {
@@ -108,37 +91,43 @@ impl Scion {
 
             match event {
                 Event::WindowEvent { ref event, window_id }
-                if window_id == self.window.as_mut().unwrap().id() =>
-                    {
-                        match event {
-                            WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                            WindowEvent::Resized(physical_size) => {
-                                self.resources
-                                    .window()
-                                    .set_dimensions(physical_size.width, physical_size.height);
-                                self.renderer.as_mut().unwrap().resize(*physical_size, self.window.as_ref().expect("Missing window").scale_factor());
-                            }
-                            WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                                self.renderer.as_mut().unwrap().resize(**new_inner_size, self.window.as_ref().expect("Missing window").scale_factor());
-                            }
-                            WindowEvent::CursorMoved { device_id: _, position, .. } => {
-                                let dpi_factor = self
-                                    .window
-                                    .as_mut()
-                                    .unwrap()
-                                    .current_monitor()
-                                    .expect("Missing the monitor")
-                                    .scale_factor();
-                                self.resources.inputs().set_mouse_position(
-                                    position.x / dpi_factor,
-                                    position.y / dpi_factor,
-                                );
-                            }
-                            _ => {}
+                    if window_id == self.window.as_mut().unwrap().id() =>
+                {
+                    match event {
+                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                        WindowEvent::Resized(physical_size) => {
+                            self.resources
+                                .window()
+                                .set_dimensions(physical_size.width, physical_size.height);
+                            self.renderer.as_mut().unwrap().resize(
+                                *physical_size,
+                                self.window.as_ref().expect("Missing window").scale_factor(),
+                            );
                         }
-
-                        update_input_events(event, &mut self.resources);
+                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                            self.renderer.as_mut().unwrap().resize(
+                                **new_inner_size,
+                                self.window.as_ref().expect("Missing window").scale_factor(),
+                            );
+                        }
+                        WindowEvent::CursorMoved { device_id: _, position, .. } => {
+                            let dpi_factor = self
+                                .window
+                                .as_mut()
+                                .unwrap()
+                                .current_monitor()
+                                .expect("Missing the monitor")
+                                .scale_factor();
+                            self.resources.inputs().set_mouse_position(
+                                position.x / dpi_factor,
+                                position.y / dpi_factor,
+                            );
+                        }
+                        _ => {}
                     }
+
+                    update_input_events(event, &mut self.resources);
+                }
                 Event::MainEventsCleared => {
                     self.next_frame();
                     self.layer_machine.apply_scene_action(
@@ -199,20 +188,20 @@ pub struct ScionBuilder {
     config: ScionConfig,
     schedule_builder: Builder,
     renderer: RendererType,
-    scene: Option<Box<Scene>>,
+    scene: Option<Box<dyn Scene>>,
     world: World,
-    resource: Resources
+    resource: Resources,
 }
 
 impl ScionBuilder {
     fn new(config: ScionConfig) -> Self {
-        let mut builder = Self {
+        let builder = Self {
             config,
             schedule_builder: Default::default(),
             renderer: Default::default(),
             scene: Default::default(),
             world: Default::default(),
-            resource: Default::default()
+            resource: Default::default(),
         };
         builder.with_package(InternalPackage)
     }

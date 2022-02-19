@@ -8,5 +8,7 @@ pub struct LoggerConfig {
 }
 
 impl Default for LoggerConfig {
-    fn default() -> Self { Self { level_filter: LevelFilter::Warn } }
+    fn default() -> Self {
+        Self { level_filter: LevelFilter::Warn }
+    }
 }

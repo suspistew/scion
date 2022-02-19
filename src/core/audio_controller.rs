@@ -1,8 +1,8 @@
+use crate::core::resources::audio::AudioEvent;
+use rodio::{OutputStream, Sink, Source};
 use std::collections::HashMap;
 use std::io::BufReader;
 use std::sync::mpsc::Receiver;
-use rodio::{OutputStream, Sink, Source};
-use crate::core::resources::audio::AudioEvent;
 
 pub(crate) struct AudioController {
     receiver: Receiver<AudioEvent>,
@@ -10,9 +10,7 @@ pub(crate) struct AudioController {
 
 impl AudioController {
     pub(crate) fn new(receiver: Receiver<AudioEvent>) -> Self {
-        Self {
-            receiver
-        }
+        Self { receiver }
     }
 }
 

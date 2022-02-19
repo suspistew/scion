@@ -13,7 +13,9 @@ impl Topic {
         }
     }
 
-    pub(crate) fn publish(&mut self, message: String) { self.messages.push(message); }
+    pub(crate) fn publish(&mut self, message: String) {
+        self.messages.push(message);
+    }
 
     pub(crate) fn cleanup_overflow(&mut self) -> usize {
         if self.messages.len() > self.configuration.limit {
@@ -40,7 +42,9 @@ pub struct TopicConfiguration {
 }
 
 impl Default for TopicConfiguration {
-    fn default() -> Self { Self { limit: 50 } }
+    fn default() -> Self {
+        Self { limit: 50 }
+    }
 }
 
 #[cfg(test)]

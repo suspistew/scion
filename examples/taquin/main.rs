@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
@@ -6,14 +5,15 @@ use scion::{
             maths::{coordinates::Coordinates, transform::Transform},
             tiles::{sprite::Sprite, tileset::Tileset},
         },
-        scene::{Scene},
         legion_ext::{ScionResourcesExtension, ScionWorldExtension},
         resources::inputs::inputs_controller::InputsController,
+        scene::Scene,
     },
-    legion::{Resources, system, World},
-    Scion,
+    legion::{system, Resources, World},
     utils::file::app_base_path,
+    Scion,
 };
+
 
 #[derive(Debug)]
 struct Case(Coordinates);
@@ -103,7 +103,7 @@ impl Scene for MainScene {
             app_base_path().join("examples/taquin/assets/taquin.png").get(),
             4,
             4,
-            192
+            192,
         ));
         for line in 0..4 {
             for column in 0..4 {
@@ -132,7 +132,7 @@ fn main() {
             )
             .get(),
     )
-        .with_system(taquin_system())
-        .with_scene::<MainScene>()
-        .run();
+    .with_system(taquin_system())
+    .with_scene::<MainScene>()
+    .run();
 }

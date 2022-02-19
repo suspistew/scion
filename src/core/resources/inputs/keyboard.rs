@@ -11,15 +11,20 @@ pub struct Keyboard {
 
 impl Keyboard {
     /// Whether or not `key` is currently pressed
-    pub fn key_pressed(&self, key: &KeyCode) -> bool { self.pressed_keys.contains(key) }
+    pub fn key_pressed(&self, key: &KeyCode) -> bool {
+        self.pressed_keys.contains(key)
+    }
 
     /// Keyboard events of the current frame
-    pub fn keyboard_events(&self) -> &Vec<KeyboardEvent> { &self.keyboard_events }
+    pub fn keyboard_events(&self) -> &Vec<KeyboardEvent> {
+        &self.keyboard_events
+    }
 
     /// convenient function to run `action` if `key` is pressed during the current frame
     pub fn on_key_pressed<Body>(&self, key: KeyCode, mut action: Body)
     where
-        Body: FnMut(), {
+        Body: FnMut(),
+    {
         if self
             .keyboard_events
             .iter()
@@ -34,7 +39,8 @@ impl Keyboard {
     /// convenient function to run `action` if `key` is released during the current frame
     pub fn on_key_released<Body>(&self, key: KeyCode, mut action: Body)
     where
-        Body: FnMut(), {
+        Body: FnMut(),
+    {
         if self
             .keyboard_events
             .iter()
@@ -58,16 +64,16 @@ impl Keyboard {
         self.pressed_keys.iter().map(|input| Input::Key(*input)).collect()
     }
 
-    pub(crate) fn clear_events(&mut self) { self.keyboard_events.clear(); }
+    pub(crate) fn clear_events(&mut self) {
+        self.keyboard_events.clear();
+    }
 
     pub(crate) fn add_keyboard_event(&mut self, keyboard_event: KeyboardEvent) {
         if match &keyboard_event {
-            KeyboardEvent { keycode, state } => {
-                match state {
-                    InputState::Pressed => self.press(keycode),
-                    InputState::Released => self.release(keycode),
-                }
-            }
+            KeyboardEvent { keycode, state } => match state {
+                InputState::Pressed => self.press(keycode),
+                InputState::Released => self.release(keycode),
+            },
         } {
             self.keyboard_events.push(keyboard_event);
         }

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+
 
 use legion::{Entity, Resources, World};
 
@@ -21,8 +21,8 @@ use scion::{
         resources::asset_manager::AssetRef,
         scene::Scene,
     },
-    Scion,
     utils::{file::app_base_path, maths::Dimensions},
+    Scion,
 };
 
 use crate::level_reader::Level;
@@ -61,7 +61,7 @@ impl Scene for MainScene {
             app_base_path().join("examples/bomberman/assets/sokoban_tilesheet.png").get(),
             13,
             9,
-            64
+            64,
         ));
 
         let level = level_reader::read_level("examples/bomberman/assets/test_map.json");

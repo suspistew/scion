@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+
 
 use scion::{
     core::{
@@ -34,7 +34,7 @@ impl Scene for MainScene {
             asset_path().join("blocs.png").get(),
             8,
             1,
-            32
+            32,
         )));
         resources.insert(tetris);
     }

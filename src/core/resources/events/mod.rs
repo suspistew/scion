@@ -17,7 +17,9 @@ pub struct PollConfiguration {
 }
 
 impl Default for PollConfiguration {
-    fn default() -> Self { Self { max_messages: 5 } }
+    fn default() -> Self {
+        Self { max_messages: 5 }
+    }
 }
 
 /// `EventError` represents the different error that any event Result can return
@@ -54,7 +56,8 @@ impl Events {
     /// Publish an event into the topic `topic_name`
     pub fn publish<T>(&mut self, topic_name: &str, event: T) -> Result<(), EventError>
     where
-        T: ser::Serialize, {
+        T: ser::Serialize,
+    {
         if !self.topics.contains_key(topic_name) {
             Err(EventError::TopicDoesNotExist)
         } else {
@@ -96,7 +99,8 @@ impl Events {
     /// Retrieves a list of events using `subscriber_id` subscription to a topic
     pub fn poll<T>(&mut self, subscriber_id: &SubscriberId) -> Result<VecDeque<T>, EventError>
     where
-        T: DeserializeOwned, {
+        T: DeserializeOwned,
+    {
         if self.subscribers.contains_key(subscriber_id) {
             let (topic_name, poll_configuration, cursor) = self
                 .subscribers

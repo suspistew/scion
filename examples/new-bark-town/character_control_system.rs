@@ -1,10 +1,10 @@
-use legion::{*, systems::CommandBuffer};
+use legion::{*};
 
+use scion::core::resources::time::Timers;
 use scion::core::{
-    components::{animations::Animations, maths::transform::Transform, tiles::sprite::Sprite},
+    components::{animations::Animations, maths::transform::Transform},
     resources::inputs::{inputs_controller::InputsController, types::KeyCode},
 };
-use scion::core::resources::time::Timers;
 
 use crate::scene::MainCharacter;
 
@@ -16,10 +16,8 @@ pub fn controller(
     transform: &Transform,
     animations: &mut Animations,
 ) {
-    let no_delta =
-        transform.translation().x() as usize % 48 == 0 &&
-            transform.translation().y() as usize % 48 == 0
-        ;
+    let no_delta = transform.translation().x() as usize % 48 == 0
+        && transform.translation().y() as usize % 48 == 0;
 
     if !timers.get_timer("SceneSwitch").unwrap().ended() {
         return;
@@ -35,19 +33,31 @@ pub fn controller(
             animations.loop_animation("MOVE_BOTTOM");
         }
     } else if no_delta {
-        if !character.right && inputs.key_pressed(&KeyCode::Right) && animations.animation_running("MOVE_RIGHT") {
+        if !character.right
+            && inputs.key_pressed(&KeyCode::Right)
+            && animations.animation_running("MOVE_RIGHT")
+        {
             println!("{:?} {}", character, animations.animation_running("MOVE_RIGHT"));
             animations.stop_all_animation(true);
         }
-        if !character.left && inputs.key_pressed(&KeyCode::Left) && animations.animation_running("MOVE_LEFT"){
+        if !character.left
+            && inputs.key_pressed(&KeyCode::Left)
+            && animations.animation_running("MOVE_LEFT")
+        {
             println!("{:?} {}", character, animations.animation_running("MOVE_LEFT"));
             animations.stop_all_animation(true);
         }
-        if !character.top && inputs.key_pressed(&KeyCode::Up) && animations.animation_running("MOVE_TOP"){
+        if !character.top
+            && inputs.key_pressed(&KeyCode::Up)
+            && animations.animation_running("MOVE_TOP")
+        {
             println!("{:?} {}", character, animations.animation_running("MOVE_TOP"));
             animations.stop_all_animation(true);
         }
-        if !character.bottom && inputs.key_pressed(&KeyCode::Down) && animations.animation_running("MOVE_BOTTOM"){
+        if !character.bottom
+            && inputs.key_pressed(&KeyCode::Down)
+            && animations.animation_running("MOVE_BOTTOM")
+        {
             println!("{:?} {}", character, animations.animation_running("MOVE_BOTTOM"));
             animations.stop_all_animation(true);
         }
@@ -66,7 +76,7 @@ pub fn controller(
         animations.stop_animation("MOVE_BOTTOM", false);
     });
 
-    if (inputs.all_pressed().is_empty()) {
+    if inputs.all_pressed().is_empty() {
         animations.stop_all_animation(false);
     }
 }

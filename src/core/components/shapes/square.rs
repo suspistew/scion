@@ -79,11 +79,17 @@ impl Renderable2D for Square {
         }
     }
 
-    fn range(&self) -> Range<u32> { 0..INDICES.len() as u32 }
+    fn range(&self) -> Range<u32> {
+        0..INDICES.len() as u32
+    }
 
-    fn topology() -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
+    fn topology() -> PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleList
+    }
 
-    fn dirty(&self) -> bool { false }
+    fn dirty(&self) -> bool {
+        false
+    }
 
     fn set_dirty(&mut self, _is_dirty: bool) {}
 }

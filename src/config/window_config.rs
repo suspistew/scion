@@ -87,7 +87,9 @@ pub struct WindowConfigBuilder {
 
 impl WindowConfigBuilder {
     /// Create a new `WindowConfigBuilder` builder
-    pub fn new() -> Self { Self { config: Default::default() } }
+    pub fn new() -> Self {
+        Self { config: Default::default() }
+    }
 
     /// Dimension of the window
     pub fn with_dimensions(mut self, dimensions: (u32, u32)) -> Self {
@@ -108,5 +110,7 @@ impl WindowConfigBuilder {
     }
 
     /// Retrieves the configuration built
-    pub fn get(self) -> WindowConfig { self.config }
+    pub fn get(self) -> WindowConfig {
+        self.config
+    }
 }

@@ -1,12 +1,10 @@
 use std::{collections::HashMap, ops::Range};
-use image::imageops::tile;
 
 use legion::{world::SubWorld, Entity, EntityStore, World};
-use serde_json::map::Values;
-use serde_json::Value;
-use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 use serde::{Deserialize, Serialize};
+use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
+use crate::core::resources::asset_manager::AssetManager;
 use crate::{
     core::{
         components::{
@@ -20,8 +18,6 @@ use crate::{
     rendering::Renderable2D,
     utils::maths::{Dimensions, Position},
 };
-use crate::core::resources::asset_manager::AssetManager;
-use crate::core::resources::events::Events;
 
 #[derive(Debug)]
 pub struct Pathing {
@@ -36,17 +32,17 @@ pub struct TileEvent {
 
 impl TileEvent {
     pub fn new(event_type: String, properties: HashMap<String, String>) -> Self {
-        if event_type.as_str() == ""{
+        if event_type.as_str() == "" {
             panic!("An event must have a type");
         }
         Self { event_type, properties }
     }
 
-    pub fn event_type(&self) -> String{
+    pub fn event_type(&self) -> String {
         self.event_type.to_string()
     }
 
-    pub fn properties(&mut self) -> &mut HashMap<String, String>{
+    pub fn properties(&mut self) -> &mut HashMap<String, String> {
         &mut self.properties
     }
 }
@@ -110,16 +106,17 @@ pub struct Tilemap {
 }
 
 impl Tilemap {
-    pub(crate) fn new(tileset_ref: AssetRef<Material>) -> Self{
-        Self{ tile_entities: Default::default(), events: HashMap::default(),tileset_ref }
+    pub(crate) fn new(tileset_ref: AssetRef<Material>) -> Self {
+        Self { tile_entities: Default::default(), events: HashMap::default(), tileset_ref }
     }
 
     /// Convenience fn to create a tilemap and add it to the world.
     /// tile_resolver is a function taking a 3D position as parameter and a `TileInfos`
     /// as a return. This way, the tilemap knows exactly what to add at which coordinates.
     pub fn create<F>(infos: TilemapInfo, world: &mut World, mut tile_resolver: F) -> Entity
-        where
-            F: FnMut(&Position) -> TileInfos, {
+    where
+        F: FnMut(&Position) -> TileInfos,
+    {
         let self_entity = Tilemap::create_tilemap(world, infos.tileset_ref, infos.transform);
 
         for x in 0..infos.dimensions.width() {
@@ -151,13 +148,14 @@ impl Tilemap {
                             .add_component(Pathing { pathing_type: pathing });
                     }
 
-                    if let Some(event) = tile_infos.event{
+                    if let Some(event) = tile_infos.event {
                         world
                             .entry(self_entity)
                             .unwrap()
                             .get_component_mut::<Tilemap>()
                             .unwrap()
-                            .events.insert(position.clone(), event);
+                            .events
+                            .insert(position.clone(), event);
                     }
 
                     world
@@ -213,7 +211,7 @@ impl Tilemap {
         &self,
         tile_position: &Position,
         world: &SubWorld,
-        asset_manager: &AssetManager
+        asset_manager: &AssetManager,
     ) -> Option<String> {
         if self.tile_entities.contains_key(&tile_position) {
             let entity = self.tile_entities.get(&tile_position).unwrap();
@@ -225,8 +223,8 @@ impl Tilemap {
             }
         }
         if let Some(tileset) = asset_manager.retrieve_tileset(&self.tileset_ref) {
-            if let Some(sprite) = self.retrieve_sprite_tile(tile_position, world){
-                let val = tileset.pathing.iter().filter(|(k, v)| v.contains(&sprite)).next();
+            if let Some(sprite) = self.retrieve_sprite_tile(tile_position, world) {
+                let val = tileset.pathing.iter().filter(|(_k, v)| v.contains(&sprite)).next();
                 if let Some(entry) = val {
                     return Some(entry.0.to_string());
                 }
@@ -236,11 +234,9 @@ impl Tilemap {
     }
 
     /// Retrieves the mutable tile event associated with this position in the tilemap
-    pub fn retrieve_event(&mut self,
-                             tile_position: &Position) -> Option<&mut TileEvent> {
+    pub fn retrieve_event(&mut self, tile_position: &Position) -> Option<&mut TileEvent> {
         return self.events.get_mut(&tile_position);
     }
-
 
     fn create_tilemap(
         world: &mut World,
@@ -256,13 +252,23 @@ impl Renderable2D for Tilemap {
         todo!()
     }
 
-    fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor { todo!() }
+    fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
+        todo!()
+    }
 
-    fn range(&self) -> Range<u32> { todo!() }
+    fn range(&self) -> Range<u32> {
+        todo!()
+    }
 
-    fn topology() -> PrimitiveTopology { wgpu::PrimitiveTopology::TriangleList }
+    fn topology() -> PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleList
+    }
 
-    fn dirty(&self) -> bool { todo!() }
+    fn dirty(&self) -> bool {
+        todo!()
+    }
 
-    fn set_dirty(&mut self, _is_dirty: bool) { todo!() }
+    fn set_dirty(&mut self, _is_dirty: bool) {
+        todo!()
+    }
 }
