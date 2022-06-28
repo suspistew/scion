@@ -1,4 +1,4 @@
-use legion::Entity;
+use hecs::Entity;
 
 /// A component creating a parent link to the wrapped entity
 #[derive(Debug)]

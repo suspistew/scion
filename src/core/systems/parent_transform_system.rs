@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use legion::{system, world::SubWorld, Entity, EntityStore, Query};
+
+
 
 use crate::core::components::maths::{
     hierarchy::{Children, Parent},
@@ -9,33 +10,21 @@ use crate::core::components::maths::{
 
 /// System responsible of detecting when a transform's global coords should be computed again
 /// based on the fact that the transform is flagged as dirty_child (IE when it's added to a parent)
-#[system]
-pub(crate) fn dirty_child(
-    world: &mut SubWorld,
-    query_transform_with_parent: &mut Query<(
-        Entity,
-        &mut Transform,
-        Option<&Parent>,
-        Option<&Children>,
-    )>,
-) {
-    // GET all the childs that are 'dirty childs'
+pub(crate) fn dirty_child_system(world: &mut crate::core::world::World){
     let mut parent_to_check = Vec::new();
-    query_transform_with_parent.for_each_mut(world, |(child_entity, transform, parent, _child)| {
-        if transform.dirty_child {
-            if let Some(parent) = parent {
-                parent_to_check.push((*child_entity, parent.0));
-            } else {
-                transform.dirty_child = false;
+    for (child_entity, (t, p)) in world.query_mut::<(&mut Transform, Option<&Parent>)>() {
+        if t.dirty_child{
+            match p {
+                None => t.dirty_child = false,
+                Some(parent) => parent_to_check.push((child_entity, parent.0))
             }
         }
-    });
+    }
 
     // GET all the parents that needs to be checked
     let mut parents_transform = HashMap::new();
     for (_, parent) in parent_to_check.iter() {
-        if let Ok(parent_transform) = world.entry_ref(*parent).unwrap().get_component::<Transform>()
-        {
+        if let Some(parent_transform) = world.entry::<&Transform>(*parent).unwrap().get() {
             parents_transform.insert(*parent, parent_transform.clone());
         }
     }
@@ -44,85 +33,69 @@ pub(crate) fn dirty_child(
         let mut tmp_vec = parent_to_check.clone();
         parent_to_check.clear();
         while let Some((child, parent)) = tmp_vec.pop() {
-            let mut child_entry = world
-                .entry_mut(child)
-                .expect("An entity has been marked as dirty child but actually does not exist");
-            let mut child_transform = child_entry
-                .get_component_mut::<Transform>()
-                .expect("Missing Transform component previously found on this entity");
-            if parents_transform.contains_key(&parent) {
-                let parent_transform = parents_transform.get(&parent).unwrap();
-                // If the parent of the current entity is not a dirty child, then we can compute the current
-                // transform
-                if !parent_transform.dirty_child {
-                    child_transform.dirty_child = false;
-                    child_transform
-                        .compute_global_from_parent(parent_transform.global_translation());
-                    parents_transform.insert(child, child_transform.clone());
-                } else {
-                    // Else we need to check the parent first, in the next iteration
-                    parent_to_check.push((child, parent));
+            match world.entry_mut::<&mut Transform>(child){
+                Ok(child_transform) => {
+                    if parents_transform.contains_key(&parent) {
+                        let parent_transform = parents_transform.get(&parent).unwrap();
+                        // If the parent of the current entity is not a dirty child, then we can compute the current
+                        // transform
+                        if !parent_transform.dirty_child {
+                            child_transform.dirty_child = false;
+                            child_transform
+                                .compute_global_from_parent(parent_transform.global_translation());
+                            parents_transform.insert(child, child_transform.clone());
+                        } else {
+                            // Else we need to check the parent first, in the next iteration
+                            parent_to_check.push((child, parent));
+                        }
+                    } else {
+                        child_transform.dirty_child = false;
+                        parents_transform.insert(child, child_transform.clone());
+                    }
                 }
-            } else {
-                child_transform.dirty_child = false;
-                parents_transform.insert(child, child_transform.clone());
+                Err(_) => panic!("Error while retrieving child transform during internal system")
             }
         }
     }
+
 }
 
 /// System responsible of detecting when a child transform should be computed again based on any parent
 /// transform modification
-#[system]
-pub(crate) fn dirty_transform(
-    world: &mut SubWorld,
-    query_transform_with_childs: &mut Query<(&mut Transform, Option<&Children>)>,
-) {
+pub(crate) fn dirty_transform_system(world: &mut crate::core::world::World){
     let mut first_iter = true;
-    let mut transform_entities: Vec<(Transform, Vec<Entity>)> = Vec::new();
+    let mut transform_entities: Vec<(Transform, Vec<hecs::Entity>)> = Vec::new();
     while first_iter || !transform_entities.is_empty() {
         first_iter = false;
         while let Some((transform, entities)) = transform_entities.pop() {
             for entity in entities {
-                let mut child_entry = world
-                    .entry_mut(entity)
-                    .expect("An entity has been marked as dirty child but actually does not exist");
-                let child_transform = child_entry.get_component_mut::<Transform>();
-                if let Ok(child_transform) = child_transform {
+                if let Ok(child_transform) = world.entry_mut::<&mut Transform>(entity){
                     child_transform.compute_global_from_parent(transform.global_translation())
                 }
             }
         }
-
-        query_transform_with_childs.for_each_mut(world, |(mut parent_transform, children)| {
+        for (_, (parent_transform, children)) in world.query_mut::<(&mut Transform, Option<&Children>)>(){
             if let Some(children) = children {
                 if parent_transform.dirty {
                     transform_entities.push((parent_transform.clone(), children.0.clone()));
                 }
             }
             parent_transform.dirty = false;
-        });
+        }
     }
+
 }
 
 #[cfg(test)]
 mod tests {
-    use legion::{IntoQuery, Resources, Schedule, World};
 
     use super::*;
     use crate::core::{components::maths::hierarchy::Parent, systems::hierarchy_system::*};
+    use crate::core::world::World;
 
     #[test]
     fn dirty_parent_transform_test() {
         let mut world = World::default();
-        let mut resources = Resources::default();
-        let mut schedule = Schedule::builder()
-            .add_system(children_manager_system())
-            .flush()
-            .add_system(dirty_child_system())
-            .flush()
-            .add_system(dirty_transform_system())
-            .build();
 
         let parent_transform = Transform::from_xy(1., 1.);
         let child_transform = Transform::from_xy(1., 1.);
@@ -131,19 +104,20 @@ mod tests {
         let child = world.push((child_transform, Parent(parent)));
         let child_of_child = world.push((child_of_child_transform, Parent(child)));
 
-        let mut query = <(Entity, &Transform)>::query();
-        query.for_each(&world, |(_e, t)| {
+        for (_, t) in world.query::<&Transform>().iter() {
             assert_eq!(false, t.dirty);
-        });
+        };
 
-        schedule.execute(&mut world, &mut resources);
+        children_manager_system(&mut world);
+        dirty_child_system(&mut world);
+        dirty_transform_system(&mut world);
 
         assert_eq!(
             1.,
             world
-                .entry(parent)
+                .entry::<&Transform>(parent)
                 .unwrap()
-                .get_component::<Transform>()
+                .get()
                 .unwrap()
                 .global_translation
                 .x()
@@ -151,9 +125,9 @@ mod tests {
         assert_eq!(
             2.,
             world
-                .entry(child)
+                .entry::<&Transform>(child)
                 .unwrap()
-                .get_component::<Transform>()
+                .get()
                 .unwrap()
                 .global_translation
                 .x()
@@ -161,26 +135,29 @@ mod tests {
         assert_eq!(
             3.,
             world
-                .entry(child_of_child)
+                .entry::<&Transform>(child_of_child)
                 .unwrap()
-                .get_component::<Transform>()
+                .get()
                 .unwrap()
                 .global_translation
                 .x()
         );
 
-        let mut query = <&mut Transform>::query();
-        let res = query.get_mut(&mut world, parent).unwrap();
-        res.append_translation(5.0, 1.0);
+        {
+            let t = world.entry_mut::<&mut Transform>(parent).unwrap();
+            t.append_translation(5.0, 1.0);
+        }
 
-        schedule.execute(&mut world, &mut resources);
+        children_manager_system(&mut world);
+        dirty_child_system(&mut world);
+        dirty_transform_system(&mut world);
 
         assert_eq!(
             6.,
             world
-                .entry(parent)
+                .entry::<&Transform>(parent)
                 .unwrap()
-                .get_component::<Transform>()
+                .get()
                 .unwrap()
                 .global_translation
                 .x()
@@ -188,9 +165,9 @@ mod tests {
         assert_eq!(
             7.,
             world
-                .entry(child)
+                .entry::<&Transform>(child)
                 .unwrap()
-                .get_component::<Transform>()
+                .get()
                 .unwrap()
                 .global_translation
                 .x()
@@ -198,9 +175,9 @@ mod tests {
         assert_eq!(
             8.,
             world
-                .entry(child_of_child)
+                .entry::<&Transform>(child_of_child)
                 .unwrap()
-                .get_component::<Transform>()
+                .get()
                 .unwrap()
                 .global_translation
                 .x()

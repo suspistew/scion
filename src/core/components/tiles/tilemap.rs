@@ -1,6 +1,7 @@
 use std::{collections::HashMap, ops::Range};
+use hecs::Entity;
 
-use legion::{world::SubWorld, Entity, EntityStore, World};
+
 use serde::{Deserialize, Serialize};
 use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
@@ -18,6 +19,7 @@ use crate::{
     rendering::Renderable2D,
     utils::maths::{Dimensions, Position},
 };
+use crate::core::world::{EntityWorld, World};
 
 #[derive(Debug)]
 pub struct Pathing {
@@ -114,8 +116,8 @@ impl Tilemap {
     /// tile_resolver is a function taking a 3D position as parameter and a `TileInfos`
     /// as a return. This way, the tilemap knows exactly what to add at which coordinates.
     pub fn create<F>(infos: TilemapInfo, world: &mut World, mut tile_resolver: F) -> Entity
-    where
-        F: FnMut(&Position) -> TileInfos,
+        where
+            F: FnMut(&Position) -> TileInfos,
     {
         let self_entity = Tilemap::create_tilemap(world, infos.tileset_ref, infos.transform);
 
@@ -131,40 +133,22 @@ impl Tilemap {
                     ));
 
                     if let Some(tile_nb) = tile_infos.tile_nb {
-                        world.entry(entity).unwrap().add_component(Sprite::new(tile_nb));
+                        let _r = world.add_components(entity, (Sprite::new(tile_nb),));
                     }
 
                     if let Some(animation) = tile_infos.animation {
-                        world
-                            .entry(entity)
-                            .unwrap()
-                            .add_component(Animations::single("TileAnimation", animation));
+                        let _r = world.add_components(entity, (Animations::single("TileAnimation", animation),));
                     }
 
                     if let Some(pathing) = tile_infos.pathing_type {
-                        world
-                            .entry(entity)
-                            .unwrap()
-                            .add_component(Pathing { pathing_type: pathing });
+                        let _r = world.add_components(entity, (Pathing { pathing_type: pathing },));
                     }
 
                     if let Some(event) = tile_infos.event {
-                        world
-                            .entry(self_entity)
-                            .unwrap()
-                            .get_component_mut::<Tilemap>()
-                            .unwrap()
-                            .events
-                            .insert(position.clone(), event);
+                        world.entry_mut::<&mut Tilemap>(self_entity).unwrap().events.insert(position.clone(), event);
                     }
 
-                    world
-                        .entry(self_entity)
-                        .unwrap()
-                        .get_component_mut::<Tilemap>()
-                        .unwrap()
-                        .tile_entities
-                        .insert(position, entity);
+                    world.entry_mut::<&mut Tilemap>(self_entity).unwrap().tile_entities.insert(position, entity);
                 }
             }
         }
@@ -174,56 +158,86 @@ impl Tilemap {
 
     /// Try to modify the sprite's tile at a given position
     pub fn modify_sprite_tile(
-        &self,
+        world: &mut EntityWorld,
+        tilemap_entity: Entity,
         tile_position: Position,
         new_tile_nb: usize,
-        world: &mut SubWorld,
     ) {
-        if self.tile_entities.contains_key(&tile_position) {
-            let mut entity = world
-                .entry_mut(*self.tile_entities.get(&tile_position).unwrap())
-                .expect("Unreachable registered entity in tilemap");
-            if let Ok(sprite) = entity.get_component_mut::<Sprite>() {
+        let tile = world.entry_mut::<&mut Tilemap>(tilemap_entity).unwrap()
+            .tile_entities.get(&tile_position).as_ref().map(|e| **e);
+        if let Some(tile) = tile {
+            let entry = world.entry_mut::<&mut Sprite>(tile);
+            if let Ok(sprite) = entry {
+                sprite.set_tile_nb(new_tile_nb);
+            }
+        }
+    }
+
+    /// Try to modify the sprite's tile at a given position
+    pub fn modify_sprite_tile_with_world(
+        world: &mut World,
+        tilemap_entity: Entity,
+        tile_position: Position,
+        new_tile_nb: usize,
+    ) {
+        let tile = world.entry_mut::<&mut Tilemap>(tilemap_entity).unwrap()
+            .tile_entities.get(&tile_position).as_ref().map(|e| **e);
+        if let Some(tile) = tile {
+            let entry = world.entry_mut::<&mut Sprite>(tile);
+            if let Ok(sprite) = entry {
                 sprite.set_tile_nb(new_tile_nb);
             }
         }
     }
 
     pub fn retrieve_sprite_tile(
-        &self,
+        world: &mut World,
+        entity: Entity,
         tile_position: &Position,
-        world: &SubWorld,
     ) -> Option<usize> {
-        if self.tile_entities.contains_key(&tile_position) {
-            let entity = self.tile_entities.get(&tile_position).unwrap();
-            if let Ok(entry) = world.entry_ref(*entity) {
-                let sprite = entry.get_component::<Sprite>();
-                if let Ok(sprite) = sprite {
-                    return Some(sprite.get_tile_nb());
-                }
-            }
+        let tile = world.entry_mut::<&mut Tilemap>(entity).unwrap()
+            .tile_entities.get(&tile_position).as_ref().map(|e| **e);
+        if let Some(tile) = tile {
+            return world.entry::<&Sprite>(tile).unwrap().get().map(|s| s.get_tile_nb() );
+        }
+        None
+    }
+
+    pub fn retrieve_sprite_tile_from_entity_world(
+        world: &mut EntityWorld,
+        entity: Entity,
+        tile_position: &Position,
+    ) -> Option<usize> {
+        let tile = world.entry_mut::<&mut Tilemap>(entity).unwrap()
+            .tile_entities.get(&tile_position).as_ref().map(|e| **e);
+        if let Some(tile) = tile {
+            return world.entry::<&Sprite>(tile).unwrap().get().map(|s| s.get_tile_nb() );
         }
         None
     }
 
     /// Retrieves the pathing value associated with this position in the tilemap
     pub fn retrieve_pathing(
-        &self,
+        world: &mut EntityWorld,
+        entity: Entity,
         tile_position: &Position,
-        world: &SubWorld,
         asset_manager: &AssetManager,
     ) -> Option<String> {
-        if self.tile_entities.contains_key(&tile_position) {
-            let entity = self.tile_entities.get(&tile_position).unwrap();
-            if let Ok(entry) = world.entry_ref(*entity) {
-                let pathing = entry.get_component::<Pathing>();
-                if let Ok(path_value) = pathing {
+        let (tile, tileset_ref) = {
+            let mut res = world.entry::<&Tilemap>(entity).unwrap();
+            let tilemap = res.get();
+            (tilemap.as_ref().unwrap().tile_entities.get(&tile_position).as_ref().map(|e| **e).clone(), tilemap.as_ref().unwrap().tileset_ref.clone())
+        };
+        if let Some(tile) = tile {
+            if let Ok(mut entry) = world.entry::<&Pathing>(tile) {
+                if let Some(path_value) = entry.get() {
                     return Some(path_value.pathing_type.to_string());
                 }
             }
         }
-        if let Some(tileset) = asset_manager.retrieve_tileset(&self.tileset_ref) {
-            if let Some(sprite) = self.retrieve_sprite_tile(tile_position, world) {
+
+        if let Some(tileset) = asset_manager.retrieve_tileset(&tileset_ref) {
+            if let Some(sprite) = Tilemap::retrieve_sprite_tile_from_entity_world(world, entity, tile_position) {
                 let val = tileset.pathing.iter().filter(|(_k, v)| v.contains(&sprite)).next();
                 if let Some(entry) = val {
                     return Some(entry.0.to_string());

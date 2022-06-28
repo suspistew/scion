@@ -1,3 +1,4 @@
+use futures::AsyncReadExt;
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
@@ -5,14 +6,12 @@ use scion::{
             maths::{coordinates::Coordinates, transform::Transform},
             tiles::{sprite::Sprite, tileset::Tileset},
         },
-        legion_ext::{ScionResourcesExtension, ScionWorldExtension},
-        resources::inputs::inputs_controller::InputsController,
         scene::Scene,
     },
-    legion::{system, Resources, World},
     utils::file::app_base_path,
     Scion,
 };
+use scion::core::world::World;
 
 
 #[derive(Debug)]
@@ -58,48 +57,48 @@ impl Taquin {
     }
 }
 
-#[system(for_each)]
-fn taquin(
-    #[resource] inputs: &InputsController,
-    #[resource] taquin: &mut Taquin,
-    case: &mut Case,
-    transform: &mut Transform,
-) {
-    inputs.on_left_click_pressed(|mouse_x, mouse_y| {
-        if mouse_x > (case.0.x() * 192.) as f64
-            && mouse_y > (case.0.y() * 192.) as f64
-            && mouse_x < (case.0.x() * 192. + 192.) as f64
-            && mouse_y < (case.0.y() * 192. + 192.) as f64
-        {
-            match taquin.try_move(case.0.x() as usize, case.0.y() as usize) {
-                MoveDirection::Left => {
-                    case.0.set_x(case.0.x() - 1.);
-                    transform.append_translation(-192., 0.);
-                }
-                MoveDirection::Top => {
-                    case.0.set_y(case.0.y() - 1.);
-                    transform.append_translation(0., -192.);
-                }
-                MoveDirection::Right => {
-                    case.0.set_x(case.0.x() + 1.);
-                    transform.append_translation(192., 0.);
-                }
-                MoveDirection::Bottom => {
-                    case.0.set_y(case.0.y() + 1.);
-                    transform.append_translation(0., 192.);
-                }
-                MoveDirection::None => {}
-            };
-        }
-    })
+fn taquin_system(world: &mut World) {
+    let (subworld, resources) = world.split();
+    let inputs = resources.inputs();
+    let mut taquin = resources.get_resource_mut::<Taquin>().unwrap();
+
+    for(_, (case, transform)) in subworld.query_mut::<(&mut Case, &mut Transform)>() {
+        inputs.on_left_click_pressed(|mouse_x, mouse_y| {
+            if mouse_x > (case.0.x() * 192.) as f64
+                && mouse_y > (case.0.y() * 192.) as f64
+                && mouse_x < (case.0.x() * 192. + 192.) as f64
+                && mouse_y < (case.0.y() * 192. + 192.) as f64
+            {
+                match taquin.try_move(case.0.x() as usize, case.0.y() as usize) {
+                    MoveDirection::Left => {
+                        case.0.set_x(case.0.x() - 1.);
+                        transform.append_translation(-192., 0.);
+                    }
+                    MoveDirection::Top => {
+                        case.0.set_y(case.0.y() - 1.);
+                        transform.append_translation(0., -192.);
+                    }
+                    MoveDirection::Right => {
+                        case.0.set_x(case.0.x() + 1.);
+                        transform.append_translation(192., 0.);
+                    }
+                    MoveDirection::Bottom => {
+                        case.0.set_y(case.0.y() + 1.);
+                        transform.append_translation(0., 192.);
+                    }
+                    MoveDirection::None => {}
+                };
+            }
+        })
+    }
 }
 
 #[derive(Default)]
 struct MainScene;
 
 impl Scene for MainScene {
-    fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
-        let tileset_ref = resources.assets().register_tileset(Tileset::new(
+    fn on_start(&mut self, world: &mut World) {
+        let tileset_ref = world.assets_mut().register_tileset(Tileset::new(
             app_base_path().join("examples/taquin/assets/taquin.png").get(),
             4,
             4,
@@ -120,7 +119,7 @@ impl Scene for MainScene {
         }
         world.add_default_camera();
 
-        resources.insert(Taquin::new());
+        world.insert_resource(Taquin::new());
     }
 }
 
@@ -128,11 +127,11 @@ fn main() {
     Scion::app_with_config(
         ScionConfigBuilder::new()
             .with_window_config(
-                WindowConfigBuilder::new().with_resizable(false).with_dimensions((768, 768)).get(),
+                WindowConfigBuilder::new().with_resizable(true).with_dimensions((768, 768)).get(),
             )
             .get(),
     )
-    .with_system(taquin_system())
+    .with_system(taquin_system)
     .with_scene::<MainScene>()
     .run();
 }

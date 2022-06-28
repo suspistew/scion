@@ -1,7 +1,5 @@
-use legion::world::SubWorld;
-use legion::{Entity, EntityStore, IntoQuery};
-
 use std::fmt::{Display, Formatter};
+use hecs::Entity;
 
 use rand::{thread_rng, Rng};
 use scion::core::components::color::Color;
@@ -9,7 +7,7 @@ use scion::core::components::shapes::rectangle::Rectangle;
 use scion::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
 use scion::core::resources::events::topic::TopicConfiguration;
 use scion::core::resources::events::{PollConfiguration, SubscriberId};
-use scion::core::scene::SceneController;
+
 use scion::{
     core::{
         components::{
@@ -20,13 +18,12 @@ use scion::{
             },
             tiles::{sprite::Sprite, tileset::Tileset},
         },
-        legion_ext::{ScionResourcesExtension, ScionWorldExtension},
         resources::{asset_manager::AssetRef},
         scene::Scene,
     },
-    legion::{Resources, World},
 };
 use winit::window::CursorIcon;
+use scion::core::world::{EntityWorld, World};
 
 use crate::utils::{ball_animations, ball_asset, cases_asset};
 use scion::utils::maths::{Dimensions, Position, Vector};
@@ -95,36 +92,37 @@ impl Default for MainScene {
 }
 
 impl Scene for MainScene {
-    fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
+    fn on_start(&mut self, world: &mut World) {
+        self.tilemap = Some(add_tilemap(world));
+        let (world, resources) = world.split();
         world.add_default_camera();
 
-        let ball_asset = resources.assets().register_tileset(Tileset::new(ball_asset(), 4, 4, 28));
+        let ball_asset = resources.assets_mut().register_tileset(Tileset::new(ball_asset(), 4, 4, 28));
         let assets = JezzBallAssets { ball_asset };
 
         // Creating the level
 
-        init_balls(world, &assets);
+        for _i in 0..300 {
+            init_balls(world, &assets);
+        }
 
         add_border(world);
 
         // default mouse cursor
         resources.window().set_cursor(CursorIcon::NResize);
+        resources.insert_resource(assets);
 
-        resources.insert(assets);
 
-        self.tilemap = Some(add_tilemap(world, resources));
         let _r = resources.events().create_topic("TILEMAP_UPDATE", TopicConfiguration::default());
         self.subscriber_id = Some(
             resources.events().subscribe("TILEMAP_UPDATE", PollConfiguration::default()).unwrap(),
         );
     }
 
-    fn on_update(&mut self, world: &mut World, resources: &mut Resources) {
-        let (mut world_t, mut world_s) = world.split::<&mut Tilemap>();
-        let mut tilemap_entry = world_t.entry_mut(*self.tilemap.as_ref().unwrap()).unwrap();
-        let tilemap = tilemap_entry.get_component_mut::<Tilemap>().unwrap();
-        let mut tilemap_modified = false;
-        resources
+    fn on_update(&mut self, world: &mut World) {
+        let mut to_modify = Vec::new();
+        let mut modified = false;
+        world
             .events()
             .poll::<(usize, usize, usize, usize)>(&self.subscriber_id.as_ref().unwrap())
             .unwrap()
@@ -132,28 +130,29 @@ impl Scene for MainScene {
             .for_each(|(x_min, x_max, y_min, y_max)| {
                 for x in x_min..=x_max {
                     for y in y_min..=y_max {
-                        tilemap_modified = true;
-                        tilemap.modify_sprite_tile(Position::new(x, y, 0), 2, &mut world_s);
+                        modified = true;
+                        to_modify.push((Position::new(x, y, 0), 2));
                     }
                 }
             });
+        to_modify.drain(0..).for_each(|e| {
+            Tilemap::modify_sprite_tile_with_world(world, self.tilemap.unwrap(), e.0, e.1);
+        });
+        if modified {
 
-        if tilemap_modified {
-            let (world_b, mut world_c) = world_s.split::<(&Ball, &Transform)>();
-
-            let ball_pos: Vec<(usize, usize)> = <(&Ball, &Transform)>::query()
-                .iter(&world_b)
-                .map(|(_, t)| {
+            let ball_pos: Vec<(usize, usize)> = world.query::<(&Ball, &Transform)>().iter()
+                .map(|(_, (_b, t))| {
                     (
                         (t.translation().x() as usize - 10) / 16,
                         (t.translation().y() as usize - 10) / 16,
                     )
                 })
                 .collect();
+
             let mut pathfinded_cases = [[false; 38]; 68];
             ball_pos.iter().for_each(|(pos_x, pos_y)| {
                 let mut visited = [[false; 38]; 68];
-                pathfind_from((*pos_x, *pos_y), &world_c, tilemap, &mut visited).iter().for_each(
+                pathfind_from((*pos_x, *pos_y), world, self.tilemap.unwrap(), &mut visited).iter().for_each(
                     |e| {
                         pathfinded_cases[e.0][e.1] = true;
                     },
@@ -165,7 +164,7 @@ impl Scene for MainScene {
                 for j in 0..38 {
                     if !pathfinded_cases[i][j] {
                         let tmp_pos = Position::new(i, j, 0);
-                        tilemap.modify_sprite_tile(tmp_pos, 2, &mut world_c);
+                        Tilemap::modify_sprite_tile_with_world(world, self.tilemap.unwrap(), tmp_pos, 2);
                     } else {
                         open += 1;
                     }
@@ -173,27 +172,27 @@ impl Scene for MainScene {
             }
 
             if open < 150 {
-                let mut controller = resources.get_mut::<SceneController>().unwrap();
-                controller.switch::<MainScene>();
+                world.scene_controller().switch::<MainScene>();
             }
         }
         let mut change_mouse_state = false;
-        let mouse_pos = resources.inputs().mouse_xy();
-        if !self.compute_mouse_on_border(mouse_pos, resources) {
-            resources.inputs().on_right_click_released(|_pos_x, _pos_y| change_mouse_state = true);
+        let mouse_pos = world.inputs().mouse_xy();
+        if !self.compute_mouse_on_border(mouse_pos, world) {
+            world.inputs().on_right_click_released(|_pos_x, _pos_y| change_mouse_state = true);
             if change_mouse_state {
-                let new_icon = self.compute_new_icon(resources);
-                resources.window().set_cursor(new_icon);
+                let new_icon = self.compute_new_icon();
+                world.window().set_cursor(new_icon);
             } else {
                 if self.mouse_state != CursorState::ROW && self.mouse_state != CursorState::COLUMN {
                     self.mouse_state = self.state_before_border.as_ref().unwrap().clone();
                     self.state_before_border = None;
-                    self.change_cursor(resources);
+                    self.change_cursor(world);
                 }
             }
         }
+        let (world, resources) = world.split();
         resources.inputs().on_left_click_pressed(|pos_x, pos_y| {
-            let len = <(&Rectangle,)>::query().iter(world).collect::<Vec<(&Rectangle,)>>().len();
+            let len = world.query::<&Rectangle>().iter().len();
 
             if len == 0 && pos_x > 10. && pos_y > 10. {
                 let x = (pos_x as usize - 10) / 16;
@@ -278,12 +277,17 @@ impl Scene for MainScene {
         });
     }
 
-    fn on_stop(&mut self, world: &mut World, _resources: &mut Resources) {
+    fn on_stop(&mut self, world: &mut World) {
         world.remove(self.tilemap.unwrap());
-        let mut to_delete: Vec<Entity> =
-            <(Entity, &Line)>::query().iter(world).map(|(e, _)| *e).collect();
-        to_delete.drain(0..to_delete.len()).for_each(|e| {
-            world.remove(e);
+        let mut to_delete: Vec<Entity> = {
+            let mut res = Vec::new();
+            for(e, _) in world.query::<&Line>().iter(){
+                res.push(e);
+            }
+            res
+        };
+        to_delete.drain(0..).for_each(|e| {
+            let _r = world.remove(e);
         });
     }
 }
@@ -292,35 +296,35 @@ impl MainScene {
     fn compute_mouse_on_border(
         &mut self,
         mouse_pos: (f64, f64),
-        resources: &mut Resources,
+        world: &mut World,
     ) -> bool {
         let (x, y) = mouse_pos;
         if x < 11. {
             if self.state_before_border.is_none() {
                 self.state_before_border = Some(self.mouse_state.clone())
             };
-            resources.window().set_cursor(CursorIcon::EResize);
+            world.window().set_cursor(CursorIcon::EResize);
             self.mouse_state = CursorState::LEFT;
             true
         } else if x > 1097. {
             if self.state_before_border.is_none() {
                 self.state_before_border = Some(self.mouse_state.clone())
             };
-            resources.window().set_cursor(CursorIcon::WResize);
+            world.window().set_cursor(CursorIcon::WResize);
             self.mouse_state = CursorState::RIGHT;
             true
         } else if y < 11. {
             if self.state_before_border.is_none() {
                 self.state_before_border = Some(self.mouse_state.clone())
             };
-            resources.window().set_cursor(CursorIcon::SResize);
+            world.window().set_cursor(CursorIcon::SResize);
             self.mouse_state = CursorState::TOP;
             true
         } else if y > 618. {
             if self.state_before_border.is_none() {
                 self.state_before_border = Some(self.mouse_state.clone())
             };
-            resources.window().set_cursor(CursorIcon::NResize);
+            world.window().set_cursor(CursorIcon::NResize);
             self.mouse_state = CursorState::BOTTOM;
             true
         } else {
@@ -328,7 +332,7 @@ impl MainScene {
         }
     }
 
-    fn compute_new_icon(&mut self, _resources: &mut Resources) -> CursorIcon {
+    fn compute_new_icon(&mut self) -> CursorIcon {
         if self.mouse_state == CursorState::ROW {
             self.mouse_state = CursorState::COLUMN;
             return CursorIcon::ColResize;
@@ -337,8 +341,8 @@ impl MainScene {
         CursorIcon::RowResize
     }
 
-    fn change_cursor(&self, resource: &mut Resources) {
-        let mut window = resource.window();
+    fn change_cursor(&self, world: &mut World) {
+        let mut window = world.window();
         window.set_cursor(match self.mouse_state {
             CursorState::TOP => CursorIcon::NResize,
             CursorState::BOTTOM => CursorIcon::NResize,
@@ -349,7 +353,7 @@ impl MainScene {
         })
     }
 }
-pub fn init_balls(world: &mut World, assets: &JezzBallAssets) {
+pub fn init_balls(world: &mut EntityWorld, assets: &JezzBallAssets) {
     let x = thread_rng().gen_range(10..58) as f32;
     let y = thread_rng().gen_range(5..33) as f32;
 
@@ -375,7 +379,7 @@ pub fn init_balls(world: &mut World, assets: &JezzBallAssets) {
     ));
 }
 
-fn add_border(world: &mut World) {
+fn add_border(world: &mut EntityWorld) {
     world.push((
         Transform::from_xy(2.0, 0.),
         Collider::new(
@@ -415,8 +419,8 @@ fn add_border(world: &mut World) {
 
 fn pathfind_from(
     pos: (usize, usize),
-    world: &SubWorld,
-    tilemap: &Tilemap,
+    world: &mut World,
+    tilemap: Entity,
     visited: &mut [[bool; 38]; 68],
 ) -> Vec<(usize, usize)> {
     let mut res = Vec::new();
@@ -424,8 +428,7 @@ fn pathfind_from(
     sides.iter().for_each(|side_pos| {
         if !visited[side_pos.0][side_pos.1] {
             visited[side_pos.0][side_pos.1] = true;
-            let sprite = tilemap
-                .retrieve_sprite_tile(&Position::new(side_pos.0, side_pos.1, 0), &world)
+            let sprite = Tilemap::retrieve_sprite_tile(world, tilemap, &Position::new(side_pos.0, side_pos.1, 0))
                 .unwrap_or(2);
             if sprite != 2 {
                 res.push(side_pos.clone());
@@ -458,8 +461,8 @@ fn compute_sides(pos: (usize, usize)) -> Vec<(usize, usize)> {
     res
 }
 
-fn add_tilemap(world: &mut World, resources: &mut Resources) -> Entity {
-    let cases_asset = resources.assets().register_tileset(Tileset::new(cases_asset(), 3, 2, 16));
+fn add_tilemap(world: &mut World) -> Entity {
+    let cases_asset = world.assets_mut().register_tileset(Tileset::new(cases_asset(), 3, 2, 16));
     let infos = TilemapInfo::new(
         Dimensions::new(68, 38, 1),
         Transform::from_xyz(10., 10., 10),

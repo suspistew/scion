@@ -1,9 +1,10 @@
 pub(crate) mod audio_controller;
 pub mod components;
 pub(crate) mod event_handler;
-pub mod legion_ext;
 pub mod package;
 pub mod resources;
 pub mod scene;
 pub mod state;
 pub mod systems;
+pub mod world;
+pub(crate) mod scheduler;

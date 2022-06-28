@@ -1,5 +1,4 @@
-use legion::Entity;
-
+use hecs::Entity;
 use crate::core::components::maths::{coordinates::Coordinates, transform::Transform};
 use crate::utils::maths::Vector;
 

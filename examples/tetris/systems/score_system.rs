@@ -2,26 +2,20 @@ use std::collections::HashMap;
 
 use scion::{
     core::components::maths::transform::Transform,
-    legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query},
 };
+use scion::core::world::World;
 
 use crate::{
     components::{Bloc, BlocKind, BLOC_SIZE, BOARD_HEIGHT},
     resources::TetrisResource,
 };
 
-#[system]
-pub fn score(
-    cmd: &mut CommandBuffer,
-    #[resource] tetris: &mut TetrisResource,
-    world: &mut SubWorld,
-    query: &mut Query<(Entity, &Bloc, &mut Transform)>,
-) {
+pub fn score_system(world: &mut World) {
     let mut lines = HashMap::new();
     for i in 1..=BOARD_HEIGHT {
         lines.insert(i as usize, 0);
     }
-    for (_, bloc, transform) in query.iter_mut(world) {
+    for (_, (bloc, transform)) in world.query_mut::<(&Bloc, &mut Transform)>() {
         match bloc.kind {
             BlocKind::Static => {
                 let line_idx = (transform.translation().y() / BLOC_SIZE) as usize;
@@ -39,7 +33,7 @@ pub fn score(
         let mut full_lines = Vec::new();
         for (line_idx, bloc_counter) in lines.iter() {
             if bloc_counter == &10 {
-                tetris.score += 1;
+                world.get_resource_mut::<TetrisResource>().unwrap().score += 1;
                 full_lines.push(*line_idx);
             }
         }
@@ -47,20 +41,22 @@ pub fn score(
         full_lines
     };
 
+    let mut to_remove = Vec::new();
+
     if !full_lines.is_empty() {
-        for (entity, bloc, transform) in query.iter_mut(world) {
+        for (entity, (bloc, transform)) in world.query_mut::<(&Bloc, &mut Transform)>() {
             match bloc.kind {
                 BlocKind::Static => {
                     let line_idx = (transform.translation().y() / BLOC_SIZE) as usize;
                     if full_lines.contains(&line_idx) {
-                        cmd.remove(*entity);
+                        to_remove.push(entity);
                     }
                 }
                 _ => {}
             };
         }
         for full_line_idx in full_lines.iter() {
-            for (_, bloc, transform) in query.iter_mut(world) {
+            for (_, (bloc, transform)) in  world.query_mut::<(&Bloc, &mut Transform)>() {
                 match bloc.kind {
                     BlocKind::Static => {
                         let line_idx = (transform.translation().y() / BLOC_SIZE) as usize;
@@ -73,4 +69,6 @@ pub fn score(
             }
         }
     }
+
+    to_remove.drain(0..).for_each(|e| {let _r = world.remove(e);});
 }

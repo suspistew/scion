@@ -6,35 +6,33 @@ use scion::{
             time::Timers,
         },
     },
-    legion::{system, world::SubWorld, Query},
 };
+use scion::core::world::World;
 
 use crate::{
     components::{Bloc, BlocKind, BLOC_SIZE, BOARD_WIDTH},
     resources::{TetrisResource, TetrisState},
 };
 
-#[system]
-pub fn move_piece(
-    #[resource] inputs: &InputsController,
-    #[resource] timers: &mut Timers,
-    #[resource] tetris: &mut TetrisResource,
-    world: &mut SubWorld,
-    query: &mut Query<(&mut Bloc, &mut Transform)>,
-) {
-    handle_acceleration(inputs, timers);
+pub fn move_piece_system(world: &mut World) {
+    let (subworld, resources) = world.split();
+    let mut timers = resources.timers();
+    let mut tetris = resources.get_resource_mut::<TetrisResource>().unwrap();
+    let mut inputs = resources.inputs();
+
+    handle_acceleration(&mut inputs, &mut timers);
 
     let movement_timer = timers
         .get_timer("action_reset_timer")
         .expect("Missing a mandatory timer in the game : action_reset_timer");
 
-    let movement = read_movements_actions(inputs);
+    let movement = read_movements_actions(&mut inputs);
     if movement_timer.ended() {
         let should_move = movement != 0 && {
             let mut res = true;
             let mut static_values: Vec<(i32, i32)> = Vec::new();
             let mut piece_values: Vec<(i32, i32)> = Vec::new();
-            for (bloc, transform) in query.iter_mut(world) {
+            for (_, (bloc, transform)) in subworld.query_mut::<(&mut Bloc, &mut Transform)>() {
                 let t = (
                     (transform.translation().x() / BLOC_SIZE) as i32,
                     (transform.translation().y() / BLOC_SIZE) as i32,
@@ -66,7 +64,7 @@ pub fn move_piece(
             if let TetrisState::MOVING(x, y) = tetris.state {
                 tetris.state = TetrisState::MOVING(x + movement, y);
             };
-            for (bloc, transform) in query.iter_mut(world) {
+            for (_e, (bloc, transform)) in subworld.query_mut::<(&mut Bloc, &mut Transform)>() {
                 match bloc.kind {
                     BlocKind::Moving => {
                         transform.append_translation(movement as f32 * BLOC_SIZE, 0.);

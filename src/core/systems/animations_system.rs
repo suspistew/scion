@@ -1,5 +1,3 @@
-use legion::{systems::CommandBuffer, *};
-
 use crate::core::components::ui::ui_text::UiText;
 use crate::core::{
     components::{
@@ -13,105 +11,113 @@ use crate::core::{
         tiles::sprite::Sprite,
         Hide,
     },
-    resources::time::{TimerType, Timers},
+    resources::time::{TimerType},
 };
+
+#[derive(PartialEq)]
+enum BlinkResult{
+    REMOVE, ADD
+}
 
 /// System responsible of applying modifiers data to the dedicated components
 /// It will use timers to keep track of the animation and will merge keyframes in case
 /// of long frames.
-#[system(for_each)]
-pub(crate) fn animation_executer(
-    cmd: &mut CommandBuffer,
-    #[resource] timers: &mut Timers,
-    entity: &Entity,
-    animations: &mut Animations,
-    mut transform: Option<&mut Transform>,
-    mut sprite: Option<&mut Sprite>,
-    mut material: Option<&mut Material>,
-    mut text: Option<&mut UiText>,
-    hide: Option<&Hide>,
-) {
-    animations
-        .animations_mut()
-        .iter_mut()
-        .filter(|(_, v)| v.status != AnimationStatus::Stopped)
-        .for_each(|(key, animation)| {
-            for mut modifier in animation.modifiers.iter_mut() {
-                let mut timer_created = false;
-                let timer_id = format!("{:?}-{}-{}", *entity, key, modifier.to_string());
-                let timer_id = timer_id.as_str();
-                if let Ok(timer) = timers.add_timer(
-                    timer_id,
-                    TimerType::Cyclic,
-                    modifier
-                        .single_keyframe_duration
-                        .expect("Single keyframe duration is missing for animations")
-                        .as_secs_f32(),
-                ) {
-                    timer.reset();
-                    timer_created = true;
+pub(crate) fn animation_executer_system(world: &mut crate::core::world::World) {
+    let (subworld, resources) = world.split();
+    let mut timers = resources.timers();
+    let mut remove_blink = Vec::new();
+    let mut add_blink = Vec::new();
+    for (entity, (animations, mut transform, mut sprite, mut material, mut text, hide))
+    in subworld.query_mut::<(&mut Animations, Option<&mut Transform>, Option<&mut Sprite>, Option<&mut Material>, Option<&mut UiText>, Option<&Hide>)>() {
+        animations
+            .animations_mut()
+            .iter_mut()
+            .filter(|(_, v)| v.status != AnimationStatus::Stopped)
+            .for_each(|(key, animation)| {
+                for mut modifier in animation.modifiers.iter_mut() {
+                    let mut timer_created = false;
+                    let timer_id = format!("{:?}-{}-{}", entity, key, modifier.to_string());
+                    let timer_id = timer_id.as_str();
+                    if let Ok(timer) = timers.add_timer(
+                        timer_id,
+                        TimerType::Cyclic,
+                        modifier
+                            .single_keyframe_duration
+                            .expect("Single keyframe duration is missing for animations")
+                            .as_secs_f32(),
+                    ) {
+                        timer.reset();
+                        timer_created = true;
+                    }
+
+                    let timer_cycle = {
+                        let cycles = timers.get_timer(timer_id).expect("Timer must exist").cycle();
+                        let keyframes_left = modifier.number_of_keyframes - modifier.current_keyframe;
+                        if cycles > keyframes_left {
+                            keyframes_left
+                        } else {
+                            cycles
+                        }
+                    };
+
+                    if timer_cycle > 0
+                        || timer_created
+                        || &animation.status == &AnimationStatus::ForceStopped
+                    {
+                        match modifier.modifier_type.clone() {
+                            AnimationModifierType::TransformModifier { .. } => {
+                                apply_transform_modifier(transform.as_mut(), modifier, timer_cycle)
+                            }
+                            AnimationModifierType::SpriteModifier {
+                                tile_numbers,
+                                tile_numbers_variant,
+                                end_tile_number,
+                            } => apply_sprite_modifier(
+                                sprite.as_mut(),
+                                &animation.status,
+                                modifier,
+                                &tile_numbers,
+                                &tile_numbers_variant,
+                                end_tile_number,
+                            ),
+                            AnimationModifierType::Color { .. } => {
+                                apply_color_modifier(material.as_mut(), modifier, timer_cycle)
+                            }
+                            AnimationModifierType::Blink => {
+                                match apply_blink_modifier(modifier, timer_cycle, hide){
+                                    Some(action) if action == BlinkResult::ADD => add_blink.push(entity),
+                                    Some(action) if action == BlinkResult::REMOVE => remove_blink.push(entity),
+                                    _ => {}
+                                }
+                            }
+                            AnimationModifierType::Text { content: _ } => {
+                                apply_text_modifier(modifier, text.as_mut())
+                            }
+                        }
+                        modifier.current_keyframe += timer_cycle;
+                        if modifier.current_keyframe >= modifier.number_of_keyframes {
+                            modifier.next_sprite_index = None;
+                            let _r = timers.delete_timer(timer_id);
+                        }
+                    }
                 }
+                animation.try_update_status();
+            });
 
-                let timer_cycle = {
-                    let cycles = timers.get_timer(timer_id).expect("Timer must exist").cycle();
-                    let keyframes_left = modifier.number_of_keyframes - modifier.current_keyframe;
-                    if cycles > keyframes_left {
-                        keyframes_left
-                    } else {
-                        cycles
-                    }
-                };
-
-                if timer_cycle > 0
-                    || timer_created
-                    || &animation.status == &AnimationStatus::ForceStopped
-                {
-                    match modifier.modifier_type.clone() {
-                        AnimationModifierType::TransformModifier { .. } => {
-                            apply_transform_modifier(transform.as_mut(), modifier, timer_cycle)
-                        }
-                        AnimationModifierType::SpriteModifier {
-                            tile_numbers,
-                            tile_numbers_variant,
-                            end_tile_number,
-                        } => apply_sprite_modifier(
-                            sprite.as_mut(),
-                            &animation.status,
-                            modifier,
-                            &tile_numbers,
-                            &tile_numbers_variant,
-                            end_tile_number,
-                        ),
-                        AnimationModifierType::Color { .. } => {
-                            apply_color_modifier(material.as_mut(), modifier, timer_cycle)
-                        }
-                        AnimationModifierType::Blink => {
-                            apply_blink_modifier(cmd, entity, modifier, timer_cycle, hide)
-                        }
-                        AnimationModifierType::Text { content: _ } => {
-                            apply_text_modifier(modifier, text.as_mut())
-                        }
-                    }
-                    modifier.current_keyframe += timer_cycle;
-                    if modifier.current_keyframe >= modifier.number_of_keyframes {
-                        modifier.next_sprite_index = None;
-                        let _r = timers.delete_timer(timer_id);
-                    }
+        animations
+            .animations_mut()
+            .iter_mut()
+            .filter(|(_, v)| v.status == AnimationStatus::Stopped)
+            .for_each(|(key, animation)| {
+                for modifier in animation.modifiers.iter_mut() {
+                    let timer_id = format!("{:?}-{}-{}", entity, key, modifier.to_string());
+                    let _r = timers.delete_timer(timer_id.as_str());
                 }
-            }
-            animation.try_update_status();
-        });
+            });
+    }
 
-    animations
-        .animations_mut()
-        .iter_mut()
-        .filter(|(_, v)| v.status == AnimationStatus::Stopped)
-        .for_each(|(key, animation)| {
-            for modifier in animation.modifiers.iter_mut() {
-                let timer_id = format!("{:?}-{}-{}", *entity, key, modifier.to_string());
-                let _r = timers.delete_timer(timer_id.as_str());
-            }
-        });
+    remove_blink.drain(0..).for_each(|e| {let _r = subworld.remove_component::<Hide>(e);} );
+    add_blink.drain(0..).for_each(|e| {let _r = subworld.add_components(e, (Hide,));} );
 }
 
 fn apply_transform_modifier(
@@ -120,7 +126,7 @@ fn apply_transform_modifier(
     timer_cycle: usize,
 ) {
     if let ComputedKeyframeModifier::TransformModifier { vector: coordinates, scale, rotation } =
-        modifier.retrieve_keyframe_modifier()
+    modifier.retrieve_keyframe_modifier()
     {
         if let Some(ref mut transform) = transform {
             for _i in 0..timer_cycle {
@@ -195,7 +201,7 @@ fn apply_color_modifier(
             modifier.compute_keyframe_modifier_for_animation(color);
         }
         if let Some(ComputedKeyframeModifier::Color { r, g, b, a }) =
-            &modifier.single_keyframe_modifier
+        &modifier.single_keyframe_modifier
         {
             for i in 0..timer_cycle {
                 if modifier.will_be_last_keyframe(i) {
@@ -217,21 +223,20 @@ fn apply_color_modifier(
 }
 
 fn apply_blink_modifier(
-    cmd: &mut CommandBuffer,
-    entity: &Entity,
     modifier: &mut AnimationModifier,
     timer_cycle: usize,
     hide: Option<&Hide>,
-) {
+) -> Option<BlinkResult> {
     if timer_cycle > 0 {
         if modifier.will_be_last_keyframe(timer_cycle) {
-            cmd.remove_component::<Hide>(*entity);
+            return Some(BlinkResult::REMOVE);
         } else if hide.is_none() {
-            cmd.add_component(*entity, Hide);
+            return Some(BlinkResult::ADD);
         } else {
-            cmd.remove_component::<Hide>(*entity);
+            return Some(BlinkResult::REMOVE);
         }
     }
+    None
 }
 
 fn apply_text_modifier(modifier: &mut AnimationModifier, mut text: Option<&mut &mut UiText>) {
@@ -246,7 +251,7 @@ fn apply_text_modifier(modifier: &mut AnimationModifier, mut text: Option<&mut &
         }
     }
     if let ComputedKeyframeModifier::Text { ref mut cursor } =
-        modifier.retrieve_keyframe_modifier_mut()
+    modifier.retrieve_keyframe_modifier_mut()
     {
         *cursor = next_cursor;
     }

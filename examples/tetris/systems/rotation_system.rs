@@ -2,28 +2,25 @@ use scion::{
     core::{
         components::maths::transform::Transform,
         resources::{
-            inputs::{inputs_controller::InputsController, types::KeyCode},
-            time::Timers,
+            inputs::{types::KeyCode},
         },
     },
-    legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query},
 };
+use scion::core::world::World;
 
 use crate::{
     components::{Bloc, BlocKind, PieceKind, BLOC_SIZE, BOARD_HEIGHT, BOARD_WIDTH},
     resources::{TetrisResource, TetrisState},
     systems::piece_system::initialize_bloc,
 };
+use crate::components::NextBloc;
 
-#[system]
-pub fn piece_rotation(
-    cmd: &mut CommandBuffer,
-    #[resource] inputs: &InputsController,
-    #[resource] timers: &mut Timers,
-    #[resource] tetris: &mut TetrisResource,
-    world: &mut SubWorld,
-    query: &mut Query<(Entity, &mut Bloc, &mut Transform)>,
-) {
+pub fn piece_rotation_system(world: &mut World) {
+    let (world, resources) = world.split();
+    let mut timers = resources.timers();
+    let mut tetris = resources.get_resource_mut::<TetrisResource>().unwrap();
+    let inputs = resources.inputs();
+
     let rotation = inputs.key_pressed(&KeyCode::Up);
     let movement_timer = timers
         .get_timer("action_reset_timer")
@@ -43,7 +40,7 @@ pub fn piece_rotation(
                 {
                     should_rotate_piece = false;
                 } else {
-                    for (_, bloc, transform) in query.iter_mut(world) {
+                    for (_, (bloc, transform)) in world.query_mut::<(&mut Bloc, &mut Transform)>() {
                         match bloc.kind {
                             BlocKind::Moving => {}
                             _ => {
@@ -59,11 +56,14 @@ pub fn piece_rotation(
                     }
                 }
             }
+            let mut to_remove = Vec::new();
+            let mut to_add = Vec::new();
+
             if should_rotate_piece {
-                for (entity, bloc, _transform) in query.iter_mut(world) {
+                for (entity, (bloc, _)) in world.query_mut::<(&mut Bloc, &mut Transform)>() {
                     match bloc.kind {
                         BlocKind::Moving => {
-                            cmd.remove(*entity);
+                            to_remove.push(entity);
                         }
                         _ => {}
                     }
@@ -71,10 +71,18 @@ pub fn piece_rotation(
                 tetris.active_piece.rotate();
                 let offsets = tetris.active_piece.get_current_offsets();
                 for offset in offsets {
-                    initialize_bloc(&offset, cmd, tetris, x as f32, y as f32, false);
+                    to_add.push(initialize_bloc(&offset, &mut tetris, x as f32, y as f32, false));
                 }
                 movement_timer.reset();
             }
+            to_remove.drain(0..).for_each(|e| { let _r = world.remove(e); });
+            to_add.drain(0..).for_each(|comps| {
+                if comps.3 {
+                    let _r = world.push((comps.0, comps.1, comps.2, NextBloc));
+                }else{
+                    let _r = world.push((comps.0, comps.1, comps.2, Bloc::new(BlocKind::Moving)));
+                }
+            });
         }
     }
 }

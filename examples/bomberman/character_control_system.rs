@@ -1,26 +1,25 @@
-use legion::{systems::CommandBuffer, *};
 use scion::core::{
     components::{animations::Animations, maths::transform::Transform, tiles::sprite::Sprite},
-    resources::inputs::{inputs_controller::InputsController, types::KeyCode},
+    resources::inputs::{types::KeyCode},
 };
+use scion::core::world::World;
 
 use crate::{bomb_animations, level_reader::Level, Bomb, BombermanInfos, BombermanRefs};
 
-#[system(for_each)]
-pub fn controller(
-    cmd: &mut CommandBuffer,
-    #[resource] inputs: &mut InputsController,
-    #[resource] refs: &mut BombermanRefs,
-    #[resource] level_data: &Level,
-    character: &mut BombermanInfos,
-    animations: &mut Animations,
-) {
-    let (posx, posy) = (character.pos_x, character.pos_y);
+pub fn controller_system(world: &mut World) {
+    let (world, resources) = world.split();
+    let level_data = resources.get_resource_mut::<Level>().unwrap();
+    let refs = resources.get_resource_mut::<BombermanRefs>().unwrap();
+    let inputs = resources.inputs();
 
-    if !animations.any_animation_running() {
-        inputs.on_key_pressed(KeyCode::Right, || {
-            if level_data.pathing.get(posy).unwrap().get(posx + 1).unwrap() == &1
-                && level_data
+    let mut to_add = Vec::new();
+
+    for (_, (character, animations)) in world.query_mut::<(&mut BombermanInfos, &mut Animations)>(){
+        let (posx, posy) = (character.pos_x, character.pos_y);
+        if !animations.any_animation_running() {
+            inputs.on_key_pressed(KeyCode::Right, || {
+                if level_data.pathing.get(posy).unwrap().get(posx + 1).unwrap() == &1
+                    && level_data
                     .tilemap
                     .get(2)
                     .unwrap()
@@ -30,14 +29,14 @@ pub fn controller(
                     .get(posx + 1)
                     .unwrap()
                     == &0
-            {
-                character.pos_x += 1;
-                animations.run_animation("MOVE_RIGHT");
-            }
-        });
-        inputs.on_key_pressed(KeyCode::Left, || {
-            if level_data.pathing.get(posy).unwrap().get(posx - 1).unwrap() == &1
-                && level_data
+                {
+                    character.pos_x += 1;
+                    animations.run_animation("MOVE_RIGHT");
+                }
+            });
+            inputs.on_key_pressed(KeyCode::Left, || {
+                if level_data.pathing.get(posy).unwrap().get(posx - 1).unwrap() == &1
+                    && level_data
                     .tilemap
                     .get(2)
                     .unwrap()
@@ -47,14 +46,14 @@ pub fn controller(
                     .get(posx - 1)
                     .unwrap()
                     == &0
-            {
-                character.pos_x -= 1;
-                animations.run_animation("MOVE_LEFT");
-            }
-        });
-        inputs.on_key_pressed(KeyCode::Up, || {
-            if level_data.pathing.get(posy - 1).unwrap().get(posx).unwrap() == &1
-                && level_data
+                {
+                    character.pos_x -= 1;
+                    animations.run_animation("MOVE_LEFT");
+                }
+            });
+            inputs.on_key_pressed(KeyCode::Up, || {
+                if level_data.pathing.get(posy - 1).unwrap().get(posx).unwrap() == &1
+                    && level_data
                     .tilemap
                     .get(2)
                     .unwrap()
@@ -64,14 +63,14 @@ pub fn controller(
                     .get(posx)
                     .unwrap()
                     == &0
-            {
-                character.pos_y -= 1;
-                animations.run_animation("MOVE_TOP");
-            }
-        });
-        inputs.on_key_pressed(KeyCode::Down, || {
-            if level_data.pathing.get(posy + 1).unwrap().get(posx).unwrap() == &1
-                && level_data
+                {
+                    character.pos_y -= 1;
+                    animations.run_animation("MOVE_TOP");
+                }
+            });
+            inputs.on_key_pressed(KeyCode::Down, || {
+                if level_data.pathing.get(posy + 1).unwrap().get(posx).unwrap() == &1
+                    && level_data
                     .tilemap
                     .get(2)
                     .unwrap()
@@ -81,25 +80,29 @@ pub fn controller(
                     .get(posx)
                     .unwrap()
                     == &0
-            {
-                character.pos_y += 1;
-                animations.run_animation("MOVE_BOTTOM");
-            }
-        });
-        inputs.on_key_pressed(KeyCode::Space, || {
-            let mut animations = Animations::single("EXPLODE", bomb_animations::explode());
-            animations.run_animation("EXPLODE");
-            cmd.push((
-                Transform::from_xyz(
-                    (character.pos_x * 64) as f32,
-                    (character.pos_y * 64) as f32,
-                    level_data.tilemap.len() + 1,
-                ),
-                animations,
-                Sprite::new(64),
-                refs.tileset.as_ref().unwrap().clone(),
-                Bomb { pos_x: character.pos_x, pos_y: character.pos_y },
-            ));
-        });
+                {
+                    character.pos_y += 1;
+                    animations.run_animation("MOVE_BOTTOM");
+                }
+            });
+            inputs.on_key_pressed(KeyCode::Space, || {
+                let mut animations = Animations::single("EXPLODE", bomb_animations::explode());
+                animations.run_animation("EXPLODE");
+                to_add.push((
+                    Transform::from_xyz(
+                        (character.pos_x * 64) as f32,
+                        (character.pos_y * 64) as f32,
+                        level_data.tilemap.len() + 1,
+                    ),
+                    animations,
+                    Sprite::new(64),
+                    refs.tileset.as_ref().unwrap().clone(),
+                    Bomb { pos_x: character.pos_x, pos_y: character.pos_y },
+                ));
+            });
+        }
     }
+    to_add.drain(0..).for_each(|c| {
+        let _r = world.push(c);
+    });
 }

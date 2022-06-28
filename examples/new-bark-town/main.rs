@@ -25,6 +25,6 @@ fn main() {
             .get(),
     )
     .with_scene::<MainScene>()
-    .with_system(character_control_system::controller_system())
+    .with_system(character_control_system::controller_system)
     .run()
 }

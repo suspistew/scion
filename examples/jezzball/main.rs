@@ -29,7 +29,7 @@ fn main() {
             .get(),
     )
     .with_scene::<MainScene>()
-    .with_system(systems::ball::ball_control_system())
-    .with_system(systems::lines::line_update_system())
+    .with_system(systems::ball::ball_control_system)
+    .with_system(systems::lines::line_update_system)
     .run();
 }

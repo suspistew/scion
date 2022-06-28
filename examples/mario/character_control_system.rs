@@ -6,21 +6,20 @@ use scion::{
                 inputs_controller::InputsController,
                 types::{KeyCode},
             },
-            time::{TimerType, Timers},
+            time::{TimerType},
         },
     },
-    legion::{world::SubWorld, *},
 };
+use scion::core::world::World;
 
 use crate::{Hero, MAX_VELOCITY};
 
-#[system]
-pub fn move_char(
-    #[resource] inputs: &InputsController,
-    #[resource] timers: &mut Timers,
-    world: &mut SubWorld,
-    query: &mut Query<(&mut Hero, &mut Transform)>,
-) {
+pub fn move_char_system(world: &mut World) {
+
+    let (world, resources) = world.split();
+    let mut timers = resources.timers();
+    let inputs = resources.inputs();
+
     if !timers.exists("input") {
         let _r = timers.add_timer("input", TimerType::Manual, 0.05);
     }
@@ -28,24 +27,24 @@ pub fn move_char(
         let _r = timers.add_timer("gravity", TimerType::Manual, 0.005);
     }
 
-    let input_velocity = read_velocity(inputs);
+    let input_velocity = read_velocity(&inputs);
     let jump = inputs.key_pressed(&KeyCode::Up);
 
     if input_velocity != 0 {
         let timer = timers.get_timer("input").expect("Missing timer : input");
-        query.for_each_mut(world, |(hero, _t)| {
+        for (_, (hero, _)) in world.query_mut::<(&mut Hero, &mut Transform)>(){
             if timer.ended()
                 && ((input_velocity > 0 && hero.velocity < MAX_VELOCITY)
-                    || (input_velocity < 0 && hero.velocity > -1 * MAX_VELOCITY))
+                || (input_velocity < 0 && hero.velocity > -1 * MAX_VELOCITY))
             {
-                hero.velocity += input_velocity * 12;
+                hero.velocity += input_velocity * 40;
                 hero.landed = false;
                 timer.reset();
             }
-        });
+        }
     } else {
         let timer = timers.get_timer("input").expect("Missing timer : input");
-        query.for_each_mut(world, |(hero, _t)| {
+        for (_, (hero, _)) in world.query_mut::<(&mut Hero, &mut Transform)>(){
             if timer.ended() && hero.velocity != 0 {
                 hero.landed = false;
                 hero.velocity += {
@@ -57,19 +56,19 @@ pub fn move_char(
                 };
                 timer.reset();
             }
-        });
+        }
     }
 
     if jump {
-        query.for_each_mut(world, |(hero, _t)| {
+        for (_, (hero, _)) in world.query_mut::<(&mut Hero, &mut Transform)>(){
             if hero.landed {
-                hero.gravity -= 50;
+                hero.gravity -= 30;
                 hero.landed = false;
             }
-        });
+        };
     } else {
         let timer = timers.get_timer("gravity").expect("Missing timer : gravity");
-        query.for_each_mut(world, |(hero, _t)| {
+        for (_, (hero, _)) in world.query_mut::<(&mut Hero, &mut Transform)>(){
             if !hero.landed {
                 if timer.ended() {
                     timer.reset();
@@ -78,7 +77,7 @@ pub fn move_char(
             } else {
                 hero.gravity = 0;
             }
-        });
+        };
     }
 }
 

@@ -1,9 +1,9 @@
-use legion::{Resources, World};
-
+use crate::core::world::World;
 use crate::ScionBuilder;
 
 pub trait Package {
+    fn prepare(&self, _world: &mut World) {}
+
     fn load(self, builder: ScionBuilder) -> ScionBuilder;
 
-    fn prepare(&self, _world: &mut World, _resources: &mut Resources) {}
 }

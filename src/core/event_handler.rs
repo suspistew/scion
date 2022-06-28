@@ -1,15 +1,15 @@
-use legion::Resources;
+
 use winit::event::WindowEvent;
 
 use crate::core::{
-    legion_ext::ScionResourcesExtension,
     resources::inputs::{
         mouse::MouseEvent,
         types::{InputState, KeyCode, KeyboardEvent},
     },
 };
+use crate::core::world::World;
 
-pub fn update_input_events(window_event: &WindowEvent, resources: &mut Resources) {
+pub fn update_input_events(window_event: &WindowEvent, world: &mut World) {
     match window_event {
         WindowEvent::KeyboardInput { input, .. } => {
             if let Some(keycode) = input.virtual_keycode {
@@ -17,7 +17,7 @@ pub fn update_input_events(window_event: &WindowEvent, resources: &mut Resources
                     keycode: KeyCode::from(keycode),
                     state: InputState::from(input.state),
                 };
-                resources.inputs().add_keyboard_event(k_event.clone());
+                world.inputs().add_keyboard_event(k_event.clone());
             }
         }
         WindowEvent::MouseInput { state, button, .. } => {
@@ -25,7 +25,7 @@ pub fn update_input_events(window_event: &WindowEvent, resources: &mut Resources
                 button: crate::core::resources::inputs::types::MouseButton::from(*button),
                 state: InputState::from(*state),
             };
-            resources.inputs().add_click_event(m_event);
+            world.inputs().add_click_event(m_event);
         }
         _ => {}
     };
