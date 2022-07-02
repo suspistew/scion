@@ -1,0 +1,418 @@
+use std::any::TypeId;
+
+use std::collections::{HashMap, HashSet};
+use std::fmt::{Display, Formatter};
+use std::hash::{Hasher};
+
+
+use atomic_refcell::{AtomicRef, AtomicRefCell, AtomicRefMut};
+use downcast_rs::{impl_downcast, Downcast};
+use hecs::{Component, ComponentError, DynamicBundle, Entity, NoSuchEntity, Query, QueryBorrow, QueryItem, QueryMut, QueryOne, QueryOneError};
+use crate::core::components::maths::camera::DefaultCamera;
+use crate::core::resources::asset_manager::AssetManager;
+use crate::core::resources::audio::Audio;
+use crate::core::resources::events::Events;
+use crate::core::resources::inputs::inputs_controller::InputsController;
+use crate::core::resources::time::Timers;
+use crate::core::resources::window::Window;
+use crate::core::scene::SceneController;
+
+#[derive(Default)]
+pub struct World {
+    pub(crate) subworld: EntityWorld,
+    pub(crate) resources: Resources
+}
+
+impl World {
+    pub fn split(&mut self) -> (&mut EntityWorld, &mut Resources){
+        (&mut self.subworld, &mut self.resources)
+    }
+
+    pub fn entities(&self) -> HashSet<Entity>{
+        self.subworld.internal_world.iter().map(|entity_ref| entity_ref.entity()).collect::<HashSet<_>>()
+    }
+
+    pub fn clear(&mut self) {
+        self.subworld.internal_world.clear();
+    }
+
+    pub fn push(&mut self, components: impl DynamicBundle) -> Entity {
+        self.subworld.internal_world.spawn(components)
+    }
+
+    pub fn add_components(
+        &mut self,
+        entity: Entity,
+        components: impl DynamicBundle,
+    ) -> Result<(), NoSuchEntity> {
+        self.subworld.internal_world.insert(entity, components)
+    }
+
+    pub fn remove_component<T: Component>(
+        &mut self,
+        entity: Entity
+    ) -> Result<T, ComponentError> {
+        self.subworld.internal_world.remove_one::<T>(entity)
+    }
+
+    pub fn remove(&mut self, entity: Entity) -> Result<(), NoSuchEntity> {
+        self.subworld.internal_world.despawn(entity)
+    }
+
+    pub fn query<Q: Query>(&self) -> QueryBorrow<'_, Q> {
+        self.subworld.internal_world.query::<Q>()
+    }
+
+
+    pub fn query_mut<Q: Query>(&mut self) -> QueryMut<'_, Q> {
+        self.subworld.internal_world.query_mut::<Q>()
+    }
+
+    pub fn entry<Q: Query>(&self, entity: Entity) -> Result<QueryOne<'_, Q>, NoSuchEntity> {
+        self.subworld.internal_world.query_one::<Q>(entity)
+    }
+
+    pub fn entry_mut<Q: Query>(&mut self, entity: Entity) -> Result<QueryItem<'_, Q>, QueryOneError> {
+        self.subworld.internal_world.query_one_mut::<Q>(entity)
+    }
+
+    pub fn contains(&self, entity: Entity) -> bool {
+        self.subworld.internal_world.contains(entity)
+    }
+
+    pub fn add_default_camera(&mut self) -> Entity {
+        self.push((DefaultCamera,))
+    }
+
+    pub fn contains_resource<T: Resource>(&self) -> bool {
+        self.resources.internal_resources.storage.contains_key(&ResourceTypeId::of::<T>())
+    }
+
+    pub fn insert_resource<T: Resource>(&mut self, resource: T) {
+        self.resources.internal_resources.storage.insert(
+            ResourceTypeId::of::<T>(),
+            AtomicResourceCell::new(Box::new(resource)),
+        );
+    }
+
+    pub fn remove_resource<T: Resource>(&mut self) -> Option<T> {
+        let resource = self
+            .resources.internal_resources.remove_internal(&ResourceTypeId::of::<T>())?
+            .downcast::<T>()
+            .ok()?;
+        Some(*resource)
+    }
+
+    pub fn get_resource<T: Resource>(&self) -> Option<AtomicRef<T>> {
+        let type_id = &ResourceTypeId::of::<T>();
+        self.resources.internal_resources.storage.get(&type_id).map(|x| x.get::<T>())
+    }
+
+    pub fn get_resource_mut<T: Resource>(&self) -> Option<AtomicRefMut<T>> {
+        let type_id = &ResourceTypeId::of::<T>();
+        self.resources.internal_resources.storage.get(&type_id).map(|x| x.get_mut::<T>())
+    }
+
+    /// retrieves the asset manager from the resources.
+    pub fn assets(&self) -> AtomicRef<AssetManager> {
+        self.get_resource::<AssetManager>()
+            .expect("The engine is missing the mandatory asset manager resource")
+    }
+
+    /// retrieves the asset manager from the resources.
+    pub fn assets_mut(&self) -> AtomicRefMut<AssetManager> {
+        self.get_resource_mut::<AssetManager>()
+            .expect("The engine is missing the mandatory asset manager resource")
+    }
+
+    /// retrieves the timers resource from the resources.
+    pub fn timers(&self) -> AtomicRefMut<Timers> {
+        self.get_resource_mut::<Timers>().expect("The engine is missing the mandatory timers resource")
+    }
+
+    /// retrieves the inputs resource from the resources
+    pub fn inputs(&self) -> AtomicRefMut<InputsController> {
+        self.get_resource_mut::<InputsController>()
+            .expect("The engine is missing the mandatory inputs controller resource")
+    }
+
+    /// retrieves the events resource from the resources
+    pub fn events(&self) -> AtomicRefMut<Events> {
+        self.get_resource_mut::<Events>().expect("The engine is missing the mandatory events resource")
+    }
+
+    /// retrieves the audio player from the resources
+    pub fn audio(&self) -> AtomicRefMut<Audio> {
+        self.get_resource_mut::<Audio>().expect("The engine is missing the mandatory audio player resource")
+    }
+
+    /// retrieves the window from the resources
+    pub fn window(&self) -> AtomicRefMut<Window> {
+        self.get_resource_mut::<Window>().expect("The engine is missing the mandatory window resource")
+    }
+
+    /// retrieves the window from the resources
+    pub fn scene_controller(&self) -> AtomicRefMut<SceneController> {
+        self.get_resource_mut::<SceneController>()
+            .expect("The engine is missing the mandatory scene controller resource")
+    }
+}
+
+#[derive(Default)]
+pub struct EntityWorld {
+    internal_world: hecs::World,
+}
+
+#[derive(Default)]
+pub struct Resources {
+    internal_resources: InternalResources,
+}
+
+impl EntityWorld {
+    pub fn push(&mut self, components: impl DynamicBundle) -> Entity {
+        self.internal_world.spawn(components)
+    }
+
+    pub fn add_components(
+        &mut self,
+        entity: Entity,
+        components: impl DynamicBundle,
+    ) -> Result<(), NoSuchEntity> {
+        self.internal_world.insert(entity, components)
+    }
+
+    pub fn remove(&mut self, entity: Entity) -> Result<(), NoSuchEntity> {
+        self.internal_world.despawn(entity)
+    }
+
+    pub fn remove_component<T: Component>(
+        &mut self,
+        entity: Entity
+    ) -> Result<T, ComponentError> {
+        self.internal_world.remove_one::<T>(entity)
+    }
+
+    pub fn query<Q: Query>(&self) -> QueryBorrow<'_, Q> {
+        self.internal_world.query::<Q>()
+    }
+
+
+    pub fn query_mut<Q: Query>(&mut self) -> QueryMut<'_, Q> {
+        self.internal_world.query_mut::<Q>()
+    }
+
+    pub fn entry<Q: Query>(&self, entity: Entity) -> Result<QueryOne<'_, Q>, NoSuchEntity> {
+        self.internal_world.query_one::<Q>(entity)
+    }
+
+    pub fn entry_mut<Q: Query>(&mut self, entity: Entity) -> Result<QueryItem<'_, Q>, QueryOneError> {
+        self.internal_world.query_one_mut::<Q>(entity)
+    }
+
+    pub fn contains(&self, entity: Entity) -> bool {
+        self.internal_world.contains(entity)
+    }
+
+    pub fn add_default_camera(&mut self) -> Entity {
+        self.push((DefaultCamera,))
+    }
+}
+
+impl Resources {
+    pub fn contains_resource<T: Resource>(&self) -> bool {
+        self.internal_resources.storage.contains_key(&ResourceTypeId::of::<T>())
+    }
+
+    pub fn insert_resource<T: Resource>(&mut self, resource: T) {
+        self.internal_resources.storage.insert(
+            ResourceTypeId::of::<T>(),
+            AtomicResourceCell::new(Box::new(resource)),
+        );
+    }
+
+    pub fn remove_resource<T: Resource>(&mut self) -> Option<T> {
+        let resource = self
+            .internal_resources.remove_internal(&ResourceTypeId::of::<T>())?
+            .downcast::<T>()
+            .ok()?;
+        Some(*resource)
+    }
+
+    pub fn get_resource<T: Resource>(&self) -> Option<AtomicRef<T>> {
+        let type_id = &ResourceTypeId::of::<T>();
+        self.internal_resources.storage.get(&type_id).map(|x| x.get::<T>())
+    }
+
+    pub fn get_resource_mut<T: Resource>(&self) -> Option<AtomicRefMut<T>> {
+        let type_id = &ResourceTypeId::of::<T>();
+        self.internal_resources.storage.get(&type_id).map(|x| x.get_mut::<T>())
+    }
+
+    /// retrieves the asset manager from the resources.
+    pub fn assets(&self) -> AtomicRef<AssetManager> {
+        self.get_resource::<AssetManager>()
+            .expect("The engine is missing the mandatory asset manager resource")
+    }
+
+    /// retrieves the asset manager from the resources.
+    pub fn assets_mut(&self) -> AtomicRefMut<AssetManager> {
+        self.get_resource_mut::<AssetManager>()
+            .expect("The engine is missing the mandatory asset manager resource")
+    }
+
+    /// retrieves the timers resource from the resources.
+    pub fn timers(&self) -> AtomicRefMut<Timers> {
+        self.get_resource_mut::<Timers>().expect("The engine is missing the mandatory timers resource")
+    }
+
+    /// retrieves the inputs resource from the resources
+    pub fn inputs(&self) -> AtomicRefMut<InputsController> {
+        self.get_resource_mut::<InputsController>()
+            .expect("The engine is missing the mandatory inputs controller resource")
+    }
+
+    /// retrieves the events resource from the resources
+    pub fn events(&self) -> AtomicRefMut<Events> {
+        self.get_resource_mut::<Events>().expect("The engine is missing the mandatory events resource")
+    }
+
+    /// retrieves the audio player from the resources
+    pub fn audio(&self) -> AtomicRefMut<Audio> {
+        self.get_resource_mut::<Audio>().expect("The engine is missing the mandatory audio player resource")
+    }
+
+    /// retrieves the window from the resources
+    pub fn window(&self) -> AtomicRefMut<Window> {
+        self.get_resource_mut::<Window>().expect("The engine is missing the mandatory window resource")
+    }
+
+    /// retrieves the window from the resources
+    pub fn scene_controller(&self) -> AtomicRefMut<SceneController> {
+        self.get_resource_mut::<SceneController>()
+            .expect("The engine is missing the mandatory scene controller resource")
+    }
+}
+
+#[derive(Default)]
+pub struct InternalResources {
+    storage: HashMap<ResourceTypeId, AtomicResourceCell>,
+}
+
+unsafe impl Send for InternalResources {}
+
+unsafe impl Sync for InternalResources {}
+
+impl InternalResources {
+    fn remove_internal(&mut self, type_id: &ResourceTypeId) -> Option<Box<dyn Resource>> {
+        self.storage.remove(type_id).map(|cell| cell.into_inner())
+    }
+}
+
+pub trait Resource: 'static + Downcast {}
+
+impl<T> Resource for T where T: 'static {}
+impl_downcast!(Resource);
+
+#[derive(Copy, Clone, Debug, Eq, PartialOrd, Ord)]
+pub struct ResourceTypeId {
+    type_id: TypeId,
+    name: &'static str,
+}
+
+impl ResourceTypeId {
+    /// Returns the resource type ID of the given resource type.
+    pub fn of<T: Resource>() -> Self {
+        Self {
+            type_id: TypeId::of::<T>(),
+            name: std::any::type_name::<T>(),
+        }
+    }
+}
+
+impl std::hash::Hash for ResourceTypeId {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.type_id.hash(state);
+    }
+}
+
+impl PartialEq for ResourceTypeId {
+    fn eq(&self, other: &Self) -> bool {
+        self.type_id.eq(&other.type_id)
+    }
+}
+
+impl Display for ResourceTypeId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
+pub struct AtomicResourceCell {
+    data: AtomicRefCell<Box<dyn Resource>>,
+}
+
+impl AtomicResourceCell {
+    fn new(resource: Box<dyn Resource>) -> Self {
+        Self {
+            data: AtomicRefCell::new(resource),
+        }
+    }
+
+    fn into_inner(self) -> Box<dyn Resource> {
+        self.data.into_inner()
+    }
+
+    pub fn get<T: Resource>(&self) -> AtomicRef<T> {
+        let borrow = self.data.borrow(); // panics if this is borrowed already
+        AtomicRef::map(borrow, |inner| inner.downcast_ref::<T>().unwrap())
+    }
+
+    pub fn get_mut<T: Resource>(&self) -> AtomicRefMut<T> {
+        let borrow = self.data.borrow_mut(); // panics if this is borrowed already
+        AtomicRefMut::map(borrow, |inner| inner.downcast_mut::<T>().unwrap())
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn simple_read_write_test() {
+        struct TestOne {
+            value: String,
+        }
+
+        struct TestTwo {
+            value: String,
+        }
+
+        let mut world = World::default();
+        world.insert_resource(TestOne {
+            value: "one".to_string(),
+        });
+        world.insert_resource(TestTwo {
+            value: "two".to_string(),
+        });
+
+        world.push((1, TestOne{ value: "".to_string() }));
+
+        let (subworld, resources) = world.split();
+
+        let res1 = resources.get_resource_mut::<TestOne>().unwrap();
+        let res2 = resources.get_resource_mut::<TestTwo>().unwrap();
+
+        for (_e, _i) in subworld.query_mut::<&mut TestOne>(){
+            println!("hello");
+            println!("{:?}", res1.value);
+            println!("{:?}", res2.value);
+        }
+
+        assert_eq!(res1.value, "one");
+        assert_eq!(res2.value, "two");
+    }
+}
+
+
+

@@ -53,7 +53,7 @@ impl Sprite {
         [a, b, c, d]
     }
 
-    pub(crate) fn upsert_content(&mut self, material: Option<&Material>) -> [TexturedGlVertex; 4] {
+    pub(crate) fn compute_content(&self, material: Option<&Material>) -> [TexturedGlVertex; 4] {
         if (self.dirty || self.contents.is_none()) && material.is_some() {
             if let Material::Tileset(tileset) = material.unwrap() {
                 let a = Coordinates::new(0., 0.);
@@ -61,13 +61,12 @@ impl Sprite {
                 let c = Coordinates::new(tileset.tile_size as f32, tileset.tile_size as f32);
                 let d = Coordinates::new(tileset.tile_size as f32, 0.);
                 let uvs_ref = self.uv_refs(&tileset);
-                let contents = [
+                return [
                     TexturedGlVertex::from((&a, &uvs_ref[0])),
                     TexturedGlVertex::from((&b, &uvs_ref[1])),
                     TexturedGlVertex::from((&c, &uvs_ref[2])),
                     TexturedGlVertex::from((&d, &uvs_ref[3])),
                 ];
-                self.contents = Some(contents);
             }
         }
         self.contents.as_ref().expect("A computed content is missing in Sprite component").clone()
@@ -76,12 +75,17 @@ impl Sprite {
     pub(crate) fn indices() -> Vec<u16> {
         INDICES.to_vec()
     }
+
+    pub(crate) fn set_content(&mut self, content: [TexturedGlVertex; 4]) {
+        self.contents = Some(content);
+    }
 }
 
 impl Renderable2D for Sprite {
     fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor {
-        self.upsert_content(material);
-        wgpu::util::BufferInitDescriptor {
+        let content = self.compute_content(material);
+        self.contents = Some(content);
+        BufferInitDescriptor {
             label: Some("Sprite Vertex Buffer"),
             contents: bytemuck::cast_slice(
                 self.contents.as_ref().expect("A computed content is missing in Sprite component"),
@@ -91,7 +95,7 @@ impl Renderable2D for Sprite {
     }
 
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
-        wgpu::util::BufferInitDescriptor {
+        BufferInitDescriptor {
             label: Some("Sprite Index Buffer"),
             contents: bytemuck::cast_slice(&INDICES),
             usage: wgpu::BufferUsages::INDEX,

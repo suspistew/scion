@@ -1,48 +1,49 @@
 use scion::{
     core::{
         components::{maths::transform::Transform, tiles::sprite::Sprite},
-        resources::time::Timers,
     },
-    legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query},
 };
+use scion::core::components::material::Material;
+use scion::core::resources::asset_manager::AssetRef;
+use scion::core::world::World;
 
 use crate::{
     components::{Bloc, BlocKind, NextBloc, BLOC_SIZE, BOARD_HEIGHT, BOARD_OFFSET},
     resources::{TetrisResource, TetrisState},
 };
 
-#[system]
-pub fn piece_update(
-    cmd: &mut CommandBuffer,
-    #[resource] timers: &mut Timers,
-    #[resource] tetris: &mut TetrisResource,
-    world: &mut SubWorld,
-    query: &mut Query<(&mut Bloc, &mut Transform)>,
-    query2: &mut Query<(Entity, &NextBloc)>,
-) {
+pub fn piece_update_system(world: &mut World) {
+    let (world, resources) = world.split();
+
+    let mut timers = resources.timers();
+    let mut tetris = resources.get_resource_mut::<TetrisResource>().unwrap();
+
+    let mut to_remove = Vec::new();
+    let mut to_add = Vec::new();
+
     let timer =
         timers.get_timer("piece").expect("Missing a mandatory timer in the game : piece timer");
     if timer.cycle() > 0 {
         match tetris.state {
             TetrisState::WAITING => {
                 tetris.switch_to_next_piece();
-                query2.for_each(world, |(e, _)| {
-                    cmd.remove(*e);
-                });
+                for (e, _) in world.query::<&NextBloc>().iter() {
+                    to_remove.push(e);
+                };
                 let offsets = tetris.next_piece.get_current_offsets();
                 for offset in offsets {
-                    initialize_bloc(&offset, cmd, tetris, 12., 2., true);
+                    to_add.push(initialize_bloc(&offset, &mut tetris, 12., 2., true));
                 }
 
                 let offsets = tetris.active_piece.get_current_offsets();
                 for offset in offsets {
-                    initialize_bloc(&offset, cmd, tetris, 4., 0., false);
+                    to_add.push(initialize_bloc(&offset, &mut tetris, 4., 0., false));
                 }
             }
             TetrisState::MOVING(x, y) => {
                 let mut static_values: Vec<(u32, u32)> = Vec::new();
                 let mut piece_values: Vec<(u32, u32)> = Vec::new();
-                for (bloc, transform) in query.iter_mut(world) {
+                for (_e, (bloc, transform)) in world.query_mut::<(&mut Bloc, &mut Transform)>() {
                     let t = (
                         ((transform.translation().x() - BOARD_OFFSET.0) / BLOC_SIZE) as u32,
                         ((transform.translation().y() - BOARD_OFFSET.1) / BLOC_SIZE) as u32,
@@ -67,7 +68,7 @@ pub fn piece_update(
                     res
                 };
                 if should_move_piece {
-                    for (bloc, transform) in query.iter_mut(world) {
+                    for (_, (bloc, transform)) in world.query_mut::<(&mut Bloc, &mut Transform)>() {
                         match bloc.kind {
                             BlocKind::Moving => {
                                 transform.move_down(BLOC_SIZE);
@@ -77,7 +78,7 @@ pub fn piece_update(
                         };
                     }
                 } else {
-                    for (mut bloc, _) in query.iter_mut(world) {
+                    for (_, (bloc, _)) in world.query_mut::<(&mut Bloc, &mut Transform)>() {
                         match bloc.kind {
                             BlocKind::Moving => {
                                 bloc.kind = BlocKind::Static;
@@ -90,16 +91,24 @@ pub fn piece_update(
             }
         }
     }
+
+    to_remove.drain(0..).for_each(|e| { let _r = world.remove(e); });
+    to_add.drain(0..).for_each(|comps| {
+        if comps.3 {
+            let _r = world.push((comps.0, comps.1, comps.2, NextBloc));
+        }else{
+            let _r = world.push((comps.0, comps.1, comps.2, Bloc::new(BlocKind::Moving)));
+        }
+    });
 }
 
 pub fn initialize_bloc(
     offset: &(f32, f32),
-    cmd: &mut CommandBuffer,
     tetris: &TetrisResource,
     coord_x: f32,
     coord_y: f32,
     is_next_bloc: bool,
-) {
+) -> (Transform, Sprite, AssetRef<Material>, bool) {
     let mut bloc_transform = Transform::default();
     bloc_transform.append_translation(
         coord_x * BLOC_SIZE + offset.0 * BLOC_SIZE,
@@ -113,8 +122,8 @@ pub fn initialize_bloc(
     );
 
     if is_next_bloc {
-        cmd.push((tuple.0, tuple.1, tuple.2, NextBloc));
+        return (tuple.0, tuple.1, tuple.2, is_next_bloc);
     } else {
-        cmd.push((tuple.0, tuple.1, tuple.2, Bloc::new(BlocKind::Moving)));
+        return (tuple.0, tuple.1, tuple.2, is_next_bloc);
     };
 }

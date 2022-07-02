@@ -1,6 +1,7 @@
 pub(crate) struct DefaultCamera;
 
 /// Mandatory component to add to the World to have anything rendered.
+#[derive(Clone)]
 pub struct Camera {
     pub(crate) left: f32,
     pub(crate) right: f32,

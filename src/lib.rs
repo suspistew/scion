@@ -23,7 +23,6 @@
 // Convenience reexport
 // Convenience uses
 pub use application::{Scion, ScionBuilder};
-pub use legion;
 pub use ultraviolet;
 
 // internal export

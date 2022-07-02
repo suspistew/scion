@@ -1,6 +1,7 @@
 use std::{cfg, collections::HashMap, ops::Range, path::Path, time::SystemTime};
+use futures::StreamExt;
+use hecs::{Component, Entity};
 
-use legion::{component, storage::Component, Entity, IntoQuery, Resources, World};
 use wgpu::{
     util::DeviceExt, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue,
     RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView,
@@ -24,7 +25,6 @@ use crate::{
             ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
             Hide, HidePropagated,
         },
-        legion_ext::ScionResourcesExtension,
     },
     rendering::{
         gl_representations::{GlUniform, UniformData},
@@ -33,11 +33,12 @@ use crate::{
     },
     utils::file::{read_file_modification_time, FileReaderError},
 };
+use crate::rendering::gl_representations::TexturedGlVertex;
 
 #[derive(Default)]
 pub(crate) struct Scion2D {
-    vertex_buffers: HashMap<Entity, wgpu::Buffer>,
-    index_buffers: HashMap<Entity, wgpu::Buffer>,
+    vertex_buffers: HashMap<Entity, Buffer>,
+    index_buffers: HashMap<Entity, Buffer>,
     render_pipelines: HashMap<String, RenderPipeline>,
     texture_bind_group_layout: Option<BindGroupLayout>,
     transform_bind_group_layout: Option<BindGroupLayout>,
@@ -109,61 +110,51 @@ impl ScionRenderer for Scion2D {
 
     fn update(
         &mut self,
-        world: &mut World,
-        resources: &mut Resources,
+        internal_world: &mut crate::core::world::World,
         device: &Device,
         surface_config: &SurfaceConfiguration,
         queue: &mut Queue,
     ) {
-        if world_contains_camera(world) {
-            self.update_diffuse_bind_groups(world, resources, device, queue);
-            self.update_transforms(world, &device, queue);
-            self.upsert_component_buffers::<Triangle>(world, &device);
-            self.upsert_component_buffers::<Square>(world, &device);
-            self.upsert_component_buffers::<Rectangle>(world, &device);
-            self.upsert_component_buffers::<Sprite>(world, &device);
-            self.upsert_component_buffers::<Line>(world, &device);
-            self.upsert_component_buffers::<Polygon>(world, &device);
-            self.upsert_tilemaps_buffers(world, &device);
-            self.upsert_ui_component_buffers::<UiImage>(world, &device, &surface_config, queue);
-            self.upsert_ui_component_buffers::<UiTextImage>(world, &device, &surface_config, queue);
+        if world_contains_camera(internal_world) {
+            self.update_diffuse_bind_groups(internal_world, device, queue);
+            self.update_transforms(internal_world, &device, queue);
+            self.upsert_component_buffers::<Triangle>(internal_world, &device);
+            self.upsert_component_buffers::<Square>(internal_world, &device);
+            self.upsert_component_buffers::<Rectangle>(internal_world, &device);
+            self.upsert_component_buffers::<Sprite>(internal_world, &device);
+            self.upsert_component_buffers::<Line>(internal_world, &device);
+            self.upsert_component_buffers::<Polygon>(internal_world, &device);
+            self.upsert_tilemaps_buffers(internal_world, &device);
+            self.upsert_ui_component_buffers::<UiImage>(internal_world, &device, &surface_config, queue);
+            self.upsert_ui_component_buffers::<UiTextImage>(internal_world, &device, &surface_config, queue);
         } else {
             log::warn!("No camera has been found in resources");
         }
-        self.clean_buffers(world);
+        self.clean_buffers(internal_world);
     }
 
     fn render(
         &mut self,
-        world: &mut World,
-        config: &ScionConfig,
+        internal_world: &mut crate::core::world::World,
+        _config: &ScionConfig,
         texture_view: &TextureView,
         encoder: &mut CommandEncoder,
     ) {
-        {
-            encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("Scion 2D Render Pass"),
-                color_attachments: &[get_default_color_attachment(texture_view, config)],
-                depth_stencil_attachment: None,
-            });
-        }
-
-        if world_contains_camera(world) {
+        if world_contains_camera(internal_world) {
             let mut rendering_infos = Vec::new();
-            rendering_infos.append(&mut self.pre_render_component::<Triangle>(world));
-            rendering_infos.append(&mut self.pre_render_component::<Square>(world));
-            rendering_infos.append(&mut self.pre_render_component::<Rectangle>(world));
-            rendering_infos.append(&mut self.pre_render_component::<Sprite>(world));
-            rendering_infos.append(&mut self.pre_render_component::<Line>(world));
-            rendering_infos.append(&mut self.pre_render_component::<Polygon>(world));
-            rendering_infos.append(&mut self.pre_render_ui_component::<UiImage>(world));
-            rendering_infos.append(&mut self.pre_render_ui_component::<UiTextImage>(world));
-            rendering_infos.append(&mut self.pre_render_tilemaps(world));
+            rendering_infos.append(&mut self.pre_render_component::<Triangle>(internal_world));
+            rendering_infos.append(&mut self.pre_render_component::<Square>(internal_world));
+            rendering_infos.append(&mut self.pre_render_component::<Rectangle>(internal_world));
+            rendering_infos.append(&mut self.pre_render_component::<Sprite>(internal_world));
+            rendering_infos.append(&mut self.pre_render_component::<Line>(internal_world));
+            rendering_infos.append(&mut self.pre_render_component::<Polygon>(internal_world));
+            rendering_infos.append(&mut self.pre_render_ui_component::<UiImage>(internal_world));
+            rendering_infos.append(&mut self.pre_render_ui_component::<UiTextImage>(internal_world));
+            rendering_infos.append(&mut self.pre_render_tilemaps(internal_world));
 
             rendering_infos.sort_by(|a, b| b.layer.cmp(&a.layer));
-            while let Some(info) = rendering_infos.pop() {
-                self.render_component(texture_view, encoder, info);
-            }
+
+            self.render_component(texture_view, encoder, rendering_infos);
         }
     }
 }
@@ -179,50 +170,48 @@ impl Scion2D {
 
     fn upsert_component_buffers<T: Component + Renderable2D>(
         &mut self,
-        world: &mut World,
+        internal_world: &mut crate::core::world::World,
         device: &&Device,
     ) {
-        for (entity, component, material, _) in
-            <(Entity, &mut T, &Material, &Transform)>::query().iter_mut(world)
+        for (entity, (component, material, _)) in
+        internal_world.query_mut::<(&mut T, &Material, &Transform)>()
         {
-            if !self.vertex_buffers.contains_key(entity) || component.dirty() {
+            if !self.vertex_buffers.contains_key(&entity) || component.dirty() {
                 let vertex_buffer =
                     device.create_buffer_init(&component.vertex_buffer_descriptor(Some(material)));
-                self.vertex_buffers.insert(*entity, vertex_buffer);
+                self.vertex_buffers.insert(entity, vertex_buffer);
             }
 
-            if !self.index_buffers.contains_key(entity) || component.dirty() {
+            if !self.index_buffers.contains_key(&entity) || component.dirty() {
                 let index_buffer =
                     device.create_buffer_init(&component.indexes_buffer_descriptor());
-                self.index_buffers.insert(*entity, index_buffer);
+                self.index_buffers.insert(entity, index_buffer);
             }
 
             component.set_dirty(false);
         }
     }
 
-    fn upsert_tilemaps_buffers(&mut self, world: &mut World, device: &&Device) {
-        let mut tilemap_query = <(Entity, &mut Tilemap, &Material, &Transform)>::query();
-        let (mut tilemap_world, mut tile_world) = world.split_for_query(&tilemap_query);
+    fn upsert_tilemaps_buffers(&mut self, internal_world: &mut crate::core::world::World, device: &&Device) {
+        let mut toModify: Vec<(Entity, [TexturedGlVertex; 4])> = Vec::new();
 
-        let mut tiles: Vec<(&Tile, &mut Sprite)> =
-            <(&Tile, &mut Sprite)>::query().iter_mut(&mut tile_world).collect();
-
-        for (entity, _tilemap, material, _) in tilemap_query.iter_mut(&mut tilemap_world) {
+        for (entity, (_, material, _)) in internal_world.query::<(&mut Tilemap, &Material, &Transform)>().iter() {
             let tile_size = Material::tile_size(material).expect("");
             let mut vertexes = Vec::new();
             let mut position = 0;
             let mut indexes = Vec::new();
-            let any_tile_modified = !self.vertex_buffers.contains_key(entity)
-                || tiles
-                    .iter_mut()
-                    .filter(|(tile, sprite)| tile.tilemap == *entity && sprite.dirty())
-                    .count()
-                    > 0;
+            let any_tile_modified = !self.vertex_buffers.contains_key(&entity)
+                || internal_world.query::<(&Tile, &Sprite)>().iter()
+                .filter(|(_, (tile, sprite))| tile.tilemap == entity && sprite.dirty())
+                .count()
+                > 0;
+
             if any_tile_modified {
-                tiles.iter_mut().filter(|(tile, _sprite)| tile.tilemap == *entity).for_each(
-                    |(tile, sprite)| {
-                        let mut vec = sprite.upsert_content(Some(material)).to_vec();
+                for (e, (tile, sprite)) in internal_world.query::<(&Tile, &Sprite)>().iter() {
+                    if tile.tilemap == entity {
+                        let res = sprite.compute_content(Some(material));
+                        toModify.push((e, res.clone()));
+                        let mut vec = res.to_vec();
                         vec.iter_mut().for_each(|gl_vertex| {
                             gl_vertex.position.append_position(
                                 tile_size as f32 * tile.position.x() as f32,
@@ -238,45 +227,50 @@ impl Scion2D {
                             .collect();
                         indexes.append(&mut sprite_indexes);
                         position += 1;
-                        sprite.set_dirty(false);
-                    },
-                );
+                    }
+                }
+
                 let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some("TileMap Vertex Buffer"),
                     contents: bytemuck::cast_slice(vertexes.as_slice()),
                     usage: wgpu::BufferUsages::VERTEX,
                 });
 
-                self.vertex_buffers.insert(*entity, buffer);
+                self.vertex_buffers.insert(entity, buffer);
 
                 let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some("TileMap Index Buffer"),
                     contents: bytemuck::cast_slice(&indexes),
                     usage: wgpu::BufferUsages::INDEX,
                 });
-                self.index_buffers.insert(*entity, index_buffer);
+                self.index_buffers.insert(entity, index_buffer);
             }
+        }
+
+        for (e, vertexes) in toModify.drain(0..) {
+            internal_world.entry_mut::<&mut Sprite>(e).expect("").set_dirty(false);
+            internal_world.entry_mut::<&mut Sprite>(e).expect("").set_content(vertexes);
         }
     }
 
     fn upsert_ui_component_buffers<T: Component + Renderable2D + RenderableUi>(
         &mut self,
-        world: &mut World,
+        internal_world: &mut crate::core::world::World,
         device: &&Device,
         _surface_config: &&SurfaceConfiguration,
         queue: &mut Queue,
     ) {
-        for (entity, component, _) in <(Entity, &mut T, &Transform)>::query().iter_mut(world) {
-            if !self.vertex_buffers.contains_key(entity) {
+        for (entity, (component, _)) in internal_world.query::<(&mut T, &Transform)>().iter() {
+            if !self.vertex_buffers.contains_key(&entity) {
                 let vertex_buffer =
                     device.create_buffer_init(&component.vertex_buffer_descriptor(None));
-                self.vertex_buffers.insert(*entity, vertex_buffer);
+                self.vertex_buffers.insert(entity, vertex_buffer);
             }
 
-            if !self.index_buffers.contains_key(entity) {
+            if !self.index_buffers.contains_key(&entity) {
                 let index_buffer =
                     device.create_buffer_init(&component.indexes_buffer_descriptor());
-                self.index_buffers.insert(*entity, index_buffer);
+                self.index_buffers.insert(entity, index_buffer);
             }
             if let Some(texture_path) = component.get_texture_path() {
                 if !self.diffuse_bind_groups.contains_key(texture_path.as_str()) {
@@ -325,53 +319,65 @@ impl Scion2D {
         &mut self,
         texture_view: &TextureView,
         encoder: &mut CommandEncoder,
-        rendering_infos: RenderingInfos,
+        mut infos: Vec<RenderingInfos>,
     ) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("Scion 2D Render Pass"),
-            color_attachments: &[get_no_color_attachment(texture_view)],
+            label: None,
+            color_attachments: &[wgpu::RenderPassColorAttachment {
+                view: texture_view,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color {
+                        r: 0.1,
+                        g: 0.2,
+                        b: 0.3,
+                        a: 1.0,
+                    }),
+                    store: true,
+                },
+            }],
             depth_stencil_attachment: None,
         });
 
-        render_pass.set_bind_group(
-            1,
-            &self.transform_uniform_bind_groups.get(&rendering_infos.entity).unwrap().2,
-            &[],
-        );
-        render_pass.set_vertex_buffer(
-            0,
-            self.vertex_buffers.get(&rendering_infos.entity).as_ref().unwrap().slice(..),
-        );
-        render_pass.set_index_buffer(
-            self.index_buffers.get(&rendering_infos.entity).as_ref().unwrap().slice(..),
-            wgpu::IndexFormat::Uint16,
-        );
-        render_pass.set_pipeline(
-            self.render_pipelines.get(rendering_infos.type_name.as_str()).as_ref().unwrap(),
-        );
-        if let Some(path) = rendering_infos.texture_path {
+        while let Some(rendering_infos) = infos.pop() {
             render_pass.set_bind_group(
-                0,
-                &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
+                1,
+                &self.transform_uniform_bind_groups.get(&rendering_infos.entity).unwrap().2,
                 &[],
             );
-        }
+            render_pass.set_vertex_buffer(
+                0,
+                self.vertex_buffers.get(&rendering_infos.entity).as_ref().unwrap().slice(..),
+            );
+            render_pass.set_index_buffer(
+                self.index_buffers.get(&rendering_infos.entity).as_ref().unwrap().slice(..),
+                wgpu::IndexFormat::Uint16,
+            );
+            render_pass.set_pipeline(
+                self.render_pipelines.get(rendering_infos.type_name.as_str()).as_ref().unwrap(),
+            );
+            if let Some(path) = rendering_infos.texture_path {
+                render_pass.set_bind_group(
+                    0,
+                    &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
+                    &[],
+                );
+            }
 
-        render_pass.draw_indexed(rendering_infos.range, 0, 0..1);
+            render_pass.draw_indexed(rendering_infos.range, 0, 0..1);
+        }
     }
 
     fn pre_render_component<T: Component + Renderable2D>(
         &mut self,
-        world: &mut World,
+        internal_world: &mut crate::core::world::World,
     ) -> Vec<RenderingInfos> {
         let type_name = std::any::type_name::<T>();
         let mut render_infos = Vec::new();
-        for (entity, component, material, transform) in
-            <(Entity, &mut T, &Material, &Transform)>::query()
-                .filter(
-                    !component::<Tile>() & !component::<Hide>() & !component::<HidePropagated>(),
-                )
-                .iter_mut(world)
+        for (entity, (component, material, transform)) in
+        internal_world.query::<(&mut T, &Material, &Transform)>()
+            .without::<(&Tile, &Hide, &HidePropagated)>()
+            .iter()
         {
             let path = match material {
                 Material::Color(color) => Some(get_path_from_color(&color)),
@@ -381,7 +387,7 @@ impl Scion2D {
             render_infos.push(RenderingInfos {
                 layer: transform.translation().z(),
                 range: component.range(),
-                entity: *entity,
+                entity,
                 texture_path: path,
                 type_name: type_name.to_string(),
             });
@@ -389,19 +395,17 @@ impl Scion2D {
         render_infos
     }
 
-    fn pre_render_tilemaps(&mut self, world: &mut World) -> Vec<RenderingInfos> {
+    fn pre_render_tilemaps(&mut self, internal_world: &mut crate::core::world::World) -> Vec<RenderingInfos> {
         let type_name = std::any::type_name::<Tilemap>();
         let mut render_infos = Vec::new();
 
-        let mut tilemap_query = <(Entity, &mut Tilemap, &Material, &Transform)>::query()
-            .filter(!component::<Hide>() & !component::<HidePropagated>());
-        let (mut tilemap_world, mut tile_world) = world.split_for_query(&tilemap_query);
+        let tiles = internal_world.query::<(&Tile, &Sprite)>().iter().map(|(e, _)| e).collect::<Vec<_>>();
 
-        for (entity, _, material, transform) in tilemap_query.iter_mut(&mut tilemap_world) {
-            let tiles_nb = <(&Tile, &mut Sprite)>::query()
-                .iter_mut(&mut tile_world)
-                .filter(|(tile, _sprite)| tile.tilemap == *entity)
+        for (entity, (_, material, transform)) in internal_world.query::<(&mut Tilemap, &Material, &Transform)>().without::<(&Hide, &HidePropagated)>().iter() {
+            let tiles_nb = tiles.iter()
+                .filter(|t| internal_world.entry::<&Tile>(**t).expect("").get().expect("").tilemap == entity)
                 .count();
+
             let path = match material {
                 Material::Tileset(tileset) => Some(tileset.texture.clone()),
                 _ => None,
@@ -409,7 +413,7 @@ impl Scion2D {
             render_infos.push(RenderingInfos {
                 layer: transform.translation().z(),
                 range: 0..(tiles_nb * Sprite::indices().len()) as u32,
-                entity: *entity,
+                entity,
                 texture_path: path,
                 type_name: type_name.to_string(),
             });
@@ -419,18 +423,18 @@ impl Scion2D {
 
     fn pre_render_ui_component<T: Component + Renderable2D + RenderableUi>(
         &mut self,
-        world: &mut World,
+        internal_world: &mut crate::core::world::World,
     ) -> Vec<RenderingInfos> {
         let type_name = std::any::type_name::<T>();
         let mut render_infos = Vec::new();
-        for (entity, component, transform) in <(Entity, &mut T, &Transform)>::query()
-            .filter(!component::<Hide>() & !component::<HidePropagated>())
-            .iter_mut(world)
+        for (entity, (component, transform)) in internal_world.query::<(&mut T, &Transform)>()
+            .without::<(&Hide, &HidePropagated)>()
+            .iter()
         {
             render_infos.push(RenderingInfos {
                 layer: transform.translation().z(),
                 range: component.range(),
-                entity: *entity,
+                entity,
                 texture_path: component.get_texture_path(),
                 type_name: type_name.to_string(),
             });
@@ -438,7 +442,7 @@ impl Scion2D {
         render_infos
     }
 
-    fn update_transforms(&mut self, world: &mut World, device: &&Device, queue: &mut Queue) {
+    fn update_transforms(&mut self, world: &mut crate::core::world::World, device: &&Device, queue: &mut Queue) {
         self.update_transforms_for_type::<Triangle>(world, &device, queue);
         self.update_transforms_for_type::<Square>(world, &device, queue);
         self.update_transforms_for_type::<Rectangle>(world, &device, queue);
@@ -452,20 +456,27 @@ impl Scion2D {
 
     fn update_transforms_for_type<T: Component + Renderable2D>(
         &mut self,
-        main_world: &mut World,
+        internal_world: &mut crate::core::world::World,
         device: &&Device,
         queue: &mut Queue,
     ) {
-        let mut camera_query = <(&Camera, &Transform)>::query();
-        let (camera_world, mut world) = main_world.split_for_query(&camera_query);
-        let camera = camera_query
-            .iter(&camera_world)
-            .next()
-            .expect("No camera has been found in the world after the security check");
-        for (entity, transform, optional_ui_component, _) in
-            <(Entity, &Transform, Option<&UiComponent>, &T)>::query().iter_mut(&mut world)
+        let camera1 = {
+            let mut t = Transform::default();
+            let mut c = Camera::new(1.0, 1.0);
+
+            for (_, (cam, tra)) in internal_world.query::<(&Camera, &Transform)>().iter() {
+                c = cam.clone();
+                t = tra.clone();
+            }
+            (c, t)
+        };
+
+        let camera = (&camera1.0, &camera1.1);
+
+        for (entity, (transform, optional_ui_component, _)) in
+        internal_world.query::<(&Transform, Option<&UiComponent>, &T)>().iter()
         {
-            if !self.transform_uniform_bind_groups.contains_key(entity) {
+            if !self.transform_uniform_bind_groups.contains_key(&entity) {
                 let (uniform, uniform_buffer, group) = create_transform_uniform_bind_group(
                     &device,
                     transform,
@@ -475,11 +486,11 @@ impl Scion2D {
                 );
                 queue.write_buffer(&uniform_buffer, 0, bytemuck::cast_slice(&[uniform]));
                 self.transform_uniform_bind_groups
-                    .insert(*entity, (uniform, uniform_buffer, group));
+                    .insert(entity, (uniform, uniform_buffer, group));
             } else {
                 let (uniform, uniform_buffer, _) = self
                     .transform_uniform_bind_groups
-                    .get_mut(entity)
+                    .get_mut(&entity)
                     .expect("Fatal error, a transform has been marked as found but doesn't exist");
                 uniform.replace_with(GlUniform::from(UniformData {
                     transform,
@@ -498,23 +509,22 @@ impl Scion2D {
     ) -> bool {
         !self.diffuse_bind_groups.contains_key(path.as_str())
             || if let Some(Ok(timestamp)) = new_timestamp {
-                !self.assets_timestamps.contains_key(path.as_str())
-                    || !self.assets_timestamps.get(path.as_str()).unwrap().eq(timestamp)
-            } else {
-                false
-            }
+            !self.assets_timestamps.contains_key(path.as_str())
+                || !self.assets_timestamps.get(path.as_str()).unwrap().eq(timestamp)
+        } else {
+            false
+        }
     }
 
     /// Loads in the queue materials that are not yet loaded.
     fn update_diffuse_bind_groups(
         &mut self,
-        world: &mut World,
-        resources: &mut Resources,
+        internal_world: &mut crate::core::world::World,
         device: &Device,
         queue: &mut Queue,
     ) {
         let hot_timer_cycle = if cfg!(feature = "hot-reload") {
-            let mut timers = resources.timers();
+            let mut timers = internal_world.timers();
             let hot_reload_timer =
                 timers.get_timer("hot-reload-timer").expect("Missing mandatory timer : hot_reload");
             hot_reload_timer.cycle() > 0
@@ -522,92 +532,93 @@ impl Scion2D {
             false
         };
 
-        <(Entity, &Material)>::query().for_each(world, |(_entity, material)| match material {
-            Material::Texture(texture_path) => {
-                let path = Path::new(texture_path.as_str());
-                let new_timestamp = if hot_timer_cycle
-                    || !self.diffuse_bind_groups.contains_key(texture_path.as_str())
-                {
-                    Some(read_file_modification_time(path))
-                } else {
-                    None
-                };
+        for (_entity, material) in internal_world.query::<&Material>().iter() {
+            match material {
+                Material::Texture(texture_path) => {
+                    let path = Path::new(texture_path.as_str());
+                    let new_timestamp = if hot_timer_cycle
+                        || !self.diffuse_bind_groups.contains_key(texture_path.as_str())
+                    {
+                        Some(read_file_modification_time(path))
+                    } else {
+                        None
+                    };
 
-                if self.texture_should_be_reloaded(&texture_path, &new_timestamp) {
-                    if self.diffuse_bind_groups.contains_key(texture_path.as_str()) {
-                        self.diffuse_bind_groups
-                            .get(texture_path.as_str())
-                            .expect("Unreachable diffuse bind group after check")
-                            .1
-                            .destroy();
-                        self.diffuse_bind_groups.remove(texture_path.as_str());
+                    if self.texture_should_be_reloaded(&texture_path, &new_timestamp) {
+                        if self.diffuse_bind_groups.contains_key(texture_path.as_str()) {
+                            self.diffuse_bind_groups
+                                .get(texture_path.as_str())
+                                .expect("Unreachable diffuse bind group after check")
+                                .1
+                                .destroy();
+                            self.diffuse_bind_groups.remove(texture_path.as_str());
+                        }
+
+                        let loaded_texture = Texture::from_png(path);
+                        self.diffuse_bind_groups.insert(
+                            texture_path.clone(),
+                            load_texture_to_queue(
+                                &loaded_texture,
+                                queue,
+                                device,
+                                self.texture_bind_group_layout.as_ref().unwrap(),
+                            ),
+                        );
+
+                        if let Some(Ok(timestamp)) = new_timestamp {
+                            self.assets_timestamps.insert(texture_path.clone(), timestamp);
+                        }
                     }
+                }
+                Material::Color(color) => {
+                    let path = get_path_from_color(&color);
+                    if !self.diffuse_bind_groups.contains_key(path.as_str()) {
+                        let loaded_texture = Texture::from_color(&color);
+                        self.diffuse_bind_groups.insert(
+                            path.clone(),
+                            load_texture_to_queue(
+                                &loaded_texture,
+                                queue,
+                                device,
+                                self.texture_bind_group_layout.as_ref().unwrap(),
+                            ),
+                        );
+                    }
+                }
+                Material::Tileset(tileset) => {
+                    let path = Path::new(tileset.texture.as_str());
+                    let new_timestamp = if hot_timer_cycle
+                        || !self.diffuse_bind_groups.contains_key(tileset.texture.as_str())
+                    {
+                        Some(read_file_modification_time(path))
+                    } else {
+                        None
+                    };
 
-                    let loaded_texture = Texture::from_png(path);
-                    self.diffuse_bind_groups.insert(
-                        texture_path.clone(),
-                        load_texture_to_queue(
-                            &loaded_texture,
-                            queue,
-                            device,
-                            self.texture_bind_group_layout.as_ref().unwrap(),
-                        ),
-                    );
-
-                    if let Some(Ok(timestamp)) = new_timestamp {
-                        self.assets_timestamps.insert(texture_path.clone(), timestamp);
+                    if self.texture_should_be_reloaded(&tileset.texture, &new_timestamp) {
+                        let loaded_texture = Texture::from_png(Path::new(tileset.texture.as_str()));
+                        self.diffuse_bind_groups.insert(
+                            tileset.texture.clone(),
+                            load_texture_to_queue(
+                                &loaded_texture,
+                                queue,
+                                device,
+                                self.texture_bind_group_layout.as_ref().unwrap(),
+                            ),
+                        );
+                        if let Some(Ok(timestamp)) = new_timestamp {
+                            self.assets_timestamps.insert(tileset.texture.clone(), timestamp);
+                        }
                     }
                 }
             }
-            Material::Color(color) => {
-                let path = get_path_from_color(&color);
-                if !self.diffuse_bind_groups.contains_key(path.as_str()) {
-                    let loaded_texture = Texture::from_color(&color);
-                    self.diffuse_bind_groups.insert(
-                        path.clone(),
-                        load_texture_to_queue(
-                            &loaded_texture,
-                            queue,
-                            device,
-                            self.texture_bind_group_layout.as_ref().unwrap(),
-                        ),
-                    );
-                }
-            }
-            Material::Tileset(tileset) => {
-                let path = Path::new(tileset.texture.as_str());
-                let new_timestamp = if hot_timer_cycle
-                    || !self.diffuse_bind_groups.contains_key(tileset.texture.as_str())
-                {
-                    Some(read_file_modification_time(path))
-                } else {
-                    None
-                };
-
-                if self.texture_should_be_reloaded(&tileset.texture, &new_timestamp) {
-                    let loaded_texture = Texture::from_png(Path::new(tileset.texture.as_str()));
-                    self.diffuse_bind_groups.insert(
-                        tileset.texture.clone(),
-                        load_texture_to_queue(
-                            &loaded_texture,
-                            queue,
-                            device,
-                            self.texture_bind_group_layout.as_ref().unwrap(),
-                        ),
-                    );
-                    if let Some(Ok(timestamp)) = new_timestamp {
-                        self.assets_timestamps.insert(tileset.texture.clone(), timestamp);
-                    }
-                }
-            }
-        });
+        }
     }
 
-    fn clean_buffers(&mut self, world: &mut World) {
-        let entities: Vec<&Entity> = <Entity>::query().iter(world).collect();
-        self.vertex_buffers.retain(|&k, _| entities.contains(&&k));
-        self.index_buffers.retain(|&k, _| entities.contains(&&k));
-        self.transform_uniform_bind_groups.retain(|&k, _| entities.contains(&&k));
+    fn clean_buffers(&mut self, internal_world: &mut crate::core::world::World) {
+        self.vertex_buffers.retain(|&k, _| internal_world.contains(k));
+        self.index_buffers.retain(|&k, _| internal_world.contains(k));
+        self.transform_uniform_bind_groups.retain(|&k, _| internal_world.contains(k));
     }
 }
 
@@ -745,6 +756,6 @@ fn get_path_from_color(color: &Color) -> String {
     format!("color-{}-{}-{}-{}", color.red(), color.green(), color.blue(), color.alpha())
 }
 
-fn world_contains_camera(world: &mut World) -> bool {
-    <&Camera>::query().iter(world).count() > 0
+fn world_contains_camera(internal_world: &mut crate::core::world::World) -> bool {
+    internal_world.query::<&Camera>().iter().count() > 0
 }

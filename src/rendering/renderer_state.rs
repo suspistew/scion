@@ -1,5 +1,5 @@
-use legion::{Resources, World};
-use wgpu::{SurfaceConfiguration, TextureViewDescriptor};
+
+use wgpu::{SurfaceConfiguration};
 use winit::{event::WindowEvent, window::Window};
 
 use crate::{config::scion_config::ScionConfig, rendering::ScionRenderer};
@@ -15,38 +15,43 @@ pub(crate) struct RendererState {
 impl RendererState {
     pub(crate) async fn new(window: &Window, mut scion_renderer: Box<dyn ScionRenderer>) -> Self {
         let _size = window.inner_size();
-        let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
-        let surface = unsafe { instance.create_surface(window) };
-        let adapter = instance
-            .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::default(),
-                compatible_surface: Some(&surface),
-                force_fallback_adapter: false,
-            })
-            .await
-            .unwrap();
 
+        let backend = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
+        let instance = wgpu::Instance::new(backend);
+
+        let (_size, surface) = unsafe {
+            let size = window.inner_size();
+            let surface = instance.create_surface(&window);
+            (size, surface)
+        };
+
+        let adapter =
+            wgpu::util::initialize_adapter_from_env_or_default(&instance, backend, Some(&surface))
+                .await
+                .expect("No suitable GPU adapters found on the system!");
+
+        let needed_limits = wgpu::Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits());
+        let trace_dir = std::env::var("WGPU_TRACE");
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
-                    features: wgpu::Features::empty(),
-                    limits: wgpu::Limits::default(),
                     label: None,
+                    features: wgpu::Features::empty(),
+                    limits: needed_limits,
                 },
-                None, /* Trace path */
+                trace_dir.ok().as_ref().map(std::path::Path::new),
             )
             .await
-            .unwrap();
+            .expect("Unable to find a suitable GPU adapter!");
 
         let w = window.inner_size();
 
-        let swapchain_format = surface.get_preferred_format(&adapter).unwrap();
-        let config = SurfaceConfiguration {
+        let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: swapchain_format,
+            format: surface.get_preferred_format(&adapter).unwrap(),
             width: w.width * window.scale_factor() as u32,
             height: w.height * window.scale_factor() as u32,
-            present_mode: wgpu::PresentMode::Immediate,
+            present_mode: wgpu::PresentMode::Mailbox,
         };
         surface.configure(&device, &config);
 
@@ -66,23 +71,24 @@ impl RendererState {
         false
     }
 
-    pub(crate) fn update(&mut self, world: &mut World, resources: &mut Resources) {
-        self.scion_renderer.update(world, resources, &self.device, &self.config, &mut self.queue);
+    pub(crate) fn update(&mut self, internal_world: &mut crate::core::world::World) {
+        self.scion_renderer.update(internal_world, &self.device, &self.config, &mut self.queue);
     }
 
     pub(crate) fn render(
         &mut self,
-        world: &mut World,
+        internal_world: &mut crate::core::world::World,
         config: &ScionConfig,
     ) -> Result<(), wgpu::SurfaceError> {
         let frame = self.surface.get_current_texture()?;
-        let view = frame.texture.create_view(&TextureViewDescriptor::default());
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("Render Encoder"),
-        });
+        let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
-        self.scion_renderer.render(world, config, &view, &mut encoder);
-        self.queue.submit(std::iter::once(encoder.finish()));
+        let mut encoder =
+            self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+
+        self.scion_renderer.render(internal_world, config, &view, &mut encoder);
+
+        self.queue.submit(Some(encoder.finish()));
 
         frame.present();
         Ok(())

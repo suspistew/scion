@@ -1,18 +1,17 @@
 //! Everything that is linked to the running of scenes.
 
-use crate::core::legion_ext::ScionResourcesExtension;
-use legion::{Resources, World};
+use crate::core::world::World;
 
 /// Trait to implement in order to define a `Scene`.
 pub trait Scene {
     /// Will be called once before the new game loop iteration. Useful to initialize resources and add everything you need in the world.
-    fn on_start(&mut self, _world: &mut World, _resources: &mut Resources) {}
+    fn on_start(&mut self, _world: &mut World) {}
     /// Will be called each game loop, before the systems execution
-    fn on_update(&mut self, _world: &mut World, _resources: &mut Resources) {}
+    fn on_update(&mut self, _world: &mut World) {}
     /// Will be called each game loop, after the systems execution
-    fn late_update(&mut self, _world: &mut World, _resources: &mut Resources) {}
+    fn late_update(&mut self, _world: &mut World) {}
     /// Will be called for deleted scene at the end of the frame where it was deleted
-    fn on_stop(&mut self, _world: &mut World, _resources: &mut Resources) {}
+    fn on_stop(&mut self, _world: &mut World) {}
 }
 
 pub(crate) enum SceneAction {
@@ -33,26 +32,25 @@ impl SceneMachine {
         &mut self,
         action: SceneAction,
         world: &mut World,
-        resources: &mut Resources,
     ) {
         if let Some(scene) = self.current_scene.as_mut() {
             match action {
-                SceneAction::Update => scene.on_update(world, resources),
-                SceneAction::Start => scene.on_start(world, resources),
+                SceneAction::Update => scene.on_update(world),
+                SceneAction::Start => scene.on_start(world),
                 SceneAction::EndFrame => {}
-                SceneAction::LateUpdate => scene.late_update(world, resources),
+                SceneAction::LateUpdate => scene.late_update(world),
             };
         }
 
         match action {
             SceneAction::EndFrame => {
-                let action = resources.scene_controller().action();
+                let action = world.scene_controller().action();
                 match action {
                     Some(SceneTrans::Switch(mut new_scene)) => {
                         if let Some(mut scene) = self.current_scene.take() {
-                            scene.on_stop(world, resources);
+                            scene.on_stop(world);
                         }
-                        new_scene.on_start(world, resources);
+                        new_scene.on_start(world);
                         self.current_scene = Some(new_scene);
                     }
                     _ => {}
@@ -109,13 +107,12 @@ mod tests {
     #[test]
     fn switch_scene_should_replace_at_same_index() {
         let mut world = World::default();
-        let mut resources = Resources::default();
-        resources.insert(SceneController::default());
+        world.insert_resource(SceneController::default());
 
         let scene = Box::new(A::default());
         let mut machine = SceneMachine { current_scene: Some(scene) };
 
-        resources.scene_controller().switch::<B>();
-        machine.apply_scene_action(SceneAction::EndFrame, &mut world, &mut resources);
+        world.scene_controller().switch::<B>();
+        machine.apply_scene_action(SceneAction::EndFrame, &mut world);
     }
 }

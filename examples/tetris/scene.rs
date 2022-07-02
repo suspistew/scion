@@ -1,5 +1,4 @@
-
-
+use hecs::Entity;
 use scion::{
     core::{
         components::{
@@ -7,12 +6,11 @@ use scion::{
             tiles::tileset::Tileset,
             ui::{font::Font, ui_image::UiImage, ui_text::UiText},
         },
-        legion_ext::{ScionResourcesExtension, ScionWorldExtension},
         resources::time::TimerType,
         scene::Scene,
     },
-    legion::{Entity, Resources, World},
 };
+use scion::core::world::World;
 
 use crate::{asset_path, resources::TetrisResource};
 
@@ -22,31 +20,28 @@ pub struct MainScene {
 }
 
 impl Scene for MainScene {
-    fn on_start(&mut self, world: &mut World, resources: &mut Resources) {
+    fn on_start(&mut self, world: &mut World) {
         add_main_ui_mask(world);
         add_ui_top_overflow(world);
         self.score = Some(add_score_ui(world));
         world.add_default_camera();
-        let _r = resources.timers().add_timer("piece", TimerType::Cyclic, 0.5);
-        let _r = resources.timers().add_timer("action_reset_timer", TimerType::Manual, 0.2);
+        let _r = world.timers().add_timer("piece", TimerType::Cyclic, 0.5);
+        let _r = world.timers().add_timer("action_reset_timer", TimerType::Manual, 0.2);
         let mut tetris = TetrisResource::default();
-        tetris.asset = Some(resources.assets().register_tileset(Tileset::new(
+        tetris.asset = Some(world.assets_mut().register_tileset(Tileset::new(
             asset_path().join("blocs.png").get(),
             8,
             1,
             32,
         )));
-        resources.insert(tetris);
+        world.insert_resource(tetris);
     }
 
-    fn on_update(&mut self, world: &mut World, resources: &mut Resources) {
-        let tetris = resources.get::<TetrisResource>().unwrap();
-        world
-            .entry(self.score.unwrap())
+    fn on_update(&mut self, world: &mut World) {
+        let score = world.get_resource::<TetrisResource>().unwrap().score;
+        world.entry_mut::<&mut UiText>(self.score.unwrap())
             .unwrap()
-            .get_component_mut::<UiText>()
-            .unwrap()
-            .set_text(format!("{:05}", tetris.score))
+            .set_text(format!("{:05}", score))
     }
 }
 

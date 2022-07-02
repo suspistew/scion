@@ -1,6 +1,5 @@
 use std::{collections::HashMap, marker::PhantomData};
 
-use legion::storage::Component;
 
 use crate::core::components::{material::Material, tiles::tileset::Tileset};
 
@@ -42,9 +41,7 @@ impl AssetManager {
 }
 
 #[derive(Clone)]
-pub struct AssetRef<T>(pub(crate) usize, PhantomData<T>)
-where
-    T: Component;
+pub struct AssetRef<T: Send + Sync>(pub(crate) usize, PhantomData<T>);
 
 #[cfg(test)]
 mod tests {

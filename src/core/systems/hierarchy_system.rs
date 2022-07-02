@@ -1,111 +1,106 @@
-use legion::{
-    system,
-    systems::CommandBuffer,
-    world::{EntityAccessError, SubWorld},
-    Entity, EntityStore, Query,
-};
+use std::collections::HashMap;
+use hecs::QueryOneError;
 
 use crate::core::components::maths::hierarchy::{Children, Parent};
 
 /// System responsible to add/modify Children components to the entities referenced by a Parent component
 /// If the parent component referenced by the Children one is not found, then it deletes the entity
 /// If an entity has a Children component referencing non existing children, then this system will remove these references
-#[system]
-pub(crate) fn children_manager(
-    world: &mut SubWorld,
-    cmd: &mut CommandBuffer,
-    query_parent: &mut Query<(Entity, &mut Parent)>,
-    query_children: &mut Query<(Entity, Option<&mut Children>)>,
-) {
-    let (mut w1, mut w2) = world.split_for_query(query_parent);
-    query_parent.for_each_mut(&mut w1, |(entity, parent)| {
-        match query_children.get_mut(&mut w2, parent.0) {
-            Ok((_, children_component)) => {
-                if let Some(children_component) = children_component {
-                    if !children_component.0.contains(entity) {
-                        children_component.0.push(*entity);
-                    }
-                } else {
-                    cmd.add_component(parent.0, Children(vec![*entity]))
+pub(crate) fn children_manager_system(world: &mut crate::core::world::World) {
+    let mut parents = fetch_parent_entities(world);
+    let mut component_to_add = HashMap::new();
+    let mut entities_to_remove = Vec::new();
+
+    parents.drain(0..).for_each(|(child_entity, parent_entity)|{
+        match world.entry_mut::<&mut Children>(parent_entity) {
+            Ok(children) => {
+                if !children.0.contains(&child_entity) {
+                    children.0.push(child_entity);
                 }
             }
             Err(e) => {
                 match e {
-                    EntityAccessError::AccessDenied => {
-                        cmd.add_component(parent.0, Children(vec![*entity]))
+                    QueryOneError::NoSuchEntity => {
+                        // If the parent has been removed, we delete any child linked to it
+                        entities_to_remove.push(child_entity);
                     }
-                    EntityAccessError::EntityNotFound => {
-                        cmd.remove(*entity);
+                    QueryOneError::Unsatisfied => {
+                        // If the parent hasn't the Children component, we add it to the buffer
+                        component_to_add.entry(parent_entity).or_insert(Vec::new()).push(child_entity);
                     }
-                };
-            }
-        }
-    });
-
-    query_children.for_each_mut(&mut w2, |(_e, p)| {
-        if let Some(p) = p {
-            let mut to_delete = Vec::new();
-            for (index, child) in p.0.iter().enumerate() {
-                if w1.entry_ref(*child).is_err() {
-                    to_delete.push(index);
                 }
             }
-            to_delete.reverse();
-            to_delete.iter().for_each(|index| {
-                p.0.remove(*index);
-            });
         }
     });
+    component_to_add.drain().for_each(|(e, children)| {
+        let _r = world.add_components(e, (Children(children),));
+    });
+    entities_to_remove.drain(0..).for_each(|e| {
+        let _r = world.remove(e);
+    });
+
+    let entities = world.entities();
+    for (_, c) in world.query_mut::<&mut Children>(){
+        c.0.retain(|e| entities.contains(e));
+    }
+}
+
+fn fetch_parent_entities(world: &mut crate::core::world::World) -> Vec<(hecs::Entity, hecs::Entity)> {
+    let mut res = Vec::new();
+    for (e, p) in world.query::<&Parent>().iter() {
+        res.push((e, p.0));
+    }
+    res
 }
 
 #[cfg(test)]
 mod tests {
-    use legion::{Entity, IntoQuery, Resources, Schedule, World};
 
     use super::*;
     use crate::core::components::maths::hierarchy::{Children, Parent};
+    use crate::core::world::World;
 
     #[test]
     fn children_manager_system_test_children_delete() {
         let mut world = World::default();
-        let mut resources = Resources::default();
-        let mut schedule = Schedule::builder().add_system(children_manager_system()).build();
 
-        let parent = world.push((1,));
-        let child = world.push((Parent(parent),));
-        let mut query = <(Entity, &Children)>::query();
+        let parent = world.push((1, ));
+        let child = world.push((Parent(parent), ));
 
         // First we test that the parent has no Children component
-        assert_eq!(true, query.get(&world, parent).is_err());
+        assert_eq!(true, world.entry::<&Children>(parent).unwrap().get().is_none());
 
-        // Then we execute the schedule and test that we have the good result
-        schedule.execute(&mut world, &mut resources);
-        assert_eq!(true, query.get(&mut world, parent).is_ok());
+        // Then we execute the system and test that we have the good result
+        children_manager_system(&mut world);
+
+        assert_eq!(true, world.entry::<&Children>(parent).unwrap().get().is_some());
 
         // Finally we delete the parent entity and check that after a schedule, the child entity is also deleted
-        world.remove(parent);
-        schedule.execute(&mut world, &mut resources);
-        assert_eq!(true, world.entry(child).is_none());
+        let _r = world.remove(parent);
+        children_manager_system(&mut world);
+
+        assert_eq!(true,  world.entry::<&Parent>(child).is_err());
     }
 
     #[test]
     fn children_manager_system_test_parent_clean() {
         let mut world = World::default();
-        let mut resources = Resources::default();
-        let mut schedule = Schedule::builder().add_system(children_manager_system()).build();
 
-        let child = world.push((1,));
+        let child = world.push((1, ));
         let parent = world.push((2, Children(vec![child])));
 
         // We check that we have the child
         assert_eq!(
             true,
-            world.entry(parent).unwrap().get_component::<Children>().unwrap().0.contains(&child)
+            world.entry::<&Children>(parent).unwrap().get().unwrap().0.contains(&child)
         );
-        world.remove(child);
+        let _r = world.remove(child);
 
         // we delete the child and then we execute the schedule and test that we have the good result
-        schedule.execute(&mut world, &mut resources);
-        assert_eq!(0, world.entry(parent).unwrap().get_component::<Children>().unwrap().0.len());
+        children_manager_system(&mut world);
+
+        assert_eq!(0, world.entry::<&Children>(parent).unwrap().get().unwrap().0.len());
     }
+
+
 }

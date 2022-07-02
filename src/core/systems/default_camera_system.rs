@@ -4,32 +4,32 @@ use crate::{
             camera::{Camera, DefaultCamera},
             transform::Transform,
         },
-        resources::window::Window,
     },
-    legion::{systems::CommandBuffer, *},
 };
 
 /// System responsible of adding a Camera on each entity with a DefaultCamera component
-#[system(for_each)]
-pub(crate) fn default_camera(
-    cmd: &mut CommandBuffer,
-    #[resource] window_dimension: &Window,
-    _c: &DefaultCamera,
-    entity: &Entity,
-) {
-    cmd.remove_component::<DefaultCamera>(*entity);
+pub(crate) fn default_camera_system(world: &mut crate::core::world::World) {
+    let default_entity =
+        world.query::<&DefaultCamera>().without::<&Camera>().iter().map(|(e, _d)| e).next();
 
-    let mut camera = Camera::new(
-        window_dimension.width() as f32 / window_dimension.dpi() as f32,
-        window_dimension.height() as f32 / window_dimension.dpi() as f32,
-    );
-    camera.dpi = window_dimension.dpi();
-    cmd.add_component(*entity, camera);
-    cmd.add_component(*entity, Transform::default());
+    let (subworld, resources) = world.split();
+
+    if let Some(e) = default_entity {
+        let window = resources.window();
+        let mut camera = Camera::new(
+            window.width() as f32 / window.dpi() as f32,
+            window.height() as f32 / window.dpi() as f32, );
+        camera.dpi = window.dpi();
+        let _r = subworld.add_components(e, (camera,));
+        let _r = subworld.add_components(e, (Transform::default(),));
+    }
 }
 
 /// System responsible of applying dpi to each camera
-#[system(for_each)]
-pub(crate) fn camera_dpi(#[resource] window_dimension: &Window, c: &mut Camera) {
-    c.dpi = window_dimension.dpi();
+pub(crate) fn camera_dpi_system(world: &mut crate::core::world::World){
+    let (subworld, resources) = world.split();
+    let window = resources.window();
+    for (_, camera) in subworld.query_mut::<&mut Camera>() {
+        camera.dpi = window.dpi();
+    }
 }

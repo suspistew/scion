@@ -25,10 +25,10 @@ mod systems;
 fn main() {
     Scion::app_with_config(app_config())
         .with_scene::<MainScene>()
-        .with_system(piece_update_system())
-        .with_system(move_piece_system())
-        .with_system(piece_rotation_system())
-        .with_system(score_system())
+        .with_system(piece_update_system)
+        .with_system(move_piece_system)
+        .with_system(piece_rotation_system)
+        .with_system(score_system)
         .run();
 }
 

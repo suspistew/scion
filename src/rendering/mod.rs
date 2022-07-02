@@ -1,7 +1,7 @@
 //! Everything that is relative to rendering to the window (Like renderable components, camera, transforms..)
 use std::ops::Range;
 
-use legion::{Resources, World};
+
 use scion2d::Scion2D;
 use wgpu::{
     util::BufferInitDescriptor, CommandEncoder, Device, Queue, SurfaceConfiguration, TextureView,
@@ -21,8 +21,7 @@ pub trait ScionRenderer {
     /// Will be called first, before render, each time the window request redraw.
     fn update(
         &mut self,
-        world: &mut World,
-        resources: &mut Resources,
+        internal_world: &mut crate::core::world::World,
         device: &Device,
         surface_config: &SurfaceConfiguration,
         queue: &mut Queue,
@@ -31,7 +30,7 @@ pub trait ScionRenderer {
     /// Will be called after render, each time the window request redraw.
     fn render(
         &mut self,
-        world: &mut World,
+        internal_world: &mut crate::core::world::World,
         config: &ScionConfig,
         texture_view: &TextureView,
         encoder: &mut CommandEncoder,

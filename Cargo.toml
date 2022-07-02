@@ -11,12 +11,12 @@ license = "MIT OR Apache-2.0"
 resolver = "2"
 
 [features]
-parallel = ["legion/parallel"]
 hot-reload = []
 
 [dependencies]
-legion = { version = "0.4", default-features = false, features = ["codegen"] }
 atomic_refcell = "0.1.6"
+hecs = "0.7"
+downcast-rs = "1.2.0"
 
 # window & rendering
 winit = "0.26"

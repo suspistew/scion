@@ -3,8 +3,7 @@ mod collisions_system;
 
 
 use std::{path::Path, str::from_utf8};
-
-use legion::IntoQuery;
+use hecs::Entity;
 
 
 use scion::{
@@ -24,14 +23,14 @@ use scion::{
         },
         scene::Scene,
     },
-    legion::{Entity, Resources, World},
     utils::file::{app_base_path, read_file},
     Scion,
 };
+use scion::core::world::World;
 
 use crate::{character_control_system::move_char_system, collisions_system::collider_system};
 
-pub const MAX_VELOCITY: i32 = 100;
+pub const MAX_VELOCITY: i32 = 10;
 
 #[derive(Default)]
 pub struct Hero {
@@ -47,7 +46,7 @@ pub struct MainScene {
 }
 
 impl Scene for MainScene {
-    fn on_start(&mut self, world: &mut World, _resources: &mut Resources) {
+    fn on_start(&mut self, world: &mut World) {
         add_background(world);
         self.hero = Some(add_character(world));
         self.map = add_level_data(world);
@@ -59,9 +58,8 @@ impl Scene for MainScene {
             Parent(self.hero.expect("Hero is mandatory")),
         ));
     }
-    fn late_update(&mut self, world: &mut World, _resources: &mut Resources) {
-        let hero =
-            <(&mut Hero, &mut Transform)>::query().get_mut(world, self.hero.unwrap()).unwrap();
+    fn late_update(&mut self, world: &mut World) {
+        let hero = world.entry_mut::<(&mut Hero, &mut Transform)>(self.hero.unwrap()).unwrap();
         if hero.0.velocity != 0 {
             hero.1.append_x(hero.0.velocity as f32 / MAX_VELOCITY as f32 * 2.5);
         }
@@ -175,7 +173,7 @@ fn main() {
             .get(),
     )
     .with_scene::<MainScene>()
-    .with_system(move_char_system())
-    .with_system(collider_system())
+    .with_system(move_char_system)
+    .with_system(collider_system)
     .run();
 }

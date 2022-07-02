@@ -1,4 +1,5 @@
-use legion::{system, systems::CommandBuffer, world::SubWorld, Entity, Query};
+use std::collections::HashSet;
+use hecs::{Entity};
 
 use crate::core::components::{
     maths::{coordinates::Coordinates, hierarchy::Parent, transform::Transform},
@@ -10,17 +11,14 @@ use crate::core::components::{
     },
 };
 
-/// System responsible to create/delete/update the entities linked to any ui_text with a bitmap font
-#[system]
-pub(crate) fn ui_text_bitmap_update(
-    world: &mut SubWorld,
-    cmd: &mut CommandBuffer,
-    query_ui_texts: &mut Query<(Entity, &mut UiText, &Transform)>,
-    query_ui_text_images: &mut Query<(Entity, &UiTextImage, &Parent)>,
-) {
-    let (mut world_1, world_2) = world.split_for_query(query_ui_texts);
-    query_ui_texts.iter_mut(&mut world_1).for_each(|(entity, ui_text, transform)| {
+pub (crate) fn ui_text_bitmap_update_system(world: &mut crate::core::world::World){
+
+    let mut parentToRemove: HashSet<Entity> = HashSet::new();
+    let mut toAdd: Vec<(UiTextImage, UiComponent, Transform, Parent)> = Vec::new();
+
+    for (e, (ui_text, transform)) in world.query_mut::<(&mut UiText, &Transform)>(){
         if ui_text.dirty {
+            parentToRemove.insert(e);
             let Font::Bitmap {
                 texture_path,
                 chars,
@@ -29,14 +27,9 @@ pub(crate) fn ui_text_bitmap_update(
                 texture_columns,
                 texture_lines,
             } = ui_text.font();
-
             let texture_width = texture_columns * width;
             let texture_height = texture_lines * height;
 
-            query_ui_text_images
-                .iter(&world_2)
-                .filter(|(_, _, parent)| parent.0 == *entity)
-                .for_each(|(e, _, _)| cmd.remove(*e));
             for (index, character) in ui_text.text().chars().enumerate() {
                 let (line, column) =
                     Font::find_line_and_column(&chars, *texture_columns, character);
@@ -62,7 +55,7 @@ pub(crate) fn ui_text_bitmap_update(
 
                 let mut char_transform = Transform::from_xy(index as f32 * (width + 1.), 0.);
                 char_transform.set_z(transform.translation().z());
-                cmd.push((
+                toAdd.push((
                     UiTextImage(UiImage::new_with_uv_map(
                         *width as f32,
                         *height as f32,
@@ -71,17 +64,26 @@ pub(crate) fn ui_text_bitmap_update(
                     )),
                     UiComponent,
                     char_transform,
-                    Parent(*entity),
+                    Parent(e),
                 ));
             }
             ui_text.dirty = false;
         }
+    }
+
+    let eToRemove = world.query::<(&UiTextImage, &Parent)>().iter()
+        .filter(|(_e, (_, p))| parentToRemove.contains(&p.0))
+        .map(|(e, _)| e).collect::<Vec<_>>();
+
+    eToRemove.iter().for_each(|e| { let _r = world.remove(*e); });
+
+    toAdd.drain(0..).for_each(|c| {
+        world.push(c);
     });
 }
 
 #[cfg(test)]
 mod tests {
-    use legion::{Entity, IntoQuery, Resources, Schedule, World};
 
     use super::*;
     use crate::core::components::{
@@ -91,6 +93,7 @@ mod tests {
             ui_text::{UiText, UiTextImage},
         },
     };
+    use crate::core::world::World;
 
     fn get_test_ui_text() -> UiText {
         // First we add an UiText to the world
@@ -109,26 +112,25 @@ mod tests {
     #[test]
     fn ui_text_without_transform_should_not_generate_ui_image() {
         let mut world = World::default();
-        let mut resources = Resources::default();
-        let mut schedule = Schedule::builder().add_system(ui_text_bitmap_update_system()).build();
+
 
         let _entity = world.push((get_test_ui_text(),));
-        schedule.execute(&mut world, &mut resources);
-        let vec: Vec<(&Entity, &UiTextImage)> =
-            <(Entity, &UiTextImage)>::query().iter(&world).collect();
-        assert_eq!(0, vec.len());
+
+        ui_text_bitmap_update_system(&mut world);
+
+        let cpt = world.query::<&UiTextImage>().iter().count();
+        assert_eq!(0, cpt);
     }
 
     #[test]
     fn ui_text_with_transform_should_generate_ui_image() {
         let mut world = World::default();
-        let mut resources = Resources::default();
-        let mut schedule = Schedule::builder().add_system(ui_text_bitmap_update_system()).build();
 
         let _entity = world.push((get_test_ui_text(), Transform::default()));
-        schedule.execute(&mut world, &mut resources);
-        let vec: Vec<(&Entity, &UiTextImage)> =
-            <(Entity, &UiTextImage)>::query().iter(&world).collect();
-        assert_eq!(3, vec.len());
+
+        ui_text_bitmap_update_system(&mut world);
+
+        let cpt  = world.query::<&UiTextImage>().iter().count();
+        assert_eq!(3, cpt);
     }
 }
