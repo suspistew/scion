@@ -13,12 +13,12 @@ use crate::core::components::{
 
 pub (crate) fn ui_text_bitmap_update_system(world: &mut crate::core::world::World){
 
-    let mut parentToRemove: HashSet<Entity> = HashSet::new();
-    let mut toAdd: Vec<(UiTextImage, UiComponent, Transform, Parent)> = Vec::new();
+    let mut parent_to_remove: HashSet<Entity> = HashSet::new();
+    let mut to_add: Vec<(UiTextImage, UiComponent, Transform, Parent)> = Vec::new();
 
     for (e, (ui_text, transform)) in world.query_mut::<(&mut UiText, &Transform)>(){
         if ui_text.dirty {
-            parentToRemove.insert(e);
+            parent_to_remove.insert(e);
             let Font::Bitmap {
                 texture_path,
                 chars,
@@ -55,7 +55,7 @@ pub (crate) fn ui_text_bitmap_update_system(world: &mut crate::core::world::Worl
 
                 let mut char_transform = Transform::from_xy(index as f32 * (width + 1.), 0.);
                 char_transform.set_z(transform.translation().z());
-                toAdd.push((
+                to_add.push((
                     UiTextImage(UiImage::new_with_uv_map(
                         *width as f32,
                         *height as f32,
@@ -71,13 +71,13 @@ pub (crate) fn ui_text_bitmap_update_system(world: &mut crate::core::world::Worl
         }
     }
 
-    let eToRemove = world.query::<(&UiTextImage, &Parent)>().iter()
-        .filter(|(_e, (_, p))| parentToRemove.contains(&p.0))
+    let entities_to_remove = world.query::<(&UiTextImage, &Parent)>().iter()
+        .filter(|(_e, (_, p))| parent_to_remove.contains(&p.0))
         .map(|(e, _)| e).collect::<Vec<_>>();
 
-    eToRemove.iter().for_each(|e| { let _r = world.remove(*e); });
+    entities_to_remove.iter().for_each(|e| { let _r = world.remove(*e); });
 
-    toAdd.drain(0..).for_each(|c| {
+    to_add.drain(0..).for_each(|c| {
         world.push(c);
     });
 }

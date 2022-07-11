@@ -1,5 +1,4 @@
 use std::{cfg, collections::HashMap, ops::Range, path::Path, time::SystemTime};
-use futures::StreamExt;
 use hecs::{Component, Entity};
 
 use wgpu::{
@@ -7,32 +6,27 @@ use wgpu::{
     RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView,
 };
 
-use crate::{
-    config::scion_config::ScionConfig,
-    core::{
-        components::{
-            color::Color,
-            material::{Material, Texture},
-            maths::{camera::Camera, transform::Transform},
-            shapes::{
-                line::Line, polygon::Polygon, rectangle::Rectangle, square::Square,
-                triangle::Triangle,
-            },
-            tiles::{
-                sprite::Sprite,
-                tilemap::{Tile, Tilemap},
-            },
-            ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
-            Hide, HidePropagated,
+use crate::{config::scion_config::ScionConfig, core::{
+    components::{
+        color::Color,
+        material::{Material, Texture},
+        maths::{camera::Camera, transform::Transform},
+        shapes::{
+            line::Line, polygon::Polygon, rectangle::Rectangle, square::Square,
+            triangle::Triangle,
         },
+        tiles::{
+            sprite::Sprite,
+            tilemap::{Tile, Tilemap},
+        },
+        ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
+        Hide, HidePropagated,
     },
-    rendering::{
-        gl_representations::{GlUniform, UniformData},
-        shaders::pipeline::pipeline,
-        Renderable2D, RenderableUi, ScionRenderer,
-    },
-    utils::file::{read_file_modification_time, FileReaderError},
-};
+}, rendering::{
+    gl_representations::{GlUniform, UniformData},
+    shaders::pipeline::pipeline,
+    Renderable2D, RenderableUi, ScionRenderer,
+}, utils::file::{read_file_modification_time, FileReaderError}};
 use crate::rendering::gl_representations::TexturedGlVertex;
 
 #[derive(Default)]
@@ -136,7 +130,7 @@ impl ScionRenderer for Scion2D {
     fn render(
         &mut self,
         internal_world: &mut crate::core::world::World,
-        _config: &ScionConfig,
+        config: &ScionConfig,
         texture_view: &TextureView,
         encoder: &mut CommandEncoder,
     ) {
@@ -154,7 +148,7 @@ impl ScionRenderer for Scion2D {
 
             rendering_infos.sort_by(|a, b| b.layer.cmp(&a.layer));
 
-            self.render_component(texture_view, encoder, rendering_infos);
+            self.render_component(config, texture_view,encoder, rendering_infos);
         }
     }
 }
@@ -193,7 +187,7 @@ impl Scion2D {
     }
 
     fn upsert_tilemaps_buffers(&mut self, internal_world: &mut crate::core::world::World, device: &&Device) {
-        let mut toModify: Vec<(Entity, [TexturedGlVertex; 4])> = Vec::new();
+        let mut to_modify: Vec<(Entity, [TexturedGlVertex; 4])> = Vec::new();
 
         for (entity, (_, material, _)) in internal_world.query::<(&mut Tilemap, &Material, &Transform)>().iter() {
             let tile_size = Material::tile_size(material).expect("");
@@ -210,7 +204,7 @@ impl Scion2D {
                 for (e, (tile, sprite)) in internal_world.query::<(&Tile, &Sprite)>().iter() {
                     if tile.tilemap == entity {
                         let res = sprite.compute_content(Some(material));
-                        toModify.push((e, res.clone()));
+                        to_modify.push((e, res.clone()));
                         let mut vec = res.to_vec();
                         vec.iter_mut().for_each(|gl_vertex| {
                             gl_vertex.position.append_position(
@@ -247,7 +241,7 @@ impl Scion2D {
             }
         }
 
-        for (e, vertexes) in toModify.drain(0..) {
+        for (e, vertexes) in to_modify.drain(0..) {
             internal_world.entry_mut::<&mut Sprite>(e).expect("").set_dirty(false);
             internal_world.entry_mut::<&mut Sprite>(e).expect("").set_content(vertexes);
         }
@@ -317,25 +311,14 @@ impl Scion2D {
 
     fn render_component(
         &mut self,
+        config: &ScionConfig,
         texture_view: &TextureView,
         encoder: &mut CommandEncoder,
         mut infos: Vec<RenderingInfos>,
     ) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: None,
-            color_attachments: &[wgpu::RenderPassColorAttachment {
-                view: texture_view,
-                resolve_target: None,
-                ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(wgpu::Color {
-                        r: 0.1,
-                        g: 0.2,
-                        b: 0.3,
-                        a: 1.0,
-                    }),
-                    store: true,
-                },
-            }],
+            color_attachments: &[get_default_color_attachment(texture_view, config)],
             depth_stencil_attachment: None,
         });
 
@@ -741,14 +724,6 @@ fn get_default_color_attachment<'a>(
             ),
             store: true,
         },
-    }
-}
-
-fn get_no_color_attachment(texture_view: &TextureView) -> RenderPassColorAttachment {
-    RenderPassColorAttachment {
-        view: texture_view,
-        resolve_target: None,
-        ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: true },
     }
 }
 

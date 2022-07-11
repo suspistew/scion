@@ -108,7 +108,7 @@ pub fn ball_control_system(world: &mut World) {
                     animations.stop_all_animation(true);
                     animations.loop_animation(direction.to_string().as_str());
                     ball.direction = Some(direction);
-                    audio_player.play(ball_bounce_effect(), PlayConfig::default());
+                    let _r = audio_player.play(ball_bounce_effect(), PlayConfig::default());
                 }
             }
         });

@@ -98,9 +98,9 @@ impl Scene for MainScene {
         if self.is_switching {
             let anim = world.entry_mut::<&mut Animations>(*self.fader.as_ref().unwrap()).unwrap();
             if !anim.any_animation_running() {
-                world.remove(self.tilemap.unwrap());
-                world.remove(self.player.unwrap());
-                world.remove(*self.fader.as_ref().unwrap());
+                let _r = world.remove(self.tilemap.unwrap());
+                let _r = world.remove(self.player.unwrap());
+                let _r = world.remove(*self.fader.as_ref().unwrap());
                 world.scene_controller().switch::<MainScene>();
             }
             return;

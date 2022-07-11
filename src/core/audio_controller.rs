@@ -40,7 +40,6 @@ pub(crate) fn audio_thread(controller: AudioController) {
                         drop(sink);
                     }
                 }
-                AudioEvent::StopAllSounds => {}
             }
         }
     }

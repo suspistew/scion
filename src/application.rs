@@ -177,7 +177,6 @@ pub struct ScionBuilder {
     renderer: RendererType,
     scene: Option<Box<dyn Scene>>,
     world: crate::core::world::World,
-    internal_world: crate::core::world::World,
 }
 
 impl ScionBuilder {
@@ -188,7 +187,6 @@ impl ScionBuilder {
             renderer: Default::default(),
             scene: Default::default(),
             world: Default::default(),
-            internal_world: Default::default(),
         };
         builder.with_package(InternalPackage)
     }
@@ -228,7 +226,7 @@ impl ScionBuilder {
 
     ///
     pub fn with_package<P: Package>(mut self, package: P) -> Self {
-        package.prepare(&mut self.internal_world);
+        package.prepare(&mut self.world);
         package.load(self)
     }
 
@@ -254,7 +252,7 @@ impl ScionBuilder {
 
         let mut scion = Scion {
             config: self.config,
-            internal_world: self.internal_world,
+            internal_world: self.world,
             scheduler: self.scheduler,
             layer_machine: SceneMachine { current_scene: self.scene },
             window: Some(window),

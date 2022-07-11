@@ -278,7 +278,7 @@ impl Scene for MainScene {
     }
 
     fn on_stop(&mut self, world: &mut World) {
-        world.remove(self.tilemap.unwrap());
+        let _r = world.remove(self.tilemap.unwrap());
         let mut to_delete: Vec<Entity> = {
             let mut res = Vec::new();
             for(e, _) in world.query::<&Line>().iter(){

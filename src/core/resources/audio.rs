@@ -44,17 +44,6 @@ pub enum Error {
     ImpossibleToLoadSound,
 }
 
-#[derive(Clone)]
-pub struct Sound {
-    pub(crate) file_path: String,
-}
-
-impl Sound {
-    pub fn new(file_path: String) -> Self {
-        Self { file_path }
-    }
-}
-
 /// `PlayConfig` describe how sound must be played
 pub struct PlayConfig {
     /// Volume of the sound (should be between 0 and 1)
@@ -72,8 +61,8 @@ impl Default for PlayConfig {
 }
 
 /// `AudioEvent` represents events send from the audio controller to the Audio Thread
+#[allow(dead_code)]
 pub(crate) enum AudioEvent {
     PlaySound { path: String, config: PlayConfig, sound_id: usize },
     StopSound { sound_id: usize },
-    StopAllSounds,
 }
