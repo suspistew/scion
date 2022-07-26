@@ -1,6 +1,7 @@
-use hecs::Entity;
 use bomb_system::explosion_system;
 use character_control_system::controller_system;
+use hecs::Entity;
+use scion::core::world::{GameData, World};
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
@@ -20,7 +21,6 @@ use scion::{
     utils::{file::app_base_path, maths::Dimensions},
     Scion,
 };
-use scion::core::world::World;
 
 use crate::level_reader::Level;
 
@@ -53,8 +53,8 @@ pub struct BombermanInfos {
 }
 
 impl Scene for MainScene {
-    fn on_start(&mut self, world: &mut World) {
-        let asset_ref = world.assets_mut().register_tileset(Tileset::new(
+    fn on_start(&mut self, data: &mut GameData) {
+        let asset_ref = data.assets_mut().register_tileset(Tileset::new(
             app_base_path().join("examples/bomberman/assets/sokoban_tilesheet.png").get(),
             13,
             9,
@@ -69,7 +69,7 @@ impl Scene for MainScene {
             asset_ref.clone(),
         );
 
-        let tilemap = Tilemap::create(tilemap_infos, world, |p| {
+        let tilemap = Tilemap::create(tilemap_infos, data, |p| {
             TileInfos::new(
                 Some(
                     *level
@@ -86,12 +86,15 @@ impl Scene for MainScene {
             )
         });
 
-        self.character = Some(world.push(create_char(asset_ref.clone(), &level)));
+        self.character = Some(data.push(create_char(asset_ref.clone(), &level)));
 
-        world.add_default_camera();
+        data.add_default_camera();
 
-        world.insert_resource(level);
-        world.insert_resource(BombermanRefs { tileset: Some(asset_ref), tilemap_entity: Some(tilemap) });
+        data.insert_resource(level);
+        data.insert_resource(BombermanRefs {
+            tileset: Some(asset_ref),
+            tilemap_entity: Some(tilemap),
+        });
     }
 }
 

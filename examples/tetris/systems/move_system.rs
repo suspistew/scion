@@ -1,21 +1,19 @@
-use scion::{
-    core::{
-        components::maths::transform::Transform,
-        resources::{
-            inputs::{inputs_controller::InputsController, types::KeyCode},
-            time::Timers,
-        },
+use scion::core::world::{GameData, World};
+use scion::core::{
+    components::maths::transform::Transform,
+    resources::{
+        inputs::{inputs_controller::InputsController, types::KeyCode},
+        time::Timers,
     },
 };
-use scion::core::world::World;
 
 use crate::{
     components::{Bloc, BlocKind, BLOC_SIZE, BOARD_WIDTH},
     resources::{TetrisResource, TetrisState},
 };
 
-pub fn move_piece_system(world: &mut World) {
-    let (subworld, resources) = world.split();
+pub fn move_piece_system(data: &mut GameData) {
+    let (subworld, resources) = data.split();
     let mut timers = resources.timers();
     let mut tetris = resources.get_resource_mut::<TetrisResource>().unwrap();
     let mut inputs = resources.inputs();

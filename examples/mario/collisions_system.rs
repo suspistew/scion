@@ -5,13 +5,14 @@ use scion::core::components::{
         transform::Transform,
     },
 };
-use scion::core::world::World;
+use scion::core::world::{GameData, World};
 
 use crate::Hero;
 
-pub(crate) fn collider_system(world: &mut World) {
-    for (_, (collider, hero, material, transform))
-    in world.query_mut::<(&mut Collider, &mut Hero, &mut Material, &Transform)>() {
+pub(crate) fn collider_system(data: &mut GameData) {
+    for (_, (collider, hero, material, transform)) in
+        data.query_mut::<(&mut Collider, &mut Hero, &mut Material, &Transform)>()
+    {
         if let Material::Color(_c) = material {
             collider.collisions().iter().for_each(|collision| match collision.mask() {
                 ColliderMask::Death => std::process::exit(0),

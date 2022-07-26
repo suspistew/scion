@@ -1,34 +1,35 @@
+use scion::core::world::{GameData, World};
 use scion::core::{
     components::{animations::Animations, maths::transform::Transform, tiles::sprite::Sprite},
-    resources::inputs::{types::KeyCode},
+    resources::inputs::types::KeyCode,
 };
-use scion::core::world::World;
 
 use crate::{bomb_animations, level_reader::Level, Bomb, BombermanInfos, BombermanRefs};
 
-pub fn controller_system(world: &mut World) {
-    let (world, resources) = world.split();
+pub fn controller_system(data: &mut GameData) {
+    let (world, resources) = data.split();
     let level_data = resources.get_resource_mut::<Level>().unwrap();
     let refs = resources.get_resource_mut::<BombermanRefs>().unwrap();
     let inputs = resources.inputs();
 
     let mut to_add = Vec::new();
 
-    for (_, (character, animations)) in world.query_mut::<(&mut BombermanInfos, &mut Animations)>(){
+    for (_, (character, animations)) in world.query_mut::<(&mut BombermanInfos, &mut Animations)>()
+    {
         let (posx, posy) = (character.pos_x, character.pos_y);
         if !animations.any_animation_running() {
             inputs.on_key_pressed(KeyCode::Right, || {
                 if level_data.pathing.get(posy).unwrap().get(posx + 1).unwrap() == &1
                     && level_data
-                    .tilemap
-                    .get(2)
-                    .unwrap()
-                    .values
-                    .get(posy)
-                    .unwrap()
-                    .get(posx + 1)
-                    .unwrap()
-                    == &0
+                        .tilemap
+                        .get(2)
+                        .unwrap()
+                        .values
+                        .get(posy)
+                        .unwrap()
+                        .get(posx + 1)
+                        .unwrap()
+                        == &0
                 {
                     character.pos_x += 1;
                     animations.run_animation("MOVE_RIGHT");
@@ -37,15 +38,15 @@ pub fn controller_system(world: &mut World) {
             inputs.on_key_pressed(KeyCode::Left, || {
                 if level_data.pathing.get(posy).unwrap().get(posx - 1).unwrap() == &1
                     && level_data
-                    .tilemap
-                    .get(2)
-                    .unwrap()
-                    .values
-                    .get(posy)
-                    .unwrap()
-                    .get(posx - 1)
-                    .unwrap()
-                    == &0
+                        .tilemap
+                        .get(2)
+                        .unwrap()
+                        .values
+                        .get(posy)
+                        .unwrap()
+                        .get(posx - 1)
+                        .unwrap()
+                        == &0
                 {
                     character.pos_x -= 1;
                     animations.run_animation("MOVE_LEFT");
@@ -54,15 +55,15 @@ pub fn controller_system(world: &mut World) {
             inputs.on_key_pressed(KeyCode::Up, || {
                 if level_data.pathing.get(posy - 1).unwrap().get(posx).unwrap() == &1
                     && level_data
-                    .tilemap
-                    .get(2)
-                    .unwrap()
-                    .values
-                    .get(posy - 1)
-                    .unwrap()
-                    .get(posx)
-                    .unwrap()
-                    == &0
+                        .tilemap
+                        .get(2)
+                        .unwrap()
+                        .values
+                        .get(posy - 1)
+                        .unwrap()
+                        .get(posx)
+                        .unwrap()
+                        == &0
                 {
                     character.pos_y -= 1;
                     animations.run_animation("MOVE_TOP");
@@ -71,15 +72,15 @@ pub fn controller_system(world: &mut World) {
             inputs.on_key_pressed(KeyCode::Down, || {
                 if level_data.pathing.get(posy + 1).unwrap().get(posx).unwrap() == &1
                     && level_data
-                    .tilemap
-                    .get(2)
-                    .unwrap()
-                    .values
-                    .get(posy + 1)
-                    .unwrap()
-                    .get(posx)
-                    .unwrap()
-                    == &0
+                        .tilemap
+                        .get(2)
+                        .unwrap()
+                        .values
+                        .get(posy + 1)
+                        .unwrap()
+                        .get(posx)
+                        .unwrap()
+                        == &0
                 {
                     character.pos_y += 1;
                     animations.run_animation("MOVE_BOTTOM");

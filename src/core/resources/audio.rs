@@ -15,14 +15,9 @@ impl Audio {
         let _sink = Sink::try_new(&stream_handle).unwrap();
         let (event_sender, receiver) = mpsc::channel();
 
-        std::thread::spawn(move || {
-            audio_controller::audio_thread(AudioController::new(receiver))
-        });
+        std::thread::spawn(move || audio_controller::audio_thread(AudioController::new(receiver)));
 
-        Audio {
-            event_sender,
-            sounds_cursor: 0,
-        }
+        Audio { event_sender, sounds_cursor: 0 }
     }
 
     /// Start to play the sound identified with `name`

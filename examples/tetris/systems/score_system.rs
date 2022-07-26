@@ -1,21 +1,19 @@
 use std::collections::HashMap;
 
-use scion::{
-    core::components::maths::transform::Transform,
-};
-use scion::core::world::World;
+use scion::core::components::maths::transform::Transform;
+use scion::core::world::{GameData, World};
 
 use crate::{
     components::{Bloc, BlocKind, BLOC_SIZE, BOARD_HEIGHT},
     resources::TetrisResource,
 };
 
-pub fn score_system(world: &mut World) {
+pub fn score_system(data: &mut GameData) {
     let mut lines = HashMap::new();
     for i in 1..=BOARD_HEIGHT {
         lines.insert(i as usize, 0);
     }
-    for (_, (bloc, transform)) in world.query_mut::<(&Bloc, &mut Transform)>() {
+    for (_, (bloc, transform)) in data.query_mut::<(&Bloc, &mut Transform)>() {
         match bloc.kind {
             BlocKind::Static => {
                 let line_idx = (transform.translation().y() / BLOC_SIZE) as usize;
@@ -33,7 +31,7 @@ pub fn score_system(world: &mut World) {
         let mut full_lines = Vec::new();
         for (line_idx, bloc_counter) in lines.iter() {
             if bloc_counter == &10 {
-                world.get_resource_mut::<TetrisResource>().unwrap().score += 1;
+                data.get_resource_mut::<TetrisResource>().unwrap().score += 1;
                 full_lines.push(*line_idx);
             }
         }
@@ -44,7 +42,7 @@ pub fn score_system(world: &mut World) {
     let mut to_remove = Vec::new();
 
     if !full_lines.is_empty() {
-        for (entity, (bloc, transform)) in world.query_mut::<(&Bloc, &mut Transform)>() {
+        for (entity, (bloc, transform)) in data.query_mut::<(&Bloc, &mut Transform)>() {
             match bloc.kind {
                 BlocKind::Static => {
                     let line_idx = (transform.translation().y() / BLOC_SIZE) as usize;
@@ -56,7 +54,7 @@ pub fn score_system(world: &mut World) {
             };
         }
         for full_line_idx in full_lines.iter() {
-            for (_, (bloc, transform)) in  world.query_mut::<(&Bloc, &mut Transform)>() {
+            for (_, (bloc, transform)) in data.query_mut::<(&Bloc, &mut Transform)>() {
                 match bloc.kind {
                     BlocKind::Static => {
                         let line_idx = (transform.translation().y() / BLOC_SIZE) as usize;
@@ -70,5 +68,7 @@ pub fn score_system(world: &mut World) {
         }
     }
 
-    to_remove.drain(0..).for_each(|e| {let _r = world.remove(e);});
+    to_remove.drain(0..).for_each(|e| {
+        let _r = data.remove(e);
+    });
 }

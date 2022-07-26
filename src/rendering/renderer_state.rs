@@ -1,7 +1,7 @@
-
-use wgpu::{SurfaceConfiguration};
+use wgpu::SurfaceConfiguration;
 use winit::{event::WindowEvent, window::Window};
 
+use crate::core::world::GameData;
 use crate::{config::scion_config::ScionConfig, rendering::ScionRenderer};
 
 pub(crate) struct RendererState {
@@ -30,7 +30,8 @@ impl RendererState {
                 .await
                 .expect("No suitable GPU adapters found on the system!");
 
-        let needed_limits = wgpu::Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits());
+        let needed_limits =
+            wgpu::Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits());
         let trace_dir = std::env::var("WGPU_TRACE");
         let (device, queue) = adapter
             .request_device(
@@ -46,7 +47,7 @@ impl RendererState {
 
         let w = window.inner_size();
 
-        let config = wgpu::SurfaceConfiguration {
+        let config = SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: surface.get_preferred_format(&adapter).unwrap(),
             width: w.width * window.scale_factor() as u32,
@@ -71,13 +72,13 @@ impl RendererState {
         false
     }
 
-    pub(crate) fn update(&mut self, internal_world: &mut crate::core::world::World) {
-        self.scion_renderer.update(internal_world, &self.device, &self.config, &mut self.queue);
+    pub(crate) fn update(&mut self, data: &mut GameData) {
+        self.scion_renderer.update(data, &self.device, &self.config, &mut self.queue);
     }
 
     pub(crate) fn render(
         &mut self,
-        internal_world: &mut crate::core::world::World,
+        data: &mut GameData,
         config: &ScionConfig,
     ) -> Result<(), wgpu::SurfaceError> {
         let frame = self.surface.get_current_texture()?;
@@ -86,7 +87,7 @@ impl RendererState {
         let mut encoder =
             self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
-        self.scion_renderer.render(internal_world, config, &view, &mut encoder);
+        self.scion_renderer.render(data, config, &view, &mut encoder);
 
         self.queue.submit(Some(encoder.finish()));
 

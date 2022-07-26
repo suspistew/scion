@@ -1,15 +1,12 @@
-
 use winit::event::WindowEvent;
 
-use crate::core::{
-    resources::inputs::{
-        mouse::MouseEvent,
-        types::{InputState, KeyCode, KeyboardEvent},
-    },
+use crate::core::resources::inputs::{
+    mouse::MouseEvent,
+    types::{InputState, KeyCode, KeyboardEvent},
 };
-use crate::core::world::World;
+use crate::core::world::GameData;
 
-pub fn update_input_events(window_event: &WindowEvent, world: &mut World) {
+pub fn update_input_events(window_event: &WindowEvent, data: &mut GameData) {
     match window_event {
         WindowEvent::KeyboardInput { input, .. } => {
             if let Some(keycode) = input.virtual_keycode {
@@ -17,7 +14,7 @@ pub fn update_input_events(window_event: &WindowEvent, world: &mut World) {
                     keycode: KeyCode::from(keycode),
                     state: InputState::from(input.state),
                 };
-                world.inputs().add_keyboard_event(k_event.clone());
+                data.inputs().add_keyboard_event(k_event.clone());
             }
         }
         WindowEvent::MouseInput { state, button, .. } => {
@@ -25,7 +22,7 @@ pub fn update_input_events(window_event: &WindowEvent, world: &mut World) {
                 button: crate::core::resources::inputs::types::MouseButton::from(*button),
                 state: InputState::from(*state),
             };
-            world.inputs().add_click_event(m_event);
+            data.inputs().add_click_event(m_event);
         }
         _ => {}
     };

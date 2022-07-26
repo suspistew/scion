@@ -1,16 +1,16 @@
+use crate::core::world::GameData;
 use std::collections::LinkedList;
-use crate::core::world::World;
 
 #[derive(Default)]
-pub(crate) struct Scheduler{
-    systems: LinkedList<fn(&mut World)>
+pub(crate) struct Scheduler {
+    systems: LinkedList<fn(&mut GameData)>,
 }
 
-impl Scheduler{
-    pub(crate) fn add_system(&mut self, system: fn(&mut World) ){
+impl Scheduler {
+    pub(crate) fn add_system(&mut self, system: fn(&mut GameData)) {
         self.systems.push_back(system);
     }
-    pub(crate) fn execute(&mut self, world: &mut World){
-        self.systems.iter().for_each(|s| s(world))
+    pub(crate) fn execute(&mut self, data: &mut GameData) {
+        self.systems.iter().for_each(|s| s(data))
     }
 }

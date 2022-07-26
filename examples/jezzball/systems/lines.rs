@@ -1,3 +1,4 @@
+use scion::core::world::{GameData, World};
 use scion::core::{
     components::{
         maths::{
@@ -6,19 +7,16 @@ use scion::core::{
         },
         shapes::rectangle::Rectangle,
     },
-    resources::{
-        time::{TimerType},
-    },
+    resources::time::TimerType,
 };
-use scion::core::world::World;
 
 use crate::main_scene::Line;
 use crate::main_scene::LineDirection;
 
 const LINE_SPEED: f32 = 4.;
 
-pub fn line_update_system(world: &mut World) {
-    let (world, resources) = world.split();
+pub fn line_update_system(data: &mut GameData) {
+    let (world, resources) = data.split();
     let mut timers = resources.timers();
     let mut events = resources.events();
 
@@ -26,8 +24,9 @@ pub fn line_update_system(world: &mut World) {
     let mut entities_to_remove = Vec::new();
     let mut collider_to_add = Vec::new();
 
-    for (entity, (line, transform, rectangle, collider))
-    in world.query_mut::<(&Line, &mut Transform, &mut Rectangle, &Collider)>() {
+    for (entity, (line, transform, rectangle, collider)) in
+        world.query_mut::<(&Line, &mut Transform, &mut Rectangle, &Collider)>()
+    {
         let timer_name = format!("{:?}_line", entity);
         let timer_str = timer_name.as_str();
         if !timers.exists(timer_str) {
@@ -52,7 +51,11 @@ pub fn line_update_system(world: &mut World) {
             }
 
             if collider.is_colliding() {
-                if collider.collisions().iter().filter(|e| e.mask() == &ColliderMask::Bullet).count()
+                if collider
+                    .collisions()
+                    .iter()
+                    .filter(|e| e.mask() == &ColliderMask::Bullet)
+                    .count()
                     > 0
                 {
                     entities_to_remove.push(entity);

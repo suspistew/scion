@@ -1,5 +1,5 @@
-use std::fmt::{Display, Formatter};
 use hecs::Entity;
+use std::fmt::{Display, Formatter};
 
 use rand::{thread_rng, Rng};
 use scion::core::components::color::Color;
@@ -8,22 +8,20 @@ use scion::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
 use scion::core::resources::events::topic::TopicConfiguration;
 use scion::core::resources::events::{PollConfiguration, SubscriberId};
 
-use scion::{
-    core::{
-        components::{
-            material::Material,
-            maths::{
-                collider::{Collider, ColliderMask, ColliderType},
-                transform::Transform,
-            },
-            tiles::{sprite::Sprite, tileset::Tileset},
+use scion::core::world::{GameData, SubWorld, World};
+use scion::core::{
+    components::{
+        material::Material,
+        maths::{
+            collider::{Collider, ColliderMask, ColliderType},
+            transform::Transform,
         },
-        resources::{asset_manager::AssetRef},
-        scene::Scene,
+        tiles::{sprite::Sprite, tileset::Tileset},
     },
+    resources::asset_manager::AssetRef,
+    scene::Scene,
 };
 use winit::window::CursorIcon;
-use scion::core::world::{EntityWorld, World};
 
 use crate::utils::{ball_animations, ball_asset, cases_asset};
 use scion::utils::maths::{Dimensions, Position, Vector};
@@ -92,12 +90,13 @@ impl Default for MainScene {
 }
 
 impl Scene for MainScene {
-    fn on_start(&mut self, world: &mut World) {
-        self.tilemap = Some(add_tilemap(world));
-        let (world, resources) = world.split();
+    fn on_start(&mut self, data: &mut GameData) {
+        self.tilemap = Some(add_tilemap(data));
+        let (world, resources) = data.split();
         world.add_default_camera();
 
-        let ball_asset = resources.assets_mut().register_tileset(Tileset::new(ball_asset(), 4, 4, 28));
+        let ball_asset =
+            resources.assets_mut().register_tileset(Tileset::new(ball_asset(), 4, 4, 28));
         let assets = JezzBallAssets { ball_asset };
 
         // Creating the level
@@ -112,18 +111,16 @@ impl Scene for MainScene {
         resources.window().set_cursor(CursorIcon::NResize);
         resources.insert_resource(assets);
 
-
         let _r = resources.events().create_topic("TILEMAP_UPDATE", TopicConfiguration::default());
         self.subscriber_id = Some(
             resources.events().subscribe("TILEMAP_UPDATE", PollConfiguration::default()).unwrap(),
         );
     }
 
-    fn on_update(&mut self, world: &mut World) {
+    fn on_update(&mut self, data: &mut GameData) {
         let mut to_modify = Vec::new();
         let mut modified = false;
-        world
-            .events()
+        data.events()
             .poll::<(usize, usize, usize, usize)>(&self.subscriber_id.as_ref().unwrap())
             .unwrap()
             .into_iter()
@@ -136,11 +133,12 @@ impl Scene for MainScene {
                 }
             });
         to_modify.drain(0..).for_each(|e| {
-            Tilemap::modify_sprite_tile_with_world(world, self.tilemap.unwrap(), e.0, e.1);
+            Tilemap::modify_sprite_tile(data, self.tilemap.unwrap(), e.0, e.1);
         });
         if modified {
-
-            let ball_pos: Vec<(usize, usize)> = world.query::<(&Ball, &Transform)>().iter()
+            let ball_pos: Vec<(usize, usize)> = data
+                .query::<(&Ball, &Transform)>()
+                .iter()
                 .map(|(_, (_b, t))| {
                     (
                         (t.translation().x() as usize - 10) / 16,
@@ -152,11 +150,11 @@ impl Scene for MainScene {
             let mut pathfinded_cases = [[false; 38]; 68];
             ball_pos.iter().for_each(|(pos_x, pos_y)| {
                 let mut visited = [[false; 38]; 68];
-                pathfind_from((*pos_x, *pos_y), world, self.tilemap.unwrap(), &mut visited).iter().for_each(
-                    |e| {
+                pathfind_from((*pos_x, *pos_y), data, self.tilemap.unwrap(), &mut visited)
+                    .iter()
+                    .for_each(|e| {
                         pathfinded_cases[e.0][e.1] = true;
-                    },
-                );
+                    });
             });
 
             let mut open = 0;
@@ -164,7 +162,7 @@ impl Scene for MainScene {
                 for j in 0..38 {
                     if !pathfinded_cases[i][j] {
                         let tmp_pos = Position::new(i, j, 0);
-                        Tilemap::modify_sprite_tile_with_world(world, self.tilemap.unwrap(), tmp_pos, 2);
+                        Tilemap::modify_sprite_tile(data, self.tilemap.unwrap(), tmp_pos, 2);
                     } else {
                         open += 1;
                     }
@@ -172,25 +170,25 @@ impl Scene for MainScene {
             }
 
             if open < 150 {
-                world.scene_controller().switch::<MainScene>();
+                data.scene_controller().switch::<MainScene>();
             }
         }
         let mut change_mouse_state = false;
-        let mouse_pos = world.inputs().mouse_xy();
-        if !self.compute_mouse_on_border(mouse_pos, world) {
-            world.inputs().on_right_click_released(|_pos_x, _pos_y| change_mouse_state = true);
+        let mouse_pos = data.inputs().mouse_xy();
+        if !self.compute_mouse_on_border(mouse_pos, data) {
+            data.inputs().on_right_click_released(|_pos_x, _pos_y| change_mouse_state = true);
             if change_mouse_state {
                 let new_icon = self.compute_new_icon();
-                world.window().set_cursor(new_icon);
+                data.window().set_cursor(new_icon);
             } else {
                 if self.mouse_state != CursorState::ROW && self.mouse_state != CursorState::COLUMN {
                     self.mouse_state = self.state_before_border.as_ref().unwrap().clone();
                     self.state_before_border = None;
-                    self.change_cursor(world);
+                    self.change_cursor(data);
                 }
             }
         }
-        let (world, resources) = world.split();
+        let (world, resources) = data.split();
         resources.inputs().on_left_click_pressed(|pos_x, pos_y| {
             let len = world.query::<&Rectangle>().iter().len();
 
@@ -277,54 +275,50 @@ impl Scene for MainScene {
         });
     }
 
-    fn on_stop(&mut self, world: &mut World) {
-        let _r = world.remove(self.tilemap.unwrap());
+    fn on_stop(&mut self, data: &mut GameData) {
+        let _r = data.remove(self.tilemap.unwrap());
         let mut to_delete: Vec<Entity> = {
             let mut res = Vec::new();
-            for(e, _) in world.query::<&Line>().iter(){
+            for (e, _) in data.query::<&Line>().iter() {
                 res.push(e);
             }
             res
         };
         to_delete.drain(0..).for_each(|e| {
-            let _r = world.remove(e);
+            let _r = data.remove(e);
         });
     }
 }
 
 impl MainScene {
-    fn compute_mouse_on_border(
-        &mut self,
-        mouse_pos: (f64, f64),
-        world: &mut World,
-    ) -> bool {
+    fn compute_mouse_on_border(&mut self, mouse_pos: (f64, f64), data: &mut GameData) -> bool {
         let (x, y) = mouse_pos;
         if x < 11. {
             if self.state_before_border.is_none() {
                 self.state_before_border = Some(self.mouse_state.clone())
             };
-            world.window().set_cursor(CursorIcon::EResize);
+            data.window().set_cursor(CursorIcon::EResize);
             self.mouse_state = CursorState::LEFT;
             true
         } else if x > 1097. {
             if self.state_before_border.is_none() {
                 self.state_before_border = Some(self.mouse_state.clone())
             };
-            world.window().set_cursor(CursorIcon::WResize);
+            data.window().set_cursor(CursorIcon::WResize);
             self.mouse_state = CursorState::RIGHT;
             true
         } else if y < 11. {
             if self.state_before_border.is_none() {
                 self.state_before_border = Some(self.mouse_state.clone())
             };
-            world.window().set_cursor(CursorIcon::SResize);
+            data.window().set_cursor(CursorIcon::SResize);
             self.mouse_state = CursorState::TOP;
             true
         } else if y > 618. {
             if self.state_before_border.is_none() {
                 self.state_before_border = Some(self.mouse_state.clone())
             };
-            world.window().set_cursor(CursorIcon::NResize);
+            data.window().set_cursor(CursorIcon::NResize);
             self.mouse_state = CursorState::BOTTOM;
             true
         } else {
@@ -341,8 +335,8 @@ impl MainScene {
         CursorIcon::RowResize
     }
 
-    fn change_cursor(&self, world: &mut World) {
-        let mut window = world.window();
+    fn change_cursor(&self, data: &mut GameData) {
+        let mut window = data.window();
         window.set_cursor(match self.mouse_state {
             CursorState::TOP => CursorIcon::NResize,
             CursorState::BOTTOM => CursorIcon::NResize,
@@ -353,7 +347,7 @@ impl MainScene {
         })
     }
 }
-pub fn init_balls(world: &mut EntityWorld, assets: &JezzBallAssets) {
+pub fn init_balls(world: &mut SubWorld, assets: &JezzBallAssets) {
     let x = thread_rng().gen_range(10..58) as f32;
     let y = thread_rng().gen_range(5..33) as f32;
 
@@ -379,7 +373,7 @@ pub fn init_balls(world: &mut EntityWorld, assets: &JezzBallAssets) {
     ));
 }
 
-fn add_border(world: &mut EntityWorld) {
+fn add_border(world: &mut SubWorld) {
     world.push((
         Transform::from_xy(2.0, 0.),
         Collider::new(
@@ -419,7 +413,7 @@ fn add_border(world: &mut EntityWorld) {
 
 fn pathfind_from(
     pos: (usize, usize),
-    world: &mut World,
+    data: &mut GameData,
     tilemap: Entity,
     visited: &mut [[bool; 38]; 68],
 ) -> Vec<(usize, usize)> {
@@ -428,11 +422,15 @@ fn pathfind_from(
     sides.iter().for_each(|side_pos| {
         if !visited[side_pos.0][side_pos.1] {
             visited[side_pos.0][side_pos.1] = true;
-            let sprite = Tilemap::retrieve_sprite_tile(world, tilemap, &Position::new(side_pos.0, side_pos.1, 0))
-                .unwrap_or(2);
+            let sprite = Tilemap::retrieve_sprite_tile(
+                data,
+                tilemap,
+                &Position::new(side_pos.0, side_pos.1, 0),
+            )
+            .unwrap_or(2);
             if sprite != 2 {
                 res.push(side_pos.clone());
-                let mut recursive_call_result = pathfind_from(*side_pos, world, tilemap, visited);
+                let mut recursive_call_result = pathfind_from(*side_pos, data, tilemap, visited);
                 res.append(&mut recursive_call_result);
             }
         }
@@ -461,14 +459,14 @@ fn compute_sides(pos: (usize, usize)) -> Vec<(usize, usize)> {
     res
 }
 
-fn add_tilemap(world: &mut World) -> Entity {
-    let cases_asset = world.assets_mut().register_tileset(Tileset::new(cases_asset(), 3, 2, 16));
+fn add_tilemap(data: &mut GameData) -> Entity {
+    let cases_asset = data.assets_mut().register_tileset(Tileset::new(cases_asset(), 3, 2, 16));
     let infos = TilemapInfo::new(
         Dimensions::new(68, 38, 1),
         Transform::from_xyz(10., 10., 10),
         cases_asset,
     );
-    Tilemap::create(infos, world, |position| {
+    Tilemap::create(infos, data, |position| {
         let line = position.y() % 2;
         let column = position.x() % 2;
         TileInfos::new(Some(line * 3 + column), None)

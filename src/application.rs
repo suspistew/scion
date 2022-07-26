@@ -10,22 +10,21 @@ use winit::{
 use crate::core::package::Package;
 use crate::core::resources::time::Time;
 use crate::core::scene::{Scene, SceneAction, SceneMachine};
-use crate::core::systems::InternalPackage;
-use crate::{
-    config::scion_config::{ScionConfig, ScionConfigReader},
-    core::{
-        event_handler::update_input_events,
-    },
-    rendering::{renderer_state::RendererState, RendererType},
-};
 use crate::core::scheduler::Scheduler;
 use crate::core::systems::collider_systems::collider_cleaner_system;
+use crate::core::systems::InternalPackage;
+use crate::core::world::GameData;
+use crate::{
+    config::scion_config::{ScionConfig, ScionConfigReader},
+    core::event_handler::update_input_events,
+    rendering::{renderer_state::RendererState, RendererType},
+};
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
     #[allow(dead_code)]
     config: ScionConfig,
-    internal_world: crate::core::world::World,
+    game_data: GameData,
     scheduler: Scheduler,
     layer_machine: SceneMachine,
     window: Option<Window>,
@@ -62,15 +61,12 @@ impl Scion {
 
     fn setup(&mut self) {
         self.initialize_internal_resources();
-        self.layer_machine.apply_scene_action(
-            SceneAction::Start,
-            &mut self.internal_world,
-        );
+        self.layer_machine.apply_scene_action(SceneAction::Start, &mut self.game_data);
     }
 
     fn initialize_internal_resources(&mut self) {
         let window = self.window.as_ref().expect("No window found during setup");
-        self.internal_world.insert_resource(crate::core::resources::window::Window::new(
+        self.game_data.insert_resource(crate::core::resources::window::Window::new(
             (window.inner_size().width, window.inner_size().height),
             window.scale_factor(),
         ));
@@ -87,7 +83,7 @@ impl Scion {
                     match event {
                         WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                         WindowEvent::Resized(physical_size) => {
-                            self.internal_world
+                            self.game_data
                                 .window()
                                 .set_dimensions(physical_size.width, physical_size.height);
                             self.renderer.as_mut().unwrap().resize(
@@ -109,7 +105,7 @@ impl Scion {
                                 .current_monitor()
                                 .expect("Missing the monitor")
                                 .scale_factor();
-                            self.internal_world.inputs().set_mouse_position(
+                            self.game_data.inputs().set_mouse_position(
                                 position.x / dpi_factor,
                                 position.y / dpi_factor,
                             );
@@ -117,19 +113,18 @@ impl Scion {
                         _ => {}
                     }
 
-                    update_input_events(event, &mut self.internal_world);
+                    update_input_events(event, &mut self.game_data);
                 }
                 Event::MainEventsCleared => {
                     self.next_frame();
-                    self.layer_machine.apply_scene_action(
-                        SceneAction::EndFrame,
-                        &mut self.internal_world,
-                    );
+                    self.layer_machine
+                        .apply_scene_action(SceneAction::EndFrame, &mut self.game_data);
                     self.window.as_mut().unwrap().request_redraw();
                 }
                 Event::RedrawRequested(_) => {
-                    self.renderer.as_mut().unwrap().update(&mut self.internal_world);
-                    match self.renderer.as_mut().unwrap().render(&mut self.internal_world, &self.config) {
+                    self.renderer.as_mut().unwrap().update(&mut self.game_data);
+                    match self.renderer.as_mut().unwrap().render(&mut self.game_data, &self.config)
+                    {
                         Ok(_) => {}
                         Err(e) => log::error!("{:?}", e),
                     }
@@ -141,30 +136,24 @@ impl Scion {
 
     fn next_frame(&mut self) {
         let frame_duration = self
-            .internal_world
+            .game_data
             .get_resource_mut::<Time>()
             .expect("Time is an internal resource and can't be missing")
             .frame();
-        self.internal_world.timers().add_delta_duration(frame_duration);
-        self.layer_machine.apply_scene_action(
-            SceneAction::Update,
-            &mut self.internal_world,
-        );
-        self.scheduler.execute(&mut self.internal_world);
-        self.layer_machine.apply_scene_action(
-            SceneAction::LateUpdate,
-            &mut self.internal_world,
-        );
+        self.game_data.timers().add_delta_duration(frame_duration);
+        self.layer_machine.apply_scene_action(SceneAction::Update, &mut self.game_data);
+        self.scheduler.execute(&mut self.game_data);
+        self.layer_machine.apply_scene_action(SceneAction::LateUpdate, &mut self.game_data);
         {
-            let mut window = self.internal_world.window();
+            let mut window = self.game_data.window();
             if let Some(icon) = window.new_cursor() {
                 let w = self.window.as_mut().expect("A window is mandatory to run this game !");
                 w.set_cursor_icon(*icon);
                 window.reset_new_cursor();
             }
         }
-        self.internal_world.inputs().reset_inputs();
-        self.internal_world.events().cleanup();
+        self.game_data.inputs().reset_inputs();
+        self.game_data.events().cleanup();
     }
 }
 
@@ -176,7 +165,7 @@ pub struct ScionBuilder {
     scheduler: Scheduler,
     renderer: RendererType,
     scene: Option<Box<dyn Scene>>,
-    world: crate::core::world::World,
+    world: GameData,
 }
 
 impl ScionBuilder {
@@ -207,7 +196,7 @@ impl ScionBuilder {
     ///
     /// 2. Using complex system builder , see [legion system builder documentation](https://docs.rs/legion/latest/legion/struct.SystemBuilder.html)
     /// for more precisions.
-    pub fn with_system(mut self, system: fn(&mut crate::core::world::World)) -> Self {
+    pub fn with_system(mut self, system: fn(&mut GameData)) -> Self {
         self.scheduler.add_system(system);
         self
     }
@@ -246,13 +235,11 @@ impl ScionBuilder {
         self.add_late_internal_systems_to_schedule();
 
         let renderer = self.renderer.into_boxed_renderer();
-        let renderer_state = futures::executor::block_on(
-            RendererState::new(&window, renderer),
-        );
+        let renderer_state = futures::executor::block_on(RendererState::new(&window, renderer));
 
         let mut scion = Scion {
             config: self.config,
-            internal_world: self.world,
+            game_data: self.world,
             scheduler: self.scheduler,
             layer_machine: SceneMachine { current_scene: self.scene },
             window: Some(window),

@@ -1,16 +1,17 @@
-use hecs::Component;
 use crate::core::components::ui::UiComponent;
+use crate::core::world::{GameData, World};
+use hecs::Component;
 
 /// System responsible to add the UiComponent to any T missing its uiComponent
-pub(crate) fn missing_ui_component_system<T: Component>(world: &mut crate::core::world::World){
+pub(crate) fn missing_ui_component_system<T: Component>(data: &mut GameData) {
     let mut to_add = Vec::new();
     {
-        for (e, _) in world.query::<&T>().without::<&UiComponent>().iter() {
+        for (e, _) in data.query::<&T>().without::<&UiComponent>().iter() {
             to_add.push(e);
         }
     }
-    to_add.drain(0..).for_each(|e|{
-        let _r = world.add_components(e, (UiComponent,));
+    to_add.drain(0..).for_each(|e| {
+        let _r = data.add_components(e, (UiComponent,));
     });
 }
 
@@ -23,7 +24,7 @@ mod tests {
 
     #[test]
     fn missing_ui_comp_system_test() {
-        let mut world = World::default();
+        let mut world = GameData::default();
 
         let e = world.push((UiImage::new(1., 1., "".to_string()),));
 
