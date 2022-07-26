@@ -1,6 +1,5 @@
 use std::{collections::HashMap, marker::PhantomData};
 
-
 use crate::core::components::{material::Material, tiles::tileset::Tileset};
 
 /// `AssetManager` is resource that will link assets to an asset ref to allow reusability of assets
@@ -49,8 +48,6 @@ mod tests {
         components::{color::Color, material::Material, tiles::tileset::Tileset},
         resources::asset_manager::AssetManager,
     };
-    
-    
 
     #[test]
     fn register_material_test() {

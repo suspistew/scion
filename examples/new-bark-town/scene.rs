@@ -1,5 +1,5 @@
-use std::time::Duration;
 use hecs::Entity;
+use std::time::Duration;
 
 use scion::core::components::animations::{Animation, AnimationModifier, Animations};
 use scion::core::components::color::Color;
@@ -15,12 +15,12 @@ use scion::core::resources::audio::PlayConfig;
 use scion::core::resources::inputs::types::KeyCode;
 use scion::core::resources::time::TimerType;
 use scion::core::scene::Scene;
-use scion::core::world::{Resources, World};
+use scion::core::world::{GameData, Resources, World};
 use scion::utils::file::app_base_path;
 use scion::utils::maths::{Dimensions, Position};
 
 use crate::animations;
-use crate::animations::{switch_scene_animation};
+use crate::animations::switch_scene_animation;
 use crate::level_reader::read_level;
 
 pub struct GlobalResource {
@@ -60,13 +60,13 @@ pub struct MainScene {
 }
 
 impl Scene for MainScene {
-    fn on_start(&mut self, world: &mut World) {
-        if !world.contains_resource::<GlobalResource>() {
-            world.insert_resource(GlobalResource::default());
-            let _r = world.timers().add_timer("SceneSwitch", TimerType::Manual, 0.5);
-            play_music(world);
+    fn on_start(&mut self, data: &mut GameData) {
+        if !data.contains_resource::<GlobalResource>() {
+            data.insert_resource(GlobalResource::default());
+            let _r = data.timers().add_timer("SceneSwitch", TimerType::Manual, 0.5);
+            play_music(data);
         }
-        self.fader = Some(world.push((
+        self.fader = Some(data.push((
             Rectangle::new(384., 336., None),
             TransformBuilder::new().with_translation(0., 0., 10).with_screen_as_origin().build(),
             Material::Color(Color::new(255, 255, 255, 1.)),
@@ -74,7 +74,7 @@ impl Scene for MainScene {
         )));
 
         let (level, start_x, start_y, direction) = {
-            let global_resource = world.get_resource_mut::<GlobalResource>().unwrap();
+            let global_resource = data.get_resource_mut::<GlobalResource>().unwrap();
             (
                 format!(
                     "examples/new-bark-town/assets/scenes/{}.json",
@@ -86,32 +86,34 @@ impl Scene for MainScene {
             )
         };
 
-        let tilemap = self.load_map(level, world);
+        let tilemap = self.load_map(level, data);
         self.tilemap = Some(tilemap);
-        let char = add_character(world, start_x, start_y, &direction);
+        let char = add_character(data, start_x, start_y, &direction);
         let camera_transform = Transform::from_xy(-192., -168.);
-        world.push((Camera::new(384., 336.), camera_transform, Parent(char)));
+        data.push((Camera::new(384., 336.), camera_transform, Parent(char)));
         self.player = Some(char);
     }
 
-    fn on_update(&mut self, world: &mut World) {
+    fn on_update(&mut self, data: &mut GameData) {
         if self.is_switching {
-            let anim = world.entry_mut::<&mut Animations>(*self.fader.as_ref().unwrap()).unwrap();
+            let anim = data.entry_mut::<&mut Animations>(*self.fader.as_ref().unwrap()).unwrap();
             if !anim.any_animation_running() {
-                let _r = world.remove(self.tilemap.unwrap());
-                let _r = world.remove(self.player.unwrap());
-                let _r = world.remove(*self.fader.as_ref().unwrap());
-                world.scene_controller().switch::<MainScene>();
+                let _r = data.remove(self.tilemap.unwrap());
+                let _r = data.remove(self.player.unwrap());
+                let _r = data.remove(*self.fader.as_ref().unwrap());
+                data.scene_controller().switch::<MainScene>();
             }
             return;
         }
 
-        if !world.timers().get_timer("SceneSwitch").unwrap().ended() {
+        if !data.timers().get_timer("SceneSwitch").unwrap().ended() {
             return;
         }
 
         let (pos_x, pos_y, delta_x, delta_y) = {
-            let transform = world.entry_mut::<&mut Transform>(self.player.unwrap()).expect("Player is mandatory");
+            let transform = data
+                .entry_mut::<&mut Transform>(self.player.unwrap())
+                .expect("Player is mandatory");
             (
                 transform.translation().x() as usize / 48,
                 transform.translation().y() as usize / 48,
@@ -120,51 +122,48 @@ impl Scene for MainScene {
             )
         };
 
-
-        let (world, resources) = world.split();
+        let (world, resources) = data.split();
         let (left, right, top, bottom) = {
             (
                 pos_x > 0
-                    && Tilemap::
-                retrieve_pathing(
-                    world,
-                    self.tilemap.unwrap(),
-                    &Position::new(pos_x - 1, pos_y, 0),
-                    &resources.assets(),
-                )
+                    && Tilemap::retrieve_pathing(
+                        world,
+                        self.tilemap.unwrap(),
+                        &Position::new(pos_x - 1, pos_y, 0),
+                        &resources.assets(),
+                    )
                     .is_some(),
                 pos_x < self.current_width - 1
-                    && Tilemap::
-                retrieve_pathing(
-                    world,
-                    self.tilemap.unwrap(),
-                    &Position::new(pos_x + 1, pos_y, 0),
-                    &resources.assets(),
-                )
+                    && Tilemap::retrieve_pathing(
+                        world,
+                        self.tilemap.unwrap(),
+                        &Position::new(pos_x + 1, pos_y, 0),
+                        &resources.assets(),
+                    )
                     .is_some(),
                 pos_y > 0
-                    && Tilemap::
-                retrieve_pathing(
-                    world,
-                    self.tilemap.unwrap(),
-                    &Position::new(pos_x, pos_y - 1, 0),
-                    &resources.assets(),
-                )
+                    && Tilemap::retrieve_pathing(
+                        world,
+                        self.tilemap.unwrap(),
+                        &Position::new(pos_x, pos_y - 1, 0),
+                        &resources.assets(),
+                    )
                     .is_some(),
                 pos_y < self.current_height - 1
-                    && Tilemap::
-                retrieve_pathing(
-                    world,
-                    self.tilemap.unwrap(),
-                    &Position::new(pos_x, pos_y + 1, 0),
-                    &resources.assets(),
-                )
+                    && Tilemap::retrieve_pathing(
+                        world,
+                        self.tilemap.unwrap(),
+                        &Position::new(pos_x, pos_y + 1, 0),
+                        &resources.assets(),
+                    )
                     .is_some(),
             )
         };
 
         {
-            let player = world.entry_mut::<&mut MainCharacter>(self.player.unwrap()).expect("Player is mandatory");
+            let player = world
+                .entry_mut::<&mut MainCharacter>(self.player.unwrap())
+                .expect("Player is mandatory");
             player.left = left;
             player.right = right;
             player.top = top;
@@ -185,7 +184,9 @@ impl Scene for MainScene {
                         e.properties().get("direction").unwrap().to_string(),
                     );
                     {
-                        let mut level = resources.get_resource_mut::<GlobalResource>().expect("Global resource is mandatory");
+                        let mut level = resources
+                            .get_resource_mut::<GlobalResource>()
+                            .expect("Global resource is mandatory");
                         level.level = level_name;
                         level.start_x = target_x;
                         level.start_y = target_y;
@@ -207,8 +208,8 @@ impl Scene for MainScene {
 }
 
 impl MainScene {
-    fn load_map(&mut self, level: String, world: &mut World) -> Entity {
-        let asset_ref = world.assets_mut().register_tileset(
+    fn load_map(&mut self, level: String, data: &mut GameData) -> Entity {
+        let asset_ref = data.assets_mut().register_tileset(
             Tileset::from_atlas("examples/new-bark-town/assets/nbt_atlas.json").unwrap(),
         );
         let mut level = read_level(level.as_str());
@@ -222,15 +223,15 @@ impl MainScene {
 
         self.current_width = level.map.width;
         self.current_height = level.map.height;
-        Tilemap::create(tilemap_infos, world, |p| {
+        Tilemap::create(tilemap_infos, data, |p| {
             TileInfos::new(Some(level.map.tile_at(p)), get_animation_for_tile(level.map.tile_at(p)))
                 .with_event(level.event_at(p))
         })
     }
 }
 
-fn play_music(world: &mut World) {
-    let _r = world
+fn play_music(data: &mut GameData) {
+    let _r = data
         .audio()
         .play(new_bark_town_theme(), PlayConfig { volume: 0.2, looped: true, category: None });
 }
@@ -278,12 +279,12 @@ fn get_animation_for_tile(i: usize) -> Option<Animation> {
 }
 
 fn add_character(
-    world: &mut World,
+    data: &mut GameData,
     start_x: usize,
     start_y: usize,
     direction: &String,
 ) -> Entity {
-    let asset_ref = world.assets_mut().register_tileset(Tileset::new(
+    let asset_ref = data.assets_mut().register_tileset(Tileset::new(
         "examples/new-bark-town/assets/character.png".to_string(),
         10,
         8,
@@ -293,7 +294,7 @@ fn add_character(
     if direction.eq("BOTTOM") {
         animations.run_animation("MOVE_BOTTOM");
     }
-    world.push((
+    data.push((
         TransformBuilder::new()
             .with_translation(start_x as f32 * 16. * 3., start_y as f32 * 16. * 3., 2)
             .with_scale(3.)

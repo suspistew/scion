@@ -1,24 +1,25 @@
-use hecs::Component;
+use crate::core::world::{GameData, World};
 use crate::core::{
     components::material::Material,
     resources::asset_manager::{AssetManager, AssetRef},
 };
+use hecs::Component;
 
 pub(crate) trait AssetResolverFn<T: Component> {
     fn resolve(manager: &AssetManager, asset_ref: &AssetRef<T>) -> T;
 }
 
 /// System responsible to add an asset of type T to each entity with an assetRef<T>
-pub(crate) fn asset_ref_resolver_system<T: Component, F: AssetResolverFn<T>>(world: &mut crate::core::world::World){
+pub(crate) fn asset_ref_resolver_system<T: Component, F: AssetResolverFn<T>>(data: &mut GameData) {
     let mut to_add = Vec::new();
     {
-        let asset_manager = world.assets();
-        for (e, asset_ref) in world.query::<&AssetRef<T>>().without::<&T>().iter() {
-            to_add.push((e, (F::resolve(&asset_manager, asset_ref) )));
+        let asset_manager = data.assets();
+        for (e, asset_ref) in data.query::<&AssetRef<T>>().without::<&T>().iter() {
+            to_add.push((e, (F::resolve(&asset_manager, asset_ref))));
         }
     }
-    to_add.drain(0..).for_each(|(e, a)|{
-        let _r = world.add_components(e, (a,));
+    to_add.drain(0..).for_each(|(e, a)| {
+        let _r = data.add_components(e, (a,));
     });
 }
 
@@ -33,16 +34,16 @@ impl AssetResolverFn<Material> for MaterialAssetResolverFn {
 mod tests {
 
     use super::*;
+    use crate::core::world::World;
     use crate::core::{
         components::{color::Color, material::Material},
         resources::asset_manager::AssetManager,
         systems::asset_ref_resolver_system::MaterialAssetResolverFn,
     };
-    use crate::core::world::World;
 
     #[test]
     fn asset_ref_resolver_material_system_test() {
-        let mut world = World::default();
+        let mut world = GameData::default();
 
         let mut manager = AssetManager::default();
         let asset_ref = manager.register_material(Material::Color(Color::new(1, 1, 1, 1.)));

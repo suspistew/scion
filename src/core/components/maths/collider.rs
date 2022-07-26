@@ -1,6 +1,6 @@
-use hecs::Entity;
 use crate::core::components::maths::{coordinates::Coordinates, transform::Transform};
 use crate::utils::maths::Vector;
+use hecs::Entity;
 
 struct RectangleColliderInfo<'a> {
     width: &'a usize,

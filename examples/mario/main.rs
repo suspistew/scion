@@ -1,11 +1,10 @@
 mod character_control_system;
 mod collisions_system;
 
-
-use std::{path::Path, str::from_utf8};
 use hecs::Entity;
+use std::{path::Path, str::from_utf8};
 
-
+use scion::core::world::{GameData, World};
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
@@ -26,7 +25,6 @@ use scion::{
     utils::file::{app_base_path, read_file},
     Scion,
 };
-use scion::core::world::World;
 
 use crate::{character_control_system::move_char_system, collisions_system::collider_system};
 
@@ -46,20 +44,20 @@ pub struct MainScene {
 }
 
 impl Scene for MainScene {
-    fn on_start(&mut self, world: &mut World) {
-        add_background(world);
-        self.hero = Some(add_character(world));
-        self.map = add_level_data(world);
+    fn on_start(&mut self, data: &mut GameData) {
+        add_background(data);
+        self.hero = Some(add_character(data));
+        self.map = add_level_data(data);
         let mut camera_transform = Transform::from_xy(-202., -320.);
         camera_transform.set_global_translation_bounds(Some(0.), Some(2060.), Some(0.), Some(0.));
-        world.push((
+        data.push((
             Camera::new(500., 640.),
             camera_transform,
             Parent(self.hero.expect("Hero is mandatory")),
         ));
     }
-    fn late_update(&mut self, world: &mut World) {
-        let hero = world.entry_mut::<(&mut Hero, &mut Transform)>(self.hero.unwrap()).unwrap();
+    fn late_update(&mut self, data: &mut GameData) {
+        let hero = data.entry_mut::<(&mut Hero, &mut Transform)>(self.hero.unwrap()).unwrap();
         if hero.0.velocity != 0 {
             hero.1.append_x(hero.0.velocity as f32 / MAX_VELOCITY as f32 * 2.5);
         }
@@ -94,20 +92,20 @@ impl Scene for MainScene {
     }
 }
 
-fn add_level_data(world: &mut World) -> Vec<Vec<usize>> {
+fn add_level_data(data: &mut GameData) -> Vec<Vec<usize>> {
     let file = read_file(Path::new(&app_base_path().join("examples/mario/assets/level.csv").get()))
         .unwrap_or_default();
     let csv = from_utf8(file.as_slice()).expect("no");
-    let data: Vec<Vec<usize>> = csv
+    let level_data: Vec<Vec<usize>> = csv
         .split("\r\n")
         .map(|e| e.split(',').map(|f| f.parse::<usize>().unwrap()).collect())
         .collect();
-    for (i, line) in data.iter().enumerate() {
+    for (i, line) in level_data.iter().enumerate() {
         for (j, val) in line.iter().enumerate() {
             let t = Transform::from_xy(j as f32 * 64., i as f32 * 64.);
             match *val {
                 0 => {
-                    world.push((
+                    data.push((
                         t,
                         Collider::new(
                             ColliderMask::Death,
@@ -117,7 +115,7 @@ fn add_level_data(world: &mut World) -> Vec<Vec<usize>> {
                     ));
                 }
                 2 => {
-                    world.push((
+                    data.push((
                         t,
                         Collider::new(
                             ColliderMask::Landscape,
@@ -127,7 +125,7 @@ fn add_level_data(world: &mut World) -> Vec<Vec<usize>> {
                     ));
                 }
                 3 => {
-                    world.push((
+                    data.push((
                         t,
                         Collider::new(
                             ColliderMask::Custom("Win".to_string()),
@@ -140,20 +138,20 @@ fn add_level_data(world: &mut World) -> Vec<Vec<usize>> {
             }
         }
     }
-    data
+    level_data
 }
 
-fn add_background(world: &mut World) {
+fn add_background(data: &mut GameData) {
     let background = (
         Rectangle::new(2560., 640., None),
         Material::Texture(app_base_path().join("examples/mario/assets/level.png").get()),
         Transform::from_xyz(0., 0., 1),
     );
-    world.push(background);
+    data.push(background);
 }
 
-fn add_character(world: &mut World) -> Entity {
-    world.push((
+fn add_character(data: &mut GameData) -> Entity {
+    data.push((
         Hero { velocity: 0, gravity: 1, landed: false },
         Collider::new(
             ColliderMask::Character,

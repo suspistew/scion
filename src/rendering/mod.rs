@@ -1,12 +1,12 @@
 //! Everything that is relative to rendering to the window (Like renderable components, camera, transforms..)
 use std::ops::Range;
 
-
 use scion2d::Scion2D;
 use wgpu::{
     util::BufferInitDescriptor, CommandEncoder, Device, Queue, SurfaceConfiguration, TextureView,
 };
 
+use crate::core::world::GameData;
 use crate::{config::scion_config::ScionConfig, core::components::material::Material};
 
 pub(crate) mod gl_representations;
@@ -21,7 +21,7 @@ pub trait ScionRenderer {
     /// Will be called first, before render, each time the window request redraw.
     fn update(
         &mut self,
-        internal_world: &mut crate::core::world::World,
+        data: &mut GameData,
         device: &Device,
         surface_config: &SurfaceConfiguration,
         queue: &mut Queue,
@@ -30,7 +30,7 @@ pub trait ScionRenderer {
     /// Will be called after render, each time the window request redraw.
     fn render(
         &mut self,
-        internal_world: &mut crate::core::world::World,
+        data: &mut GameData,
         config: &ScionConfig,
         texture_view: &TextureView,
         encoder: &mut CommandEncoder,

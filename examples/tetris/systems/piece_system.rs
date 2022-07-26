@@ -1,19 +1,15 @@
-use scion::{
-    core::{
-        components::{maths::transform::Transform, tiles::sprite::Sprite},
-    },
-};
 use scion::core::components::material::Material;
+use scion::core::components::{maths::transform::Transform, tiles::sprite::Sprite};
 use scion::core::resources::asset_manager::AssetRef;
-use scion::core::world::World;
+use scion::core::world::{GameData, World};
 
 use crate::{
     components::{Bloc, BlocKind, NextBloc, BLOC_SIZE, BOARD_HEIGHT, BOARD_OFFSET},
     resources::{TetrisResource, TetrisState},
 };
 
-pub fn piece_update_system(world: &mut World) {
-    let (world, resources) = world.split();
+pub fn piece_update_system(data: &mut GameData) {
+    let (world, resources) = data.split();
 
     let mut timers = resources.timers();
     let mut tetris = resources.get_resource_mut::<TetrisResource>().unwrap();
@@ -29,7 +25,7 @@ pub fn piece_update_system(world: &mut World) {
                 tetris.switch_to_next_piece();
                 for (e, _) in world.query::<&NextBloc>().iter() {
                     to_remove.push(e);
-                };
+                }
                 let offsets = tetris.next_piece.get_current_offsets();
                 for offset in offsets {
                     to_add.push(initialize_bloc(&offset, &mut tetris, 12., 2., true));
@@ -92,11 +88,13 @@ pub fn piece_update_system(world: &mut World) {
         }
     }
 
-    to_remove.drain(0..).for_each(|e| { let _r = world.remove(e); });
+    to_remove.drain(0..).for_each(|e| {
+        let _r = world.remove(e);
+    });
     to_add.drain(0..).for_each(|comps| {
         if comps.3 {
             let _r = world.push((comps.0, comps.1, comps.2, NextBloc));
-        }else{
+        } else {
             let _r = world.push((comps.0, comps.1, comps.2, Bloc::new(BlocKind::Moving)));
         }
     });

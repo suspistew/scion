@@ -1,22 +1,16 @@
-use scion::{
-    core::{
-        components::maths::transform::Transform,
-        resources::{
-            inputs::{
-                inputs_controller::InputsController,
-                types::{KeyCode},
-            },
-            time::{TimerType},
-        },
+use scion::core::world::{GameData, World};
+use scion::core::{
+    components::maths::transform::Transform,
+    resources::{
+        inputs::{inputs_controller::InputsController, types::KeyCode},
+        time::TimerType,
     },
 };
-use scion::core::world::World;
 
 use crate::{Hero, MAX_VELOCITY};
 
-pub fn move_char_system(world: &mut World) {
-
-    let (world, resources) = world.split();
+pub fn move_char_system(data: &mut GameData) {
+    let (world, resources) = data.split();
     let mut timers = resources.timers();
     let inputs = resources.inputs();
 
@@ -32,10 +26,10 @@ pub fn move_char_system(world: &mut World) {
 
     if input_velocity != 0 {
         let timer = timers.get_timer("input").expect("Missing timer : input");
-        for (_, (hero, _)) in world.query_mut::<(&mut Hero, &mut Transform)>(){
+        for (_, (hero, _)) in world.query_mut::<(&mut Hero, &mut Transform)>() {
             if timer.ended()
                 && ((input_velocity > 0 && hero.velocity < MAX_VELOCITY)
-                || (input_velocity < 0 && hero.velocity > -1 * MAX_VELOCITY))
+                    || (input_velocity < 0 && hero.velocity > -1 * MAX_VELOCITY))
             {
                 hero.velocity += input_velocity * 40;
                 hero.landed = false;
@@ -44,7 +38,7 @@ pub fn move_char_system(world: &mut World) {
         }
     } else {
         let timer = timers.get_timer("input").expect("Missing timer : input");
-        for (_, (hero, _)) in world.query_mut::<(&mut Hero, &mut Transform)>(){
+        for (_, (hero, _)) in world.query_mut::<(&mut Hero, &mut Transform)>() {
             if timer.ended() && hero.velocity != 0 {
                 hero.landed = false;
                 hero.velocity += {
@@ -60,15 +54,15 @@ pub fn move_char_system(world: &mut World) {
     }
 
     if jump {
-        for (_, (hero, _)) in world.query_mut::<(&mut Hero, &mut Transform)>(){
+        for (_, (hero, _)) in world.query_mut::<(&mut Hero, &mut Transform)>() {
             if hero.landed {
                 hero.gravity -= 30;
                 hero.landed = false;
             }
-        };
+        }
     } else {
         let timer = timers.get_timer("gravity").expect("Missing timer : gravity");
-        for (_, (hero, _)) in world.query_mut::<(&mut Hero, &mut Transform)>(){
+        for (_, (hero, _)) in world.query_mut::<(&mut Hero, &mut Transform)>() {
             if !hero.landed {
                 if timer.ended() {
                     timer.reset();
@@ -77,7 +71,7 @@ pub fn move_char_system(world: &mut World) {
             } else {
                 hero.gravity = 0;
             }
-        };
+        }
     }
 }
 

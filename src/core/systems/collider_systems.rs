@@ -11,27 +11,31 @@ use crate::core::components::{
     },
     shapes::polygon::Polygon,
 };
+use crate::core::world::{GameData, World};
 
-pub(crate) fn collider_cleaner_system(world: &mut crate::core::world::World) {
-    for (_, c) in world.query_mut::<&mut Collider>() {
+pub(crate) fn collider_cleaner_system(data: &mut GameData) {
+    for (_, c) in data.query_mut::<&mut Collider>() {
         c.clear_collisions();
     }
 }
 
 /// System responsible to compute collision between colliders, following the mask filters
-pub(crate) fn compute_collisions_system(world: &mut crate::core::world::World) {
+pub(crate) fn compute_collisions_system(data: &mut GameData) {
     let mut res: HashMap<hecs::Entity, Vec<Collision>> = HashMap::default();
 
     {
         let colliders: Vec<(hecs::Entity, Transform, Collider)> = {
             let mut res = Vec::new();
-            for (e,(t,c)) in world.query::<(&Transform, &Collider)>().iter(){
-                res.push((e, t.clone(),c.clone()));
+            for (e, (t, c)) in data.query::<(&Transform, &Collider)>().iter() {
+                res.push((e, t.clone(), c.clone()));
             }
             res
         };
 
-        let mut colliders_by_mask: HashMap<ColliderMask, Vec<(hecs::Entity, &Transform, &Collider)>, > = HashMap::default();
+        let mut colliders_by_mask: HashMap<
+            ColliderMask,
+            Vec<(hecs::Entity, &Transform, &Collider)>,
+        > = HashMap::default();
 
         colliders.iter().for_each(|(e, t, c)| {
             colliders_by_mask.entry(c.mask().clone()).or_insert_with(|| Vec::new()).push((*e, t, c))
@@ -41,7 +45,9 @@ pub(crate) fn compute_collisions_system(world: &mut crate::core::world::World) {
         colliders.iter().for_each(|(entity, transform, collider)| {
             collider.filters().iter().filter(|mask| colliders_by_mask.contains_key(mask)).for_each(
                 |mask| {
-                    colliders_by_mask.get(mask).expect("Impossible to find a collider's entry")
+                    colliders_by_mask
+                        .get(mask)
+                        .expect("Impossible to find a collider's entry")
                         .iter()
                         .filter(|(_e, t, c)| {
                             cpt += 1;
@@ -54,23 +60,23 @@ pub(crate) fn compute_collisions_system(world: &mut crate::core::world::World) {
                                 coordinates: t.global_translation().clone(),
                             });
                         })
-                }
+                },
             );
         });
     }
 
     res.drain().for_each(|(e, mut collisions)| {
-        world.entry_mut::<&mut Collider>(e)
+        data.entry_mut::<&mut Collider>(e)
             .expect("Collisions on unreachable collider")
             .add_collisions(&mut collisions);
     });
 }
 
 /// System responsible to add a `ColliderDebug` component to each colliders that are in debug mode
-pub(crate) fn debug_colliders_system(world: &mut crate::core::world::World){
-    let collider_debug: HashSet<hecs::Entity> = fetch_collider_debug_entities(world);
+pub(crate) fn debug_colliders_system(data: &mut GameData) {
+    let collider_debug: HashSet<hecs::Entity> = fetch_collider_debug_entities(data);
     let mut debug_lines_to_add = Vec::new();
-    for (entity, (_, collider)) in world.query_mut::<(&Transform, &mut Collider)>(){
+    for (entity, (_, collider)) in data.query_mut::<(&Transform, &mut Collider)>() {
         if collider.debug_lines() && !collider_debug.contains(&entity) {
             let (width, height) = match collider.collider_type() {
                 ColliderType::Square(size) => (*size as f32, *size as f32),
@@ -93,14 +99,14 @@ pub(crate) fn debug_colliders_system(world: &mut crate::core::world::World){
         }
     }
 
-    debug_lines_to_add.drain(0..).for_each(|components|{
-        world.push(components);
+    debug_lines_to_add.drain(0..).for_each(|components| {
+        data.push(components);
     });
 }
 
-fn fetch_collider_debug_entities(world: &mut crate::core::world::World) -> HashSet<hecs::Entity> {
+fn fetch_collider_debug_entities(data: &mut GameData) -> HashSet<hecs::Entity> {
     let mut res = HashSet::new();
-    for (e, _) in world.query::<&ColliderDebug>().iter() {
+    for (e, _) in data.query::<&ColliderDebug>().iter() {
         res.insert(e);
     }
     res
@@ -114,10 +120,11 @@ mod tests {
         collider::{Collider, ColliderMask, ColliderType, Collision},
         transform::Transform,
     };
+    use crate::core::world::GameData;
 
     #[test]
     fn clear_collision_system_test() {
-        let mut world = crate::core::world::World::default();
+        let mut world = GameData::default();
 
         let mut t = Transform::default();
         t.append_x(1.0);
@@ -142,7 +149,7 @@ mod tests {
 
     #[test]
     fn compute_collision_system_test() {
-        let mut world = crate::core::world::World::default();
+        let mut world = GameData::default();
 
         let mut t = Transform::default();
         t.append_x(1.0);
@@ -167,13 +174,12 @@ mod tests {
         compute_collisions_system(&mut world);
 
         assert_eq!(0, world.entry::<&Collider>(e).unwrap().get().unwrap().collisions().len());
-;
-        assert_eq!(1,  world.entry::<&Collider>(e2).unwrap().get().unwrap().collisions().len());
+        assert_eq!(1, world.entry::<&Collider>(e2).unwrap().get().unwrap().collisions().len());
     }
 
     #[test]
     fn debug_colliders_system_test() {
-        let mut world = crate::core::world::World::default();
+        let mut world = GameData::default();
 
         let _collider = world.push((
             Transform::default(),
@@ -185,7 +191,4 @@ mod tests {
         let res = world.query::<(&ColliderDebug, &Parent)>().iter().count();
         assert_eq!(1, res);
     }
-
-
-
 }

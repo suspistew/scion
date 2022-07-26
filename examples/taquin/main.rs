@@ -1,3 +1,4 @@
+use scion::core::world::{GameData, World};
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
@@ -10,8 +11,6 @@ use scion::{
     utils::file::app_base_path,
     Scion,
 };
-use scion::core::world::World;
-
 
 #[derive(Debug)]
 struct Case(Coordinates);
@@ -56,12 +55,12 @@ impl Taquin {
     }
 }
 
-fn taquin_system(world: &mut World) {
-    let (subworld, resources) = world.split();
+fn taquin_system(data: &mut GameData) {
+    let (world, resources) = data.split();
     let inputs = resources.inputs();
     let mut taquin = resources.get_resource_mut::<Taquin>().unwrap();
 
-    for(_, (case, transform)) in subworld.query_mut::<(&mut Case, &mut Transform)>() {
+    for (_, (case, transform)) in world.query_mut::<(&mut Case, &mut Transform)>() {
         inputs.on_left_click_pressed(|mouse_x, mouse_y| {
             if mouse_x > (case.0.x() * 192.) as f64
                 && mouse_y > (case.0.y() * 192.) as f64
@@ -96,8 +95,8 @@ fn taquin_system(world: &mut World) {
 struct MainScene;
 
 impl Scene for MainScene {
-    fn on_start(&mut self, world: &mut World) {
-        let tileset_ref = world.assets_mut().register_tileset(Tileset::new(
+    fn on_start(&mut self, data: &mut GameData) {
+        let tileset_ref = data.assets_mut().register_tileset(Tileset::new(
             app_base_path().join("examples/taquin/assets/taquin.png").get(),
             4,
             4,
@@ -112,13 +111,13 @@ impl Scene for MainScene {
                         Sprite::new(line * 4 + column),
                         Case(Coordinates::new(column as f32, line as f32)),
                     );
-                    world.push(square);
+                    data.push(square);
                 }
             }
         }
-        world.add_default_camera();
+        data.add_default_camera();
 
-        world.insert_resource(Taquin::new());
+        data.insert_resource(Taquin::new());
     }
 }
 

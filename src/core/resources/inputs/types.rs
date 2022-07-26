@@ -129,7 +129,7 @@ pub type Shortcut = Vec<Input>;
 
 #[cfg(test)]
 mod tests {
-    
+
     use crate::core::resources::inputs::inputs_controller::InputsController;
 
     #[test]

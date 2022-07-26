@@ -1,22 +1,20 @@
 use std::collections::HashMap;
 
-
-
-
 use crate::core::components::maths::{
     hierarchy::{Children, Parent},
     transform::Transform,
 };
+use crate::core::world::{GameData, World};
 
 /// System responsible of detecting when a transform's global coords should be computed again
 /// based on the fact that the transform is flagged as dirty_child (IE when it's added to a parent)
-pub(crate) fn dirty_child_system(world: &mut crate::core::world::World){
+pub(crate) fn dirty_child_system(data: &mut GameData) {
     let mut parent_to_check = Vec::new();
-    for (child_entity, (t, p)) in world.query_mut::<(&mut Transform, Option<&Parent>)>() {
-        if t.dirty_child{
+    for (child_entity, (t, p)) in data.query_mut::<(&mut Transform, Option<&Parent>)>() {
+        if t.dirty_child {
             match p {
                 None => t.dirty_child = false,
-                Some(parent) => parent_to_check.push((child_entity, parent.0))
+                Some(parent) => parent_to_check.push((child_entity, parent.0)),
             }
         }
     }
@@ -24,7 +22,7 @@ pub(crate) fn dirty_child_system(world: &mut crate::core::world::World){
     // GET all the parents that needs to be checked
     let mut parents_transform = HashMap::new();
     for (_, parent) in parent_to_check.iter() {
-        if let Some(parent_transform) = world.entry::<&Transform>(*parent).unwrap().get() {
+        if let Some(parent_transform) = data.entry::<&Transform>(*parent).unwrap().get() {
             parents_transform.insert(*parent, parent_transform.clone());
         }
     }
@@ -33,7 +31,7 @@ pub(crate) fn dirty_child_system(world: &mut crate::core::world::World){
         let mut tmp_vec = parent_to_check.clone();
         parent_to_check.clear();
         while let Some((child, parent)) = tmp_vec.pop() {
-            match world.entry_mut::<&mut Transform>(child){
+            match data.entry_mut::<&mut Transform>(child) {
                 Ok(child_transform) => {
                     if parents_transform.contains_key(&parent) {
                         let parent_transform = parents_transform.get(&parent).unwrap();
@@ -53,28 +51,29 @@ pub(crate) fn dirty_child_system(world: &mut crate::core::world::World){
                         parents_transform.insert(child, child_transform.clone());
                     }
                 }
-                Err(_) => panic!("Error while retrieving child transform during internal system")
+                Err(_) => panic!("Error while retrieving child transform during internal system"),
             }
         }
     }
-
 }
 
 /// System responsible of detecting when a child transform should be computed again based on any parent
 /// transform modification
-pub(crate) fn dirty_transform_system(world: &mut crate::core::world::World){
+pub(crate) fn dirty_transform_system(data: &mut GameData) {
     let mut first_iter = true;
     let mut transform_entities: Vec<(Transform, Vec<hecs::Entity>)> = Vec::new();
     while first_iter || !transform_entities.is_empty() {
         first_iter = false;
         while let Some((transform, entities)) = transform_entities.pop() {
             for entity in entities {
-                if let Ok(child_transform) = world.entry_mut::<&mut Transform>(entity){
+                if let Ok(child_transform) = data.entry_mut::<&mut Transform>(entity) {
                     child_transform.compute_global_from_parent(transform.global_translation())
                 }
             }
         }
-        for (_, (parent_transform, children)) in world.query_mut::<(&mut Transform, Option<&Children>)>(){
+        for (_, (parent_transform, children)) in
+            data.query_mut::<(&mut Transform, Option<&Children>)>()
+        {
             if let Some(children) = children {
                 if parent_transform.dirty {
                     transform_entities.push((parent_transform.clone(), children.0.clone()));
@@ -83,19 +82,18 @@ pub(crate) fn dirty_transform_system(world: &mut crate::core::world::World){
             parent_transform.dirty = false;
         }
     }
-
 }
 
 #[cfg(test)]
 mod tests {
 
     use super::*;
-    use crate::core::{components::maths::hierarchy::Parent, systems::hierarchy_system::*};
     use crate::core::world::World;
+    use crate::core::{components::maths::hierarchy::Parent, systems::hierarchy_system::*};
 
     #[test]
     fn dirty_parent_transform_test() {
-        let mut world = World::default();
+        let mut world = GameData::default();
 
         let parent_transform = Transform::from_xy(1., 1.);
         let child_transform = Transform::from_xy(1., 1.);
@@ -106,7 +104,7 @@ mod tests {
 
         for (_, t) in world.query::<&Transform>().iter() {
             assert_eq!(false, t.dirty);
-        };
+        }
 
         children_manager_system(&mut world);
         dirty_child_system(&mut world);
@@ -114,23 +112,11 @@ mod tests {
 
         assert_eq!(
             1.,
-            world
-                .entry::<&Transform>(parent)
-                .unwrap()
-                .get()
-                .unwrap()
-                .global_translation
-                .x()
+            world.entry::<&Transform>(parent).unwrap().get().unwrap().global_translation.x()
         );
         assert_eq!(
             2.,
-            world
-                .entry::<&Transform>(child)
-                .unwrap()
-                .get()
-                .unwrap()
-                .global_translation
-                .x()
+            world.entry::<&Transform>(child).unwrap().get().unwrap().global_translation.x()
         );
         assert_eq!(
             3.,
@@ -154,23 +140,11 @@ mod tests {
 
         assert_eq!(
             6.,
-            world
-                .entry::<&Transform>(parent)
-                .unwrap()
-                .get()
-                .unwrap()
-                .global_translation
-                .x()
+            world.entry::<&Transform>(parent).unwrap().get().unwrap().global_translation.x()
         );
         assert_eq!(
             7.,
-            world
-                .entry::<&Transform>(child)
-                .unwrap()
-                .get()
-                .unwrap()
-                .global_translation
-                .x()
+            world.entry::<&Transform>(child).unwrap().get().unwrap().global_translation.x()
         );
         assert_eq!(
             8.,

@@ -1,4 +1,5 @@
 use crate::core::components::ui::ui_text::UiText;
+use crate::core::world::{GameData, World};
 use crate::core::{
     components::{
         animations::{
@@ -11,24 +12,33 @@ use crate::core::{
         tiles::sprite::Sprite,
         Hide,
     },
-    resources::time::{TimerType},
+    resources::time::TimerType,
 };
 
 #[derive(PartialEq)]
-enum BlinkResult{
-    REMOVE, ADD
+enum BlinkResult {
+    REMOVE,
+    ADD,
 }
 
 /// System responsible of applying modifiers data to the dedicated components
 /// It will use timers to keep track of the animation and will merge keyframes in case
 /// of long frames.
-pub(crate) fn animation_executer_system(world: &mut crate::core::world::World) {
-    let (subworld, resources) = world.split();
+pub(crate) fn animation_executer_system(data: &mut GameData) {
+    let (subworld, resources) = data.split();
     let mut timers = resources.timers();
     let mut remove_blink = Vec::new();
     let mut add_blink = Vec::new();
-    for (entity, (animations, mut transform, mut sprite, mut material, mut text, hide))
-    in subworld.query_mut::<(&mut Animations, Option<&mut Transform>, Option<&mut Sprite>, Option<&mut Material>, Option<&mut UiText>, Option<&Hide>)>() {
+    for (entity, (animations, mut transform, mut sprite, mut material, mut text, hide)) in subworld
+        .query_mut::<(
+            &mut Animations,
+            Option<&mut Transform>,
+            Option<&mut Sprite>,
+            Option<&mut Material>,
+            Option<&mut UiText>,
+            Option<&Hide>,
+        )>()
+    {
         animations
             .animations_mut()
             .iter_mut()
@@ -52,7 +62,8 @@ pub(crate) fn animation_executer_system(world: &mut crate::core::world::World) {
 
                     let timer_cycle = {
                         let cycles = timers.get_timer(timer_id).expect("Timer must exist").cycle();
-                        let keyframes_left = modifier.number_of_keyframes - modifier.current_keyframe;
+                        let keyframes_left =
+                            modifier.number_of_keyframes - modifier.current_keyframe;
                         if cycles > keyframes_left {
                             keyframes_left
                         } else {
@@ -84,9 +95,13 @@ pub(crate) fn animation_executer_system(world: &mut crate::core::world::World) {
                                 apply_color_modifier(material.as_mut(), modifier, timer_cycle)
                             }
                             AnimationModifierType::Blink => {
-                                match apply_blink_modifier(modifier, timer_cycle, hide){
-                                    Some(action) if action == BlinkResult::ADD => add_blink.push(entity),
-                                    Some(action) if action == BlinkResult::REMOVE => remove_blink.push(entity),
+                                match apply_blink_modifier(modifier, timer_cycle, hide) {
+                                    Some(action) if action == BlinkResult::ADD => {
+                                        add_blink.push(entity)
+                                    }
+                                    Some(action) if action == BlinkResult::REMOVE => {
+                                        remove_blink.push(entity)
+                                    }
                                     _ => {}
                                 }
                             }
@@ -116,8 +131,12 @@ pub(crate) fn animation_executer_system(world: &mut crate::core::world::World) {
             });
     }
 
-    remove_blink.drain(0..).for_each(|e| {let _r = subworld.remove_component::<Hide>(e);} );
-    add_blink.drain(0..).for_each(|e| {let _r = subworld.add_components(e, (Hide,));} );
+    remove_blink.drain(0..).for_each(|e| {
+        let _r = subworld.remove_component::<Hide>(e);
+    });
+    add_blink.drain(0..).for_each(|e| {
+        let _r = subworld.add_components(e, (Hide,));
+    });
 }
 
 fn apply_transform_modifier(
@@ -126,7 +145,7 @@ fn apply_transform_modifier(
     timer_cycle: usize,
 ) {
     if let ComputedKeyframeModifier::TransformModifier { vector: coordinates, scale, rotation } =
-    modifier.retrieve_keyframe_modifier()
+        modifier.retrieve_keyframe_modifier()
     {
         if let Some(ref mut transform) = transform {
             for _i in 0..timer_cycle {
@@ -201,7 +220,7 @@ fn apply_color_modifier(
             modifier.compute_keyframe_modifier_for_animation(color);
         }
         if let Some(ComputedKeyframeModifier::Color { r, g, b, a }) =
-        &modifier.single_keyframe_modifier
+            &modifier.single_keyframe_modifier
         {
             for i in 0..timer_cycle {
                 if modifier.will_be_last_keyframe(i) {
@@ -251,7 +270,7 @@ fn apply_text_modifier(modifier: &mut AnimationModifier, mut text: Option<&mut &
         }
     }
     if let ComputedKeyframeModifier::Text { ref mut cursor } =
-    modifier.retrieve_keyframe_modifier_mut()
+        modifier.retrieve_keyframe_modifier_mut()
     {
         *cursor = next_cursor;
     }

@@ -1,16 +1,14 @@
 use hecs::Entity;
-use scion::{
-    core::{
-        components::{
-            maths::transform::Transform,
-            tiles::tileset::Tileset,
-            ui::{font::Font, ui_image::UiImage, ui_text::UiText},
-        },
-        resources::time::TimerType,
-        scene::Scene,
+use scion::core::world::{GameData, World};
+use scion::core::{
+    components::{
+        maths::transform::Transform,
+        tiles::tileset::Tileset,
+        ui::{font::Font, ui_image::UiImage, ui_text::UiText},
     },
+    resources::time::TimerType,
+    scene::Scene,
 };
-use scion::core::world::World;
 
 use crate::{asset_path, resources::TetrisResource};
 
@@ -20,32 +18,32 @@ pub struct MainScene {
 }
 
 impl Scene for MainScene {
-    fn on_start(&mut self, world: &mut World) {
-        add_main_ui_mask(world);
-        add_ui_top_overflow(world);
-        self.score = Some(add_score_ui(world));
-        world.add_default_camera();
-        let _r = world.timers().add_timer("piece", TimerType::Cyclic, 0.5);
-        let _r = world.timers().add_timer("action_reset_timer", TimerType::Manual, 0.2);
+    fn on_start(&mut self, data: &mut GameData) {
+        add_main_ui_mask(data);
+        add_ui_top_overflow(data);
+        self.score = Some(add_score_ui(data));
+        data.add_default_camera();
+        let _r = data.timers().add_timer("piece", TimerType::Cyclic, 0.5);
+        let _r = data.timers().add_timer("action_reset_timer", TimerType::Manual, 0.2);
         let mut tetris = TetrisResource::default();
-        tetris.asset = Some(world.assets_mut().register_tileset(Tileset::new(
+        tetris.asset = Some(data.assets_mut().register_tileset(Tileset::new(
             asset_path().join("blocs.png").get(),
             8,
             1,
             32,
         )));
-        world.insert_resource(tetris);
+        data.insert_resource(tetris);
     }
 
-    fn on_update(&mut self, world: &mut World) {
-        let score = world.get_resource::<TetrisResource>().unwrap().score;
-        world.entry_mut::<&mut UiText>(self.score.unwrap())
+    fn on_update(&mut self, data: &mut GameData) {
+        let score = data.get_resource::<TetrisResource>().unwrap().score;
+        data.entry_mut::<&mut UiText>(self.score.unwrap())
             .unwrap()
             .set_text(format!("{:05}", score))
     }
 }
 
-fn add_score_ui(world: &mut World) -> Entity {
+fn add_score_ui(data: &mut GameData) -> Entity {
     // First we add an UiText to the world
     let font = Font::Bitmap {
         texture_path: asset_path().join("font.png").get(),
@@ -61,30 +59,30 @@ fn add_score_ui(world: &mut World) -> Entity {
     transform.append_translation(394., 250.);
     transform.set_z(2);
 
-    world.push((txt, transform));
+    data.push((txt, transform));
 
     let txt = UiText::new("".to_string(), font);
     let mut transform = Transform::default();
     transform.append_translation(394., 290.);
     transform.set_z(2);
-    world.push((txt, transform))
+    data.push((txt, transform))
 }
 
-fn add_main_ui_mask(world: &mut World) {
+fn add_main_ui_mask(data: &mut GameData) {
     let path = asset_path().join("ui.png").get();
     let image = UiImage::new(544., 704., path);
 
     let mut t = Transform::default();
     t.set_z(0);
-    world.push((image, t));
+    data.push((image, t));
 }
 
-fn add_ui_top_overflow(world: &mut World) {
+fn add_ui_top_overflow(data: &mut GameData) {
     let path = asset_path().join("ui_overflow_top.png").get();
     let image = UiImage::new(324., 32., path);
 
     let mut t = Transform::default();
     t.set_z(2);
     t.append_translation(32., 0.);
-    world.push((image, t));
+    data.push((image, t));
 }

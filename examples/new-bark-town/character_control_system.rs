@@ -1,19 +1,19 @@
-
+use scion::core::world::{GameData, World};
 use scion::core::{
     components::{animations::Animations, maths::transform::Transform},
-    resources::inputs::{types::KeyCode},
+    resources::inputs::types::KeyCode,
 };
-use scion::core::world::World;
 
 use crate::scene::MainCharacter;
 
-pub fn controller_system(world: &mut World) {
-
-    let (world, resources) = world.split();
+pub fn controller_system(data: &mut GameData) {
+    let (world, resources) = data.split();
     let inputs = resources.inputs();
     let mut timers = resources.timers();
 
-    for (_, (character, transform, animations)) in world.query_mut::<(&MainCharacter, &Transform, &mut Animations)>(){
+    for (_, (character, transform, animations)) in
+        world.query_mut::<(&MainCharacter, &Transform, &mut Animations)>()
+    {
         let no_delta = transform.translation().x() as usize % 48 == 0
             && transform.translation().y() as usize % 48 == 0;
 
