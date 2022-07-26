@@ -49,10 +49,10 @@ impl RendererState {
 
         let config = SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_preferred_format(&adapter).unwrap(),
+            format: surface.get_supported_formats(&adapter)[0],
             width: w.width * window.scale_factor() as u32,
             height: w.height * window.scale_factor() as u32,
-            present_mode: wgpu::PresentMode::Mailbox,
+            present_mode: wgpu::PresentMode::Fifo,
         };
         surface.configure(&device, &config);
 
