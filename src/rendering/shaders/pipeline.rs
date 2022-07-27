@@ -12,8 +12,8 @@ pub fn pipeline(
     transform_bind_group_layout: &BindGroupLayout,
     topology: wgpu::PrimitiveTopology,
 ) -> RenderPipeline {
-    let vs_module = device.create_shader_module(&wgpu::include_spirv!("./shader.vert.spv"));
-    let fs_module = device.create_shader_module(&wgpu::include_spirv!("./shader.frag.spv"));
+    let vs_module = device.create_shader_module(wgpu::include_spirv!("./shader.vert.spv"));
+    let fs_module = device.create_shader_module(wgpu::include_spirv!("./shader.frag.spv"));
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Basic square pipeline layout"),
@@ -32,7 +32,7 @@ pub fn pipeline(
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,
             entry_point: "main",
-            targets: &[wgpu::ColorTargetState {
+            targets: &[Some(wgpu::ColorTargetState {
                 format: surface_config.format,
                 write_mask: wgpu::ColorWrites::ALL,
                 blend: Some(wgpu::BlendState {
@@ -47,14 +47,14 @@ pub fn pipeline(
                         operation: BlendOperation::Add,
                     },
                 }),
-            }],
+            })],
         }),
         primitive: wgpu::PrimitiveState {
             topology,
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
             cull_mode: Some(wgpu::Face::Back),
-            clamp_depth: false,
+            unclipped_depth: false,
             polygon_mode: wgpu::PolygonMode::Fill,
             conservative: false,
         },
@@ -64,6 +64,7 @@ pub fn pipeline(
             mask: !0,
             alpha_to_coverage_enabled: false,
         },
+        multiview: None
     });
     render_pipeline
 }

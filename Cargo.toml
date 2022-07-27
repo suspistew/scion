@@ -20,7 +20,7 @@ downcast-rs = "1.2.0"
 
 # window & rendering
 winit = "0.26"
-wgpu = { version = "0.11", features = ["spirv"] }
+wgpu = { version = "0.13.1", features = ["spirv"] }
 futures = "0.3"
 
 # maths

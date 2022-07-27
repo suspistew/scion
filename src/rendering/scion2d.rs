@@ -1,10 +1,7 @@
 use hecs::{Component, Entity};
 use std::{cfg, collections::HashMap, ops::Range, path::Path, time::SystemTime};
 
-use wgpu::{
-    util::DeviceExt, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue,
-    RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView,
-};
+use wgpu::{util::DeviceExt, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView, SamplerBindingType};
 
 use crate::core::world::{GameData, World};
 use crate::rendering::gl_representations::TexturedGlVertex;
@@ -85,7 +82,7 @@ impl ScionRenderer for Scion2D {
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
                         visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler { comparison: false, filtering: true },
+                        ty: wgpu::BindingType::Sampler(SamplerBindingType::Filtering),
                         count: None,
                     },
                 ],
@@ -710,8 +707,8 @@ fn create_transform_uniform_bind_group(
 fn get_default_color_attachment<'a>(
     texture_view: &'a TextureView,
     config: &'a ScionConfig,
-) -> RenderPassColorAttachment<'a> {
-    RenderPassColorAttachment {
+) -> Option<RenderPassColorAttachment<'a>> {
+    Some(RenderPassColorAttachment {
         view: texture_view,
         resolve_target: None,
         ops: wgpu::Operations {
@@ -734,7 +731,7 @@ fn get_default_color_attachment<'a>(
             ),
             store: true,
         },
-    }
+    })
 }
 
 fn get_path_from_color(color: &Color) -> String {
