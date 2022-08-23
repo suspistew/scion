@@ -6,6 +6,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
+use winit::dpi::{PhysicalSize, Size};
 
 use crate::core::package::Package;
 use crate::core::resources::time::Time;
@@ -144,16 +145,24 @@ impl Scion {
         self.layer_machine.apply_scene_action(SceneAction::Update, &mut self.game_data);
         self.scheduler.execute(&mut self.game_data);
         self.layer_machine.apply_scene_action(SceneAction::LateUpdate, &mut self.game_data);
+        self.update_cursor();
+        self.game_data.inputs().reset_inputs();
+        self.game_data.events().cleanup();
+    }
+
+    fn update_cursor(&mut self) {
         {
             let mut window = self.game_data.window();
             if let Some(icon) = window.new_cursor() {
                 let w = self.window.as_mut().expect("A window is mandatory to run this game !");
                 w.set_cursor_icon(*icon);
-                window.reset_new_cursor();
             }
+            if let Some(dimensions) = window.new_dimensions() {
+                let w = self.window.as_mut().expect("A window is mandatory to run this game !");
+                w.set_inner_size(Size::Physical(PhysicalSize::new(dimensions.0 * window.dpi() as u32, dimensions.1 * window.dpi() as u32)));
+            }
+            window.reset_future_settings()
         }
-        self.game_data.inputs().reset_inputs();
-        self.game_data.events().cleanup();
     }
 }
 
