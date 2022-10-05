@@ -1,3 +1,5 @@
+mod animations;
+
 use scion::core::world::{GameData, World};
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
@@ -11,11 +13,13 @@ use scion::{
     utils::file::app_base_path,
     Scion,
 };
+use scion::core::components::animations::Animations;
+use crate::animations::get_case_animation;
 
 #[derive(Debug)]
 struct Case(Coordinates);
 
-enum MoveDirection {
+pub(crate) enum MoveDirection {
     Left,
     Top,
     Right,
@@ -60,29 +64,42 @@ fn taquin_system(data: &mut GameData) {
     let inputs = resources.inputs();
     let mut taquin = resources.get_resource_mut::<Taquin>().unwrap();
 
-    for (_, (case, transform)) in world.query_mut::<(&mut Case, &mut Transform)>() {
+    let mut animation_running = false;
+    for (e, animations) in world.query_mut::<&mut Animations>() {
+        if animations.any_animation_running(){
+            animation_running = true;
+        }
+    }
+
+    if animation_running{
+        return;
+    }
+
+    for (_, (case, animations)) in world.query_mut::<(&mut Case, &mut Animations)>() {
         inputs.on_left_click_pressed(|mouse_x, mouse_y| {
             if mouse_x > (case.0.x() * 192.) as f64
                 && mouse_y > (case.0.y() * 192.) as f64
                 && mouse_x < (case.0.x() * 192. + 192.) as f64
                 && mouse_y < (case.0.y() * 192. + 192.) as f64
             {
+
                 match taquin.try_move(case.0.x() as usize, case.0.y() as usize) {
                     MoveDirection::Left => {
                         case.0.set_x(case.0.x() - 1.);
-                        transform.append_translation(-192., 0.);
+                        animations.run_animation("LEFT");
+
                     }
                     MoveDirection::Top => {
                         case.0.set_y(case.0.y() - 1.);
-                        transform.append_translation(0., -192.);
+                        animations.run_animation("TOP");
                     }
                     MoveDirection::Right => {
                         case.0.set_x(case.0.x() + 1.);
-                        transform.append_translation(192., 0.);
+                        animations.run_animation("RIGHT");
                     }
                     MoveDirection::Bottom => {
                         case.0.set_y(case.0.y() + 1.);
-                        transform.append_translation(0., 192.);
+                        animations.run_animation("BOTTOM");
                     }
                     MoveDirection::None => {}
                 };
@@ -110,6 +127,7 @@ impl Scene for MainScene {
                         tileset_ref.clone(),
                         Sprite::new(line * 4 + column),
                         Case(Coordinates::new(column as f32, line as f32)),
+                        Animations::new(get_case_animation())
                     );
                     data.push(square);
                 }
