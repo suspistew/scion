@@ -101,9 +101,7 @@ impl Scene for MainScene {
 
         // Creating the level
 
-        for _i in 0..300 {
-            init_balls(world, &assets);
-        }
+        init_balls(world, &assets);
 
         add_border(world);
 
