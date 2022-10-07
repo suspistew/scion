@@ -197,7 +197,7 @@ impl Scene for MainScene {
                     world.push((
                         Transform::from_xyz(x as f32 * 16. + 10., y as f32 * 16. + 10., 20),
                         Rectangle::new(16., 16., None),
-                        Material::Color(Color::new(255, 0, 0, 0.3)),
+                        Material::Color(Color::new_hex("#00ff664c")),
                         Line { direction: LineDirection::TOP },
                         Collider::new(
                             ColliderMask::Landscape,
@@ -216,7 +216,7 @@ impl Scene for MainScene {
                     world.push((
                         Transform::from_xyz(x as f32 * 16. + 10., y as f32 * 16. + 26., 20),
                         Rectangle::new(16., 16., None),
-                        Material::Color(Color::new(0, 0, 255, 0.3)),
+                        Material::Color(Color::new_hex("#008cae")),
                         Line { direction: LineDirection::BOTTOM },
                         Collider::new(
                             ColliderMask::Landscape,
@@ -235,7 +235,7 @@ impl Scene for MainScene {
                     world.push((
                         Transform::from_xyz(x as f32 * 16. + 10., y as f32 * 16. + 10., 20),
                         Rectangle::new(16., 16., None),
-                        Material::Color(Color::new(255, 0, 0, 0.3)),
+                        Material::Color(Color::new_hex("#ff00004c")),
                         Line { direction: LineDirection::LEFT },
                         Collider::new(
                             ColliderMask::Landscape,
@@ -253,7 +253,7 @@ impl Scene for MainScene {
                     world.push((
                         Transform::from_xyz(x as f32 * 16. + 26., y as f32 * 16. + 10., 20),
                         Rectangle::new(16., 16., None),
-                        Material::Color(Color::new(0, 0, 255, 0.3)),
+                        Material::Color(Color::new_hex("#0000ff4c")),
                         Line { direction: LineDirection::RIGHT },
                         Collider::new(
                             ColliderMask::Landscape,
