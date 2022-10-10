@@ -1,16 +1,25 @@
 use std::{collections::HashMap, marker::PhantomData};
 
 use crate::core::components::{material::Material, tiles::tileset::Tileset};
+use crate::core::components::ui::font::Font;
 
 /// `AssetManager` is resource that will link assets to an asset ref to allow reusability of assets
 #[derive(Default)]
 pub struct AssetManager {
     materials: HashMap<usize, Material>,
+    fonts: HashMap<usize, Font>,
 }
 
 impl AssetManager {
     pub(crate) fn get_material_for_ref(&self, asset_ref: &AssetRef<Material>) -> Material {
         self.materials
+            .get(&asset_ref.0)
+            .expect("An asset has been requested but does not exist")
+            .clone()
+    }
+
+    pub(crate) fn get_font_for_ref(&self, asset_ref: &AssetRef<Font>) -> Font {
+        self.fonts
             .get(&asset_ref.0)
             .expect("An asset has been requested but does not exist")
             .clone()
@@ -28,6 +37,12 @@ impl AssetManager {
         next_ref
     }
 
+    pub fn register_font(&mut self, font: Font) -> AssetRef<Font> {
+        let next_ref = AssetRef(self.materials.keys().count(), PhantomData::default());
+        self.fonts.insert(next_ref.0, font);
+        next_ref
+    }
+
     pub fn retrieve_tileset(&self, asset_ref: &AssetRef<Material>) -> Option<&Tileset> {
         match self.materials.get(&asset_ref.0) {
             None => None,
@@ -40,7 +55,7 @@ impl AssetManager {
 }
 
 #[derive(Clone)]
-pub struct AssetRef<T: Send + Sync>(pub(crate) usize, PhantomData<T>);
+pub struct AssetRef<T: Send + Sync>(pub(crate) usize, pub(crate) PhantomData<T>);
 
 #[cfg(test)]
 mod tests {
