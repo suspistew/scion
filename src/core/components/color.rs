@@ -35,6 +35,46 @@ impl Color {
         self.a = color.a;
     }
 
+    pub fn new_hex(hex_code:&str) -> Self {
+        let hex:Vec<char> = hex_code.chars().collect();
+        let red:u8 = Color::get_hex_value(hex[1]) * 16 + Color::get_hex_value(hex[2]) * 1;
+        let green:u8 = Color::get_hex_value(hex[3]) * 16 + Color::get_hex_value(hex[4]) * 1;
+        let blue:u8 = Color::get_hex_value(hex[5]) * 16 + Color::get_hex_value(hex[6]) * 1;
+        let mut alpha:f32 = 1.0;
+        if hex_code.len() > 7 // alpha value also exists in hex code
+        {
+            let alpha255: u8 = Color::get_hex_value(hex[7]) * 16 + Color::get_hex_value(hex[8]) * 1;
+            alpha = alpha255 as f32 / 255.0;
+        }
+        Color::new(red, green, blue, alpha)
+    }
+
+   fn get_hex_value(mut ch: char) -> u8 {
+        ch = ch.to_ascii_lowercase();
+        if ch == 'a' {
+            return 10;
+        }
+        else if ch == 'b' {
+            return 11;
+        }
+        else if ch == 'c' {
+            return 12;
+        }
+        else if ch == 'd' {
+            return 13;
+        }
+        else if ch == 'e' {
+            return 14;
+        }
+        else if ch == 'f' {
+            return 15
+        }
+        else {
+            return ch.to_digit(10).unwrap() as u8;
+        }
+        
+    }
+
     /// Red value
     pub fn red(&self) -> u8 {
         self.r
