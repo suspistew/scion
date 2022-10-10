@@ -49,7 +49,7 @@ impl Color {
         Color::new(red, green, blue, alpha)
     }
 
-    pub fn get_hex_value(mut ch: char) -> u8 {
+   fn get_hex_value(mut ch: char) -> u8 {
         ch = ch.to_ascii_lowercase();
         if ch == 'a' {
             return 10;
