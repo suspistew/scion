@@ -1,4 +1,4 @@
-use wgpu::SurfaceConfiguration;
+use wgpu::{CompositeAlphaMode, SurfaceConfiguration};
 use winit::{event::WindowEvent, window::Window};
 
 use crate::core::world::GameData;
@@ -53,6 +53,7 @@ impl RendererState {
             width: w.width * window.scale_factor() as u32,
             height: w.height * window.scale_factor() as u32,
             present_mode: wgpu::PresentMode::Fifo,
+            alpha_mode: CompositeAlphaMode::Auto
         };
         surface.configure(&device, &config);
 

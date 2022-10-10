@@ -17,6 +17,7 @@ use scion::{
     Scion,
 };
 use scion::core::components::animations::Animations;
+use scion::core::components::color::Color;
 use crate::animations::get_case_animation;
 
 #[derive(Debug)]
@@ -183,7 +184,11 @@ fn main() {
     Scion::app_with_config(
         ScionConfigBuilder::new()
             .with_window_config(
-                WindowConfigBuilder::new().with_resizable(true).with_dimensions((768, 768)).get(),
+                WindowConfigBuilder::new()
+                    .with_resizable(true)
+                    .with_dimensions((768, 768))
+                    .with_default_background_color(Some(Color::new_hex("#000000")))
+                    .get(),
             )
             .get(),
     )
