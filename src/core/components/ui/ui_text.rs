@@ -9,18 +9,19 @@ use crate::{
     },
     rendering::{Renderable2D, RenderableUi},
 };
+use crate::core::resources::asset_manager::AssetRef;
 
 /// A component representing an Text in the UI.
 pub struct UiText {
     text: String,
-    font: Font,
+    font_ref: AssetRef<Font>,
     pub(crate) dirty: bool,
 }
 
 impl UiText {
     /// Creates a new `UiText` with `text` as default content and `font`
-    pub fn new(text: String, font: Font) -> Self {
-        Self { text, font, dirty: true }
+    pub fn new(text: String, font_ref: AssetRef<Font>) -> Self {
+        Self { text, font_ref, dirty: true }
     }
 
     /// retrieves the content of this `UiText`
@@ -35,8 +36,8 @@ impl UiText {
     }
 
     /// retrieve the font of this `UiText`
-    pub fn font(&self) -> &Font {
-        &self.font
+    pub fn font_ref(&self) -> &AssetRef<Font> {
+        &self.font_ref
     }
 }
 
