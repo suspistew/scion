@@ -3,8 +3,9 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use winit::{
     dpi::Size,
-    window::{WindowAttributes, WindowBuilder},
+    window::WindowBuilder,
 };
+use winit::dpi::LogicalSize;
 
 use crate::{config::scion_config::ScionConfig, core::components::color::Color};
 
@@ -61,22 +62,26 @@ impl WindowConfig {
     pub(crate) fn into(self, scion_config: &ScionConfig) -> WindowBuilder {
         let mut builder = WindowBuilder::new();
 
-        builder.window = WindowAttributes {
-            title: scion_config.app_name.clone(),
-            fullscreen: None,
-            inner_size: self.dimensions.map(|d| d.into()).map(Size::Logical),
-            min_inner_size: self.min_dimensions.map(|d| d.into()).map(Size::Logical),
-            max_inner_size: self.max_dimensions.map(|d| d.into()).map(Size::Logical),
-            visible: self.visibility,
-            window_icon: None,
-            always_on_top: self.always_on_top,
-            decorations: self.decorations,
-            maximized: self.maximized,
-            resizable: self.resizable,
-            transparent: self.transparent,
-            position: None,
-        };
+        builder = builder.with_title(scion_config.app_name.clone())
+            .with_fullscreen(None);
+        if self.dimensions.is_some() {
+            builder = builder.with_inner_size(self.dimensions.map(|d| LogicalSize::new(d.0, d.1)).unwrap())
+        }
+        if self.min_dimensions.is_some() {
+            builder = builder.with_min_inner_size(self.min_dimensions.map(|d| LogicalSize::new(d.0, d.1)).unwrap())
+        }
+        if self.max_dimensions.is_some() {
+            builder = builder.with_max_inner_size(self.max_dimensions.map(|d| LogicalSize::new(d.0, d.1)).unwrap())
+        }
+
         builder
+            .with_visible(self.visibility)
+            .with_window_icon(None)
+            .with_always_on_top(self.always_on_top)
+            .with_decorations(self.decorations)
+            .with_maximized(self.maximized)
+            .with_resizable(self.resizable)
+            .with_transparent(self.transparent)
     }
 }
 

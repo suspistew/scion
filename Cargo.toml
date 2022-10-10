@@ -19,8 +19,8 @@ hecs = "0.7"
 downcast-rs = "1.2.0"
 
 # window & rendering
-winit = "0.26"
-wgpu = { version = "0.13.1", features = ["spirv"] }
+winit = "0.27"
+wgpu = { version = "0.14.0", features = ["spirv"] }
 futures = "0.3"
 
 # maths
