@@ -10,18 +10,28 @@ use crate::{
     rendering::{Renderable2D, RenderableUi},
 };
 use crate::core::resources::asset_manager::AssetRef;
+use crate::core::world::Resources;
 
 /// A component representing an Text in the UI.
 pub struct UiText {
     text: String,
     font_ref: AssetRef<Font>,
     pub(crate) dirty: bool,
+    pub(crate) sync_fn: Option<fn(&mut Resources) -> String>
 }
 
 impl UiText {
     /// Creates a new `UiText` with `text` as default content and `font`
     pub fn new(text: String, font_ref: AssetRef<Font>) -> Self {
-        Self { text, font_ref, dirty: true }
+        Self { text, font_ref, dirty: true, sync_fn: None }
+    }
+
+    /// provide a fn that will automatically synchronize the text
+    /// with the given value
+    pub fn sync_value(mut self, sync_function: fn(&mut Resources) -> String) -> Self
+    {
+        self.sync_fn = Some(sync_function);
+        self
     }
 
     /// retrieves the content of this `UiText`
@@ -31,8 +41,10 @@ impl UiText {
 
     /// sets the content of this `UiText`
     pub fn set_text(&mut self, text: String) {
-        self.text = text;
-        self.dirty = true;
+        if text.ne(&self.text) {
+            self.text = text;
+            self.dirty = true;
+        }
     }
 
     /// retrieve the font of this `UiText`

@@ -27,7 +27,7 @@ use crate::core::systems::hide_propagation_system::{
 use crate::core::systems::hierarchy_system::children_manager_system;
 use crate::core::systems::missing_ui_component_system::missing_ui_component_system;
 use crate::core::systems::parent_transform_system::{dirty_child_system, dirty_transform_system};
-use crate::core::systems::ui_text_system::ui_text_bitmap_update_system;
+use crate::core::systems::ui_text_system::{sync_text_value_system, ui_text_bitmap_update_system};
 use crate::core::world::GameData;
 
 pub(crate) mod animations_system;
@@ -68,6 +68,7 @@ impl Package for InternalPackage {
         builder
             .with_system(default_camera_system)
             .with_system(camera_dpi_system)
+            .with_system(sync_text_value_system)
             .with_system(ui_text_bitmap_update_system)
             .with_system(debug_colliders_system)
             .with_system(children_manager_system)

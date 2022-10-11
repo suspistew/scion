@@ -33,4 +33,6 @@ impl TetrisResource {
         self.active_piece = self.next_piece.clone();
         self.next_piece = Piece::random_new();
     }
+
+    pub fn get_score(&self) -> String { format!("{:05}", self.score) }
 }

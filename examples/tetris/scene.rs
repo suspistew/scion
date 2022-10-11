@@ -35,13 +35,6 @@ impl Scene for MainScene {
         )));
         data.insert_resource(tetris);
     }
-
-    fn on_update(&mut self, data: &mut GameData) {
-        let score = data.get_resource::<TetrisResource>().unwrap().score;
-        data.entry_mut::<&mut UiText>(self.score.unwrap())
-            .unwrap()
-            .set_text(format!("{:05}", score))
-    }
 }
 
 fn add_score_ui(data: &mut GameData) -> Entity {
@@ -57,16 +50,14 @@ fn add_score_ui(data: &mut GameData) -> Entity {
     let font_asset = data.assets_mut().register_font(font);
 
     let txt = UiText::new("SCORE".to_string(), font_asset.clone());
-    let mut transform = Transform::default();
-    transform.append_translation(394., 250.);
-    transform.set_z(2);
+    let mut transform = Transform::from_xyz(394., 250., 2);
 
     data.push((txt, transform));
 
-    let txt = UiText::new("".to_string(), font_asset);
-    let mut transform = Transform::default();
-    transform.append_translation(394., 290.);
-    transform.set_z(2);
+    let txt = UiText::new("".to_string(), font_asset)
+        .sync_value(|res| res.get_resource::<TetrisResource>().unwrap().get_score());
+
+    let mut transform = Transform::from_xyz(394., 290., 2);
     data.push((txt, transform))
 }
 
