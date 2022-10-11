@@ -12,6 +12,15 @@ use crate::core::components::{
 };
 use crate::core::world::{GameData, World};
 
+pub(crate) fn sync_text_value_system(data: &mut GameData) {
+    let (mut world, mut resources) = data.split();
+    for(_e, ui_text) in world.query_mut::<(&mut UiText)>(){
+        if let Some(function) = ui_text.sync_fn {
+            ui_text.set_text(function(resources));
+        }
+    }
+}
+
 pub(crate) fn ui_text_bitmap_update_system(data: &mut GameData) {
     let mut parent_to_remove: HashSet<Entity> = HashSet::new();
     let mut to_add: Vec<(UiTextImage, UiComponent, Transform, Parent)> = Vec::new();
@@ -138,5 +147,27 @@ mod tests {
 
         let cpt = world.query::<&UiTextImage>().iter().count();
         assert_eq!(3, cpt);
+    }
+
+    struct Test{pub score: usize}
+
+    #[test]
+    fn ui_text_synchronized() {
+        let mut world = GameData::default();
+        world.insert_resource(Test{ score: 5 });
+
+        let mut manager = AssetManager::default();
+        let text_synced = get_test_ui_text(&mut manager)
+            .sync_value(|g| g.get_resource::<Test>().unwrap().score.to_string());
+        let _entity = world.push(( text_synced, Transform::default()));
+        world.insert_resource(manager);
+
+        let txt = world.query::<&UiText>().iter().next().unwrap().1.text().to_string();
+        assert_eq!("abf".to_string(), txt);
+
+        sync_text_value_system(&mut world);
+
+        let txt = world.query::<&UiText>().iter().next().unwrap().1.text().to_string();
+        assert_eq!("5".to_string(), txt);
     }
 }
