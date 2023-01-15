@@ -15,12 +15,12 @@ hot-reload = []
 
 [dependencies]
 atomic_refcell = "0.1.6"
-hecs = "0.7"
+hecs = "0.9"
 downcast-rs = "1.2.0"
 
 # window & rendering
 winit = "0.27"
-wgpu = { version = "0.14.0", features = ["spirv"] }
+wgpu = { version = "0.14.2", features = ["spirv"] }
 futures = "0.3"
 
 # maths
@@ -30,7 +30,7 @@ ultraviolet = "0.8"
 serde = { version = "1.0.130", features = ["derive"] }
 serde_json = "1.0.68"
 bytemuck = { version = "1.7", features = ["derive"] }
-image = { version = "0.23", default-features = false, features = ["png"] }
+image = { version = "0.24", default-features = false, features = ["png"] }
 
 # logging
 log = { version = "0.4.14", features = ["serde"] }
@@ -38,7 +38,7 @@ fern = { version = "0.6.0", features = ["colored"] }
 
 # sound
 
-rodio = "0.14.0"
+rodio = "0.16.0"
 
 [profile.dev.package]
 image = { opt-level = 3 }
