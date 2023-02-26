@@ -75,7 +75,7 @@ impl FontAtlas {
         None
     }
 
-    pub fn add_texture(&mut self, font: String, font_size: usize, font_color: Color, data: TrueTypeData) {
+    pub fn add_texture(&mut self, font: String, font_size: usize, font_color: &Color, data: TrueTypeData) {
         let key = format!("{:?}_{:?}_{:?}", font, font_size, font_color.to_string());
         self.atlas.insert(key, data);
     }
