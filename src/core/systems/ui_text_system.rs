@@ -40,9 +40,15 @@ pub(crate) fn ui_text_bitmap_update_system(data: &mut GameData) {
                 }
                 Font::TrueType { font_path } => {
                     let mut font_atlas = resources.font_atlas();
-                    add_font_to_atlas_if_missing(ui_text, &font_path, &mut font_atlas);
-                    let texture_path = format!("{:?}_{:?}_{:?}", &font_path, ui_text.font_size(), Color::new(255, 255, 255, 1.0).to_string());
-                    let true_type_data = font_atlas.get_texture(&font_path, ui_text.font_size(), &Color::new(255, 255, 255, 1.0)).expect("Missing data from atlas after insert");
+                    let color = ui_text.font_color();
+                    let color = if color.is_some(){
+                        color.as_ref().unwrap().clone()
+                    }else{
+                        Color::new_rgb(255,255,255)
+                    };
+                    add_font_to_atlas_if_missing(ui_text.font_size(), &color, &font_path, &mut font_atlas);
+                    let texture_path = format!("{:?}_{:?}_{:?}", &font_path, ui_text.font_size(), color.to_string());
+                    let true_type_data = font_atlas.get_texture(&font_path, ui_text.font_size(), &color).expect("Missing data from atlas after insert");
 
 
                     let mut to_add_secondary: Vec<(UiTextImage, UiComponent, Transform, Parent)> = Vec::new();
@@ -110,13 +116,13 @@ pub(crate) fn ui_text_bitmap_update_system(data: &mut GameData) {
     });
 }
 
-fn add_font_to_atlas_if_missing(ui_text: &mut UiText, font_path: &String, font_atlas: &mut AtomicRefMut<FontAtlas>) {
-    if let None = font_atlas.get_texture(&font_path, ui_text.font_size(), &Color::new(255, 255, 255, 1.0)) {
+fn add_font_to_atlas_if_missing(size: usize, color: &Color, font_path: &str,  font_atlas: &mut AtomicRefMut<FontAtlas>) {
+    if let None = font_atlas.get_texture(&font_path, size, &color) {
         let res = crate::core::resources::font_atlas::generate_bitmap(Font::TrueType { font_path: font_path.to_string() },
-                                                                      ui_text.font_size(),
-                                                                      &Color::new(255, 255, 255, 1.0));
+                                                                      size,
+                                                                      &color);
         if let Ok(texture) = res {
-            font_atlas.add_texture(font_path.to_string(), ui_text.font_size(), Color::new(255, 255, 255, 1.0), texture);
+            font_atlas.add_texture(font_path.to_string(), size, &color, texture);
         }
     }
 }

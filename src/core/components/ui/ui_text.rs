@@ -9,6 +9,7 @@ use crate::{
     },
     rendering::{Renderable2D, RenderableUi},
 };
+use crate::core::components::color::Color;
 use crate::core::resources::asset_manager::AssetRef;
 use crate::core::world::Resources;
 
@@ -18,6 +19,8 @@ pub struct UiText {
     font_ref: AssetRef<Font>,
     /// font size when using a TrueType font
     font_size: usize,
+    /// font color when using a TrueType font
+    font_color: Option<Color>,
     pub(crate) dirty: bool,
     pub(crate) sync_fn: Option<fn(&mut Resources) -> String>
 }
@@ -25,7 +28,7 @@ pub struct UiText {
 impl UiText {
     /// Creates a new `UiText` with `text` as default content and `font`
     pub fn new(text: String, font_ref: AssetRef<Font>) -> Self {
-        Self { text, font_ref, dirty: true, font_size: 10, sync_fn: None }
+        Self { text, font_ref, dirty: true, font_size: 10, font_color: None, sync_fn: None }
     }
 
     /// provide a fn that will automatically synchronize the text
@@ -46,6 +49,11 @@ impl UiText {
         self.font_size
     }
 
+    /// retrieves the font color of this `UiText`. Font color is only used on TrueType fonts
+    pub fn font_color(&self) -> &Option<Color> {
+        &self.font_color
+    }
+
     /// sets the content of this `UiText`
     pub fn set_text(&mut self, text: String) {
         if text.ne(&self.text) {
@@ -64,13 +72,19 @@ impl UiText {
         self
     }
 
+    pub fn with_font_color(mut self, color: Color) -> Self{
+        self.font_color = Some(color);
+        self
+    }
+
 
 }
 
 /// `UiTextImage` is an internal component used to keep track of the character in case of a
 /// bitmap font
 #[derive(Debug)]
-pub(crate) struct UiTextImage(pub(crate) UiImage);
+pub(crate) struct UiTextImage(pub(crate)
+                              UiImage);
 
 impl Renderable2D for UiTextImage {
     fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor {
