@@ -16,6 +16,9 @@ pub enum Font {
         /// Number of lines in the font's texture
         texture_lines: f32,
     },
+    TrueType {
+        font_path: String
+    }
 }
 
 impl Font {

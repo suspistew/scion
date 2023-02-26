@@ -21,6 +21,7 @@ downcast-rs = "1.2.0"
 # window & rendering
 winit = "0.27"
 wgpu = { version = "0.14.2", features = ["spirv"] }
+ab_glyph = "0.2.20"
 futures = "0.3"
 
 # maths
@@ -37,7 +38,6 @@ log = { version = "0.4.14", features = ["serde"] }
 fern = { version = "0.6.0", features = ["colored"] }
 
 # sound
-
 rodio = "0.16.0"
 
 [profile.dev.package]

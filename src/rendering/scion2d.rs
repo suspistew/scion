@@ -272,8 +272,19 @@ impl Scion2D {
             }
             if let Some(texture_path) = component.get_texture_path() {
                 if !self.diffuse_bind_groups.contains_key(texture_path.as_str()) {
-                    let path = Path::new(texture_path.as_str());
-                    let loaded_texture = Texture::from_png(path);
+                    let mut atlas = data.font_atlas();
+                    let loaded_texture = if let Some(mut tt_data) = atlas.get_texture_from_path(texture_path.as_str()) {
+                        tt_data.take_texture()
+                    }else{
+                        let path = Path::new(texture_path.as_str());
+                        let timestamp = read_file_modification_time(path);
+                        if let Ok(timestamp) = timestamp {
+                            self.assets_timestamps.insert(texture_path.clone(), timestamp);
+                        }
+                        Texture::from_png(path)
+                    };
+
+
                     self.diffuse_bind_groups.insert(
                         texture_path.clone(),
                         load_texture_to_queue(
@@ -283,11 +294,6 @@ impl Scion2D {
                             self.texture_bind_group_layout.as_ref().unwrap(),
                         ),
                     );
-
-                    let timestamp = read_file_modification_time(path);
-                    if let Ok(timestamp) = timestamp {
-                        self.assets_timestamps.insert(texture_path.clone(), timestamp);
-                    }
                 }
             }
         }

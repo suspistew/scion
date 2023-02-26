@@ -1,4 +1,4 @@
-<img src="banner.png" alt="Scion" />
+    <img src="banner.png" alt="Scion" />
 
 Scion is a 2D game library made in rust. 
 
@@ -7,7 +7,7 @@ Scion is a 2D game library made in rust.
 
 ## Why this project ? 
 
-Well, firstly because it' a good way to learn the different aspects of game dev under the hood. 
+Well, firstly because it's a good way to learn the different aspects of game dev under the hood. 
 Then, because I wanted to create something with modest goals, focused on ease of use and a short list of principles that also serves as a guideline.
 
 Scion is not 'inspired' by any other engine, it's inspired by the needs from real projects. 
@@ -42,7 +42,7 @@ The choice of it here is made because the main target games of this lib at its s
 These are the dependencies this project is relying on. Thanks to these awesome communities, we are able to build this kind of tiny projects. 
 
 - <a href="https://github.com/rust-windowing/winit" target="blank">winit</a> and <a href="https://github.com/gfx-rs/wgpu/tree/master/wgpu" target="blank">wgpu</a> (windowing and multi backend rendering)
-- <a href="https://github.com/amethyst/legion" target="blank">legion</a> (Entity component system)
+- <a href="https://github.com/Ralith/hecs" target="blank">hecs</a> (Entity component system)
 - <a href="https://github.com/termhn/ultraviolet" target="blank">ultraviolet</a> (Maths)
 
 ## Pre-requisite

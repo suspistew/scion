@@ -12,6 +12,7 @@ use crate::ScionBuilder;
 
 use crate::core::resources::asset_manager::AssetManager;
 use crate::core::resources::audio::Audio;
+use crate::core::resources::font_atlas::FontAtlas;
 use crate::core::resources::inputs::inputs_controller::InputsController;
 use crate::core::scene::SceneController;
 use crate::core::state::GameState;
@@ -62,6 +63,7 @@ impl Package for InternalPackage {
         data.insert_resource(GameState::default());
         data.insert_resource(SceneController::default());
         data.insert_resource(Audio::default());
+        data.insert_resource(FontAtlas::default());
     }
 
     fn load(self, builder: ScionBuilder) -> ScionBuilder {
