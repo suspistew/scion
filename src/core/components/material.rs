@@ -29,10 +29,11 @@ impl Material {
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct Texture {
     pub(crate) bytes: Vec<u8>,
-    pub(crate) width: u16,
-    pub(crate) height: u16,
+    pub(crate) width: u32,
+    pub(crate) height: u32,
 }
 
 impl Texture {
@@ -63,8 +64,8 @@ impl Texture {
 
     fn create_texture_from_dynamic_image(dynamic_image: DynamicImage) -> Texture {
         let image = dynamic_image.to_rgba8();
-        let width = image.width() as u16;
-        let height = image.height() as u16;
+        let width = image.width();
+        let height = image.height();
         let bytes = image.into_raw();
 
         Texture { bytes, width, height }

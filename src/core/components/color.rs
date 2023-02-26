@@ -106,3 +106,9 @@ impl Into<GlColor> for &Color {
         }
     }
 }
+
+impl ToString for Color{
+    fn to_string(&self) -> String {
+        format!("r{:?}g{:?}b{:?}a{:?}", self.r,self.g,self.b,self.a)
+    }
+}

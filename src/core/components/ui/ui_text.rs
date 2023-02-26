@@ -12,10 +12,12 @@ use crate::{
 use crate::core::resources::asset_manager::AssetRef;
 use crate::core::world::Resources;
 
-/// A component representing an Text in the UI.
+/// A component representing a Text in the UI.
 pub struct UiText {
     text: String,
     font_ref: AssetRef<Font>,
+    /// font size when using a TrueType font
+    font_size: usize,
     pub(crate) dirty: bool,
     pub(crate) sync_fn: Option<fn(&mut Resources) -> String>
 }
@@ -23,7 +25,7 @@ pub struct UiText {
 impl UiText {
     /// Creates a new `UiText` with `text` as default content and `font`
     pub fn new(text: String, font_ref: AssetRef<Font>) -> Self {
-        Self { text, font_ref, dirty: true, sync_fn: None }
+        Self { text, font_ref, dirty: true, font_size: 10, sync_fn: None }
     }
 
     /// provide a fn that will automatically synchronize the text
@@ -39,6 +41,11 @@ impl UiText {
         &self.text
     }
 
+    /// retrieves the font size of this `UiText`. Font size is only used on TrueType fonts
+    pub fn font_size(&self) -> usize {
+        self.font_size
+    }
+
     /// sets the content of this `UiText`
     pub fn set_text(&mut self, text: String) {
         if text.ne(&self.text) {
@@ -51,6 +58,13 @@ impl UiText {
     pub fn font_ref(&self) -> &AssetRef<Font> {
         &self.font_ref
     }
+
+    pub fn with_font_size(mut self, font_size: usize) -> Self{
+        self.font_size = font_size;
+        self
+    }
+
+
 }
 
 /// `UiTextImage` is an internal component used to keep track of the character in case of a

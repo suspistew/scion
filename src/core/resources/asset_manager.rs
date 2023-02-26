@@ -54,7 +54,7 @@ impl AssetManager {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq, Hash)]
 pub struct AssetRef<T: Send + Sync>(pub(crate) usize, pub(crate) PhantomData<T>);
 
 #[cfg(test)]
