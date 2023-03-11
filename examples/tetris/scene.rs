@@ -53,7 +53,7 @@ fn add_score_ui(data: &mut GameData) -> Entity {
     let txt = UiText::new("".to_string(), font_asset)
         .sync_value(|res| res.get_resource::<TetrisResource>().unwrap().get_score()).with_font_size(32);
 
-    let mut transform = Transform::from_xyz(394., 290., 2);
+    let transform = Transform::from_xyz(394., 290., 2);
     data.push((txt, transform))
 }
 

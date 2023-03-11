@@ -1,8 +1,8 @@
 mod animations;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use rand::rngs::ThreadRng;
-use rand::{Rng, thread_rng};
+use rand::Rng;
 use scion::core::world::{GameData, World};
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
@@ -36,7 +36,7 @@ struct Taquin {
 }
 
 impl Taquin {
-    fn new(cases: &HashMap<usize, Option<(usize)>>) -> Self {
+    fn new(cases: &HashMap<usize, Option<usize>>) -> Self {
         let mut board = [[true; 4]; 4];
         for line in 0..4 {
             for column in 0..4 {
@@ -152,13 +152,13 @@ impl Scene for MainScene {
     }
 }
 
-fn compute_mixed_cases() -> HashMap<usize, Option<(usize)>> {
+fn compute_mixed_cases() -> HashMap<usize, Option<usize>> {
     let mut cases = HashMap::new();
     // Creating the default board
     for line in 0..4 {
         for column in 0..4 {
             if !(line == 3 && column == 3) {
-                cases.insert(line * 4 + column, Some((line * 4 + column)));
+                cases.insert(line * 4 + column, Some(line * 4 + column));
             } else {
                 cases.insert(line * 4 + column, None);
             }

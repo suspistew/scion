@@ -16,8 +16,8 @@ use crate::core::resources::font_atlas::FontAtlas;
 use crate::core::world::{GameData, World};
 
 pub(crate) fn sync_text_value_system(data: &mut GameData) {
-    let (mut world, mut resources) = data.split();
-    for (_e, ui_text) in world.query_mut::<&mut UiText>() {
+    let (world, resources) = data.split();
+    for(_e, ui_text) in world.query_mut::<&mut UiText>(){
         if let Some(function) = ui_text.sync_fn {
             ui_text.set_text(function(resources));
         }
@@ -27,7 +27,7 @@ pub(crate) fn sync_text_value_system(data: &mut GameData) {
 pub(crate) fn ui_text_bitmap_update_system(data: &mut GameData) {
     let mut parent_to_remove: HashSet<Entity> = HashSet::new();
     let mut to_add: Vec<(UiTextImage, UiComponent, Transform, Parent)> = Vec::new();
-    let (mut world, mut resources) = data.split();
+    let (world, resources) = data.split();
 
     for (e, (ui_text, transform)) in world.query_mut::<(&mut UiText, &Transform)>() {
         if ui_text.dirty {
