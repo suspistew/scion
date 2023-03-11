@@ -47,8 +47,6 @@ bitflags = { opt-level = 3 }
 bytemuck = { opt-level = 3 }
 byteorder = { opt-level = 3 }
 miniz_oxide = { opt-level = 3 }
-adler32 = { opt-level = 3 }
-deflate = { opt-level = 3 }
 
 [build-dependencies]
 anyhow = "1.0"
