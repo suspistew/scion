@@ -44,6 +44,47 @@ pub enum KeyCode {
     Y,
     Z,
     Space,
+    Tab,
+    LShift,
+    RShift,
+    Apostrophe,
+    BackSpace
+}
+
+impl KeyCode{
+    pub(crate) fn to_char(&self) -> Option<char>{
+        match self{
+            KeyCode::A => Some('a'),
+            KeyCode::B => Some('b'),
+            KeyCode::C => Some('c'),
+            KeyCode::D => Some('d'),
+            KeyCode::E => Some('e'),
+            KeyCode::F => Some('f'),
+            KeyCode::G => Some('g'),
+            KeyCode::H => Some('h'),
+            KeyCode::I => Some('i'),
+            KeyCode::J => Some('j'),
+            KeyCode::K => Some('k'),
+            KeyCode::L => Some('l'),
+            KeyCode::M => Some('m'),
+            KeyCode::N => Some('n'),
+            KeyCode::O => Some('o'),
+            KeyCode::P => Some('p'),
+            KeyCode::Q => Some('q'),
+            KeyCode::R => Some('r'),
+            KeyCode::S => Some('s'),
+            KeyCode::T => Some('t'),
+            KeyCode::U => Some('u'),
+            KeyCode::V => Some('v'),
+            KeyCode::W => Some('w'),
+            KeyCode::X => Some('x'),
+            KeyCode::Y => Some('y'),
+            KeyCode::Z => Some('z'),
+            KeyCode::Space => Some(' '),
+            KeyCode::Apostrophe => Some('\''),
+            _ => None
+        }
+    }
 }
 
 impl From<VirtualKeyCode> for KeyCode {
@@ -81,6 +122,11 @@ impl From<VirtualKeyCode> for KeyCode {
             VirtualKeyCode::Y => KeyCode::Y,
             VirtualKeyCode::Z => KeyCode::Z,
             VirtualKeyCode::Space => KeyCode::Space,
+            VirtualKeyCode::LShift => KeyCode::LShift,
+            VirtualKeyCode::RShift => KeyCode::RShift,
+            VirtualKeyCode::Tab => KeyCode::Tab,
+            VirtualKeyCode::Apostrophe => KeyCode::Apostrophe,
+            VirtualKeyCode::Back => KeyCode::BackSpace,
             _ => KeyCode::Any,
         }
     }

@@ -140,6 +140,10 @@ impl InputsController {
         }
     }
 
+    pub fn input_pressed_event(&self, input: &Input) -> bool {
+        self.all_pressed_events().contains(input)
+    }
+
     pub(crate) fn reset_inputs(&mut self) {
         self.mouse.clear_events();
         self.keyboard.clear_events();
