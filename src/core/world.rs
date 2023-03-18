@@ -18,6 +18,7 @@ use hecs::{
     Component, ComponentError, DynamicBundle, Entity, NoSuchEntity, Query, QueryBorrow, QueryItem,
     QueryMut, QueryOne, QueryOneError,
 };
+use crate::core::resources::focus_manager::FocusManager;
 use crate::core::resources::font_atlas::FontAtlas;
 
 pub trait World {
@@ -133,6 +134,12 @@ impl GameData {
     pub(crate) fn font_atlas(&self) -> AtomicRefMut<FontAtlas> {
         self.get_resource_mut::<FontAtlas>()
             .expect("The engine is missing the mandatory font_atlas resource")
+    }
+
+    /// retrieves the focus manager from the resources.
+    pub(crate) fn focus_manager(&self) -> AtomicRefMut<FocusManager> {
+        self.get_resource_mut::<FocusManager>()
+            .expect("The engine is missing the mandatory focus manager resource")
     }
 }
 
@@ -340,6 +347,12 @@ impl Resources {
     pub(crate) fn font_atlas(&self) -> AtomicRefMut<FontAtlas> {
         self.get_resource_mut::<FontAtlas>()
             .expect("The engine is missing the mandatory font_atlas resource")
+    }
+
+    /// retrieves the focus manager from the resources.
+    pub(crate) fn focus_manager(&self) -> AtomicRefMut<FocusManager> {
+        self.get_resource_mut::<FocusManager>()
+            .expect("The engine is missing the mandatory focus manager resource")
     }
 }
 
