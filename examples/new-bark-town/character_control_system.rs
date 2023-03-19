@@ -35,28 +35,24 @@ pub fn controller_system(data: &mut GameData) {
                 && inputs.key_pressed(&KeyCode::Right)
                 && animations.animation_running("MOVE_RIGHT")
             {
-                println!("{:?} {}", character, animations.animation_running("MOVE_RIGHT"));
                 animations.stop_all_animation(true);
             }
             if !character.left
                 && inputs.key_pressed(&KeyCode::Left)
                 && animations.animation_running("MOVE_LEFT")
             {
-                println!("{:?} {}", character, animations.animation_running("MOVE_LEFT"));
                 animations.stop_all_animation(true);
             }
             if !character.top
                 && inputs.key_pressed(&KeyCode::Up)
                 && animations.animation_running("MOVE_TOP")
             {
-                println!("{:?} {}", character, animations.animation_running("MOVE_TOP"));
                 animations.stop_all_animation(true);
             }
             if !character.bottom
                 && inputs.key_pressed(&KeyCode::Down)
                 && animations.animation_running("MOVE_BOTTOM")
             {
-                println!("{:?} {}", character, animations.animation_running("MOVE_BOTTOM"));
                 animations.stop_all_animation(true);
             }
         }

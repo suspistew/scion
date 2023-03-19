@@ -3,7 +3,7 @@ use std::any::TypeId;
 use crate::core::components::ui::{Focusable, UiComponent, UiFocusable};
 use crate::core::world::{GameData, World};
 use hecs::Component;
-use log::{debug, info, warn};
+use log::{debug, info, trace, warn};
 
 /// System responsible to add the UiComponent to any T missing its uiComponent
 pub(crate) fn missing_ui_component_system<T: Component>(data: &mut GameData) {
@@ -27,7 +27,7 @@ pub(crate) fn missing_focus_component_system<T: Component + Focusable>(data: &mu
         }
     }
     to_add.drain(0..).for_each(|(e, tab_index)| {
-        debug!("Adding UiFocusable component to entity of type {:?}", any::type_name::<T>());
+        trace!("Adding UiFocusable component to entity of type {:?}", any::type_name::<T>());
         let _r = data.add_components(e, (UiFocusable{ rank: tab_index, focused: false },));
     });
 }

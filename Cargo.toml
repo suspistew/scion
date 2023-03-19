@@ -35,7 +35,7 @@ image = { version = "0.24", default-features = false, features = ["png"] }
 
 # logging
 log = { version = "0.4.14", features = ["serde"] }
-fern = { version = "0.6.0", features = ["colored"] }
+fern = { version = "0.6.1", features = ["colored"] }
 
 # sound
 rodio = "0.16.0"

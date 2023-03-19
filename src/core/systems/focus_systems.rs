@@ -1,4 +1,5 @@
 use hecs::Entity;
+use log::debug;
 use crate::core::components::{Hide, HidePropagated};
 use crate::core::components::ui::ui_input::UiInput;
 use crate::core::components::ui::{Focusable, UiFocusable};
@@ -34,6 +35,7 @@ pub(crate) fn focus_switcher_system(data: &mut GameData) {
                         input.focused = false;
                     }
                 }
+                debug!("Focused tabIndex changed, focus is now on tabIndex {}", rank);
                 let mut new_input = world.entry_mut::<&mut UiFocusable>(e).expect("Previously checked entity doesn't exist");
                 new_input.focused = true;
                 resource.focus_manager().change_focus(e, rank);

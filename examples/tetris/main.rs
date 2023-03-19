@@ -35,7 +35,7 @@ fn main() {
 fn app_config() -> ScionConfig {
     ScionConfigBuilder::new()
         .with_app_name("Tetris".to_string())
-        .with_logger_config(LoggerConfig { level_filter: LevelFilter::Warn })
+        .with_logger_config(LoggerConfig { scion_level_filter: LevelFilter::Info, level_filter: LevelFilter::Debug })
         .with_window_config(
             WindowConfigBuilder::new().with_dimensions((544, 704)).with_resizable(true).get(),
         )

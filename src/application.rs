@@ -56,7 +56,7 @@ impl Scion {
     /// The application will use the provided configuration.
     pub fn app_with_config(app_config: ScionConfig) -> ScionBuilder {
         crate::utils::logger::Logger::init_logging(app_config.logger_config.clone());
-        info!("Launching Scion application with the following configuration: {:?}", app_config);
+        info!("Starting a Scion app, with the following configuration \n {:?}", app_config);
         ScionBuilder::new(app_config)
     }
 
