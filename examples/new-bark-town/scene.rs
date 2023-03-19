@@ -1,6 +1,5 @@
 use hecs::Entity;
 use std::time::Duration;
-use image::imageops::tile;
 use log::{debug, info};
 
 use scion::core::components::animations::{Animation, AnimationModifier, Animations};

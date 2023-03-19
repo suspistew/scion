@@ -1,13 +1,9 @@
-use hecs::PreparedQuery;
 use crate::core::components::maths::hierarchy::{Children, Parent};
 use crate::core::components::maths::transform::Transform;
-use crate::core::components::ui::ui_image::UiImage;
 use crate::core::components::ui::ui_input::UiInput;
 use crate::core::components::ui::ui_text::UiText;
 use crate::core::resources::inputs::types::{Input, KeyCode};
 use crate::core::world::{GameData, World};
-
-pub struct Query(UiInput, Transform);
 
 /// This system is responsible of handling components needed to represent a ui_input
 /// It will detect and create needed components
@@ -21,7 +17,7 @@ pub(crate) fn set_childs_on_inputs(data: &mut GameData) {
         }
         to_add_entities.push((e, ui_text, Transform::from_xyz(0., 0., transform.local_translation.z), Parent(e)));
     }
-    to_add_entities.drain(0..).for_each(|(entity, ui_text, transform, parent)| {
+    to_add_entities.drain(0..).for_each(|(_, ui_text, transform, parent)| {
         data.push((ui_text, transform, parent));
     });
 }

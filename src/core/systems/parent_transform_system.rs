@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use log::{debug, trace};
+use log::trace;
 
 use crate::core::components::maths::{
     hierarchy::{Children, Parent},

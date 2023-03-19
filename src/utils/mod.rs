@@ -4,6 +4,7 @@ pub mod logger;
 pub mod maths;
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct ScionError {
     details: String
 }

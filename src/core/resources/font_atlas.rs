@@ -1,13 +1,10 @@
 use std::collections::HashMap;
-use std::fmt::format;
 use std::path::Path;
 use ab_glyph::{Font, FontVec, Glyph, Point, point, PxScale, ScaleFont};
 use image::{DynamicImage, Rgba};
 use crate::core::components::color::Color;
 use crate::core::components::material::Texture;
-use crate::core::resources::asset_manager::AssetRef;
-use crate::utils;
-use crate::utils::file::{FileReaderError, read_file};
+use crate::utils::file::read_file;
 use crate::utils::ScionError;
 
 const TEXT: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890éèàùç-?!.,:=/+-%&'()";

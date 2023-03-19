@@ -12,7 +12,6 @@ use scion::core::{
 use scion::core::components::color::Color;
 use scion::core::components::material::Material;
 use scion::core::components::ui::ui_input::UiInput;
-use scion::core::resources::asset_manager::AssetManager;
 
 use crate::{asset_path, resources::TetrisResource};
 
@@ -80,7 +79,7 @@ fn add_score_ui(data: &mut GameData) -> Entity {
     let font_asset_2 = data.assets_mut().register_font(font2);
 
     let txt = UiText::new("SCORE".to_string(), font_asset_2.clone());
-    let mut transform = Transform::from_xyz(394., 250., 2);
+    let transform = Transform::from_xyz(394., 250., 2);
 
     data.push((txt, transform));
 

@@ -5,6 +5,7 @@ use winit::{
     window::WindowBuilder,
 };
 use winit::dpi::LogicalSize;
+use winit::window::WindowLevel;
 
 use crate::{config::scion_config::ScionConfig, core::components::color::Color};
 
@@ -76,7 +77,7 @@ impl WindowConfig {
         builder
             .with_visible(self.visibility)
             .with_window_icon(None)
-            .with_always_on_top(self.always_on_top)
+            .with_window_level(if self.always_on_top { WindowLevel::AlwaysOnTop } else { WindowLevel::Normal })
             .with_decorations(self.decorations)
             .with_maximized(self.maximized)
             .with_resizable(self.resizable)

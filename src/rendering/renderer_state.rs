@@ -1,4 +1,4 @@
-use wgpu::{CompositeAlphaMode, SurfaceConfiguration};
+use wgpu::{CompositeAlphaMode, InstanceDescriptor, SurfaceConfiguration, TextureFormat};
 use winit::{event::WindowEvent, window::Window};
 
 use crate::core::world::GameData;
@@ -17,11 +17,14 @@ impl RendererState {
         let _size = window.inner_size();
 
         let backend = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
-        let instance = wgpu::Instance::new(backend);
+        let instance = wgpu::Instance::new(InstanceDescriptor {
+            backends: backend,
+            dx12_shader_compiler: wgpu::Dx12Compiler::Fxc
+        });
 
         let (_size, surface) = unsafe {
             let size = window.inner_size();
-            let surface = instance.create_surface(&window);
+            let surface = instance.create_surface(&window).expect("Surface unsupported by adapter");
             (size, surface)
         };
 
@@ -49,11 +52,12 @@ impl RendererState {
 
         let config = SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_supported_formats(&adapter)[0],
+            format: surface.get_capabilities(&adapter).formats[0],
             width: w.width * window.scale_factor() as u32,
             height: w.height * window.scale_factor() as u32,
             present_mode: wgpu::PresentMode::Fifo,
-            alpha_mode: CompositeAlphaMode::Auto
+            alpha_mode: CompositeAlphaMode::Auto,
+            view_formats: vec![TextureFormat::Bgra8UnormSrgb],
         };
         surface.configure(&device, &config);
 

@@ -1,7 +1,7 @@
 use hecs::{Component, Entity};
 use std::{cfg, collections::HashMap, ops::Range, path::Path, time::SystemTime};
 
-use wgpu::{util::DeviceExt, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView, SamplerBindingType};
+use wgpu::{util::DeviceExt, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView, SamplerBindingType, TextureFormat};
 
 use crate::core::world::{GameData, World};
 use crate::rendering::gl_representations::TexturedGlVertex;
@@ -28,7 +28,6 @@ use crate::{
     },
     utils::file::{read_file_modification_time, FileReaderError},
 };
-use crate::core::resources::font_atlas::TrueTypeData;
 
 #[derive(Default)]
 pub(crate) struct Scion2D {
@@ -630,9 +629,10 @@ fn load_texture_to_queue(
         mip_level_count: 1,
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
-        format: wgpu::TextureFormat::Rgba8UnormSrgb,
         usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
         label: Some("diffuse_texture"),
+        format: TextureFormat::Rgba8UnormSrgb,
+        view_formats: &[TextureFormat::Rgba8UnormSrgb]
     });
 
     queue.write_texture(

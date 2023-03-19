@@ -1,9 +1,8 @@
 use std::any;
-use std::any::TypeId;
 use crate::core::components::ui::{Focusable, UiComponent, UiFocusable};
 use crate::core::world::{GameData, World};
 use hecs::Component;
-use log::{debug, info, trace, warn};
+use log::trace;
 
 /// System responsible to add the UiComponent to any T missing its uiComponent
 pub(crate) fn missing_ui_component_system<T: Component>(data: &mut GameData) {

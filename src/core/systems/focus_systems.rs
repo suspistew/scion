@@ -1,9 +1,8 @@
 use hecs::Entity;
 use log::debug;
 use crate::core::components::{Hide, HidePropagated};
-use crate::core::components::ui::ui_input::UiInput;
-use crate::core::components::ui::{Focusable, UiFocusable};
-use crate::core::resources::inputs::types::{Input, KeyCode, Shortcut};
+use crate::core::components::ui::UiFocusable;
+use crate::core::resources::inputs::types::{Input, KeyCode};
 use crate::core::world::{GameData, SubWorld, World};
 
 #[derive(PartialEq, Eq)]
