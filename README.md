@@ -45,20 +45,21 @@ These are the dependencies this project is relying on. Thanks to these awesome c
 - <a href="https://github.com/Ralith/hecs" target="blank">hecs</a> (Entity component system)
 - <a href="https://github.com/termhn/ultraviolet" target="blank">ultraviolet</a> (Maths)
 
-## Pre-requisite
-
+## Pre-requisites
+To build Scion, you need to install the required packages for your system: 
 ### Debian, Ubuntu, PopOS...
-
-To build the project you'll need to install these first : 
 ```sh
 sudo apt install gcc cmake build-essential libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev
 ```
 
 ### Fedora
-
-To build the project you'll need to install these first : 
 ```sh
 sudo dnf install gcc cmake make automake gcc gcc-c++ kernel-devel libX11-devel libXi-devel mesa-libGL-devel alsa-lib-devel
+```
+
+### Arch, Manjaro...
+```sh
+sudo pacman -S gcc cmake make automake linux-headers libx11 libxi mesa alsa-lib
 ```
 
 ### Run an example
