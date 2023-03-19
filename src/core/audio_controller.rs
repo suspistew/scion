@@ -3,6 +3,7 @@ use rodio::{OutputStream, Sink, Source};
 use std::collections::HashMap;
 use std::io::BufReader;
 use std::sync::mpsc::Receiver;
+use log::{debug, info};
 
 pub(crate) struct AudioController {
     receiver: Receiver<AudioEvent>,
@@ -22,6 +23,7 @@ pub(crate) fn audio_thread(controller: AudioController) {
         if let Ok(message) = controller.receiver.try_recv() {
             match message {
                 AudioEvent::PlaySound { path, config, sound_id } => {
+                    debug!("Started to play sound {}", path);
                     let sink = Sink::try_new(&stream_handle).unwrap();
                     let file = std::fs::File::open(path.as_str()).unwrap();
                     let source = rodio::Decoder::new(BufReader::new(file)).unwrap();

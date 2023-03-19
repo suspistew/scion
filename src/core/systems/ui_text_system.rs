@@ -1,6 +1,7 @@
 use hecs::Entity;
 use std::collections::HashSet;
 use atomic_refcell::AtomicRefMut;
+use log::debug;
 
 use crate::core::components::{
     maths::{coordinates::Coordinates, hierarchy::Parent, transform::Transform},
@@ -119,7 +120,7 @@ pub(crate) fn ui_text_bitmap_update_system(data: &mut GameData) {
 
 fn add_font_to_atlas_if_missing(size: usize, color: &Color, font_path: &str,  font_atlas: &mut AtomicRefMut<FontAtlas>) {
     if let None = font_atlas.get_texture(&font_path, size, &color) {
-        println!("Adding {} {} {:?}", font_path, size, color);
+        debug!("Adding font to atlas: [path: {}; size:{}; color:{:?}", font_path, size, color);
         let res = crate::core::resources::font_atlas::generate_bitmap(Font::TrueType { font_path: font_path.to_string() },
                                                                       size,
                                                                       &color);

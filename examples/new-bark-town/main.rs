@@ -1,3 +1,4 @@
+use log::LevelFilter;
 use crate::scene::MainScene;
 use scion::config::logger_config::LoggerConfig;
 use scion::config::scion_config::ScionConfigBuilder;
@@ -14,7 +15,7 @@ fn main() {
     Scion::app_with_config(
         ScionConfigBuilder::new()
             .with_app_name("Pkmn new bark town".to_string())
-            .with_logger_config(LoggerConfig::default())
+            .with_logger_config(LoggerConfig { scion_level_filter: LevelFilter::Info, level_filter: LevelFilter::Debug })
             .with_window_config(
                 WindowConfigBuilder::new()
                     .with_dimensions((384, 336))

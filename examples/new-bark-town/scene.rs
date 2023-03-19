@@ -1,5 +1,7 @@
 use hecs::Entity;
 use std::time::Duration;
+use image::imageops::tile;
+use log::{debug, info};
 
 use scion::core::components::animations::{Animation, AnimationModifier, Animations};
 use scion::core::components::color::Color;
@@ -208,11 +210,12 @@ impl Scene for MainScene {
 }
 
 impl MainScene {
-    fn load_map(&mut self, level: String, data: &mut GameData) -> Entity {
+    fn load_map(&mut self, level_name: String, data: &mut GameData) -> Entity {
+        debug!("Starting to load new level named {}", level_name);
         let asset_ref = data.assets_mut().register_tileset(
             Tileset::from_atlas("examples/new-bark-town/assets/nbt_atlas.json").unwrap(),
         );
-        let mut level = read_level(level.as_str());
+        let mut level = read_level(level_name.as_str());
         let mut scale = Transform::default();
         scale.set_scale(3.0);
         let tilemap_infos = TilemapInfo::new(
@@ -223,10 +226,14 @@ impl MainScene {
 
         self.current_width = level.map.width;
         self.current_height = level.map.height;
-        Tilemap::create(tilemap_infos, data, |p| {
+        let tilemap = Tilemap::create(tilemap_infos, data, |p| {
             TileInfos::new(Some(level.map.tile_at(p)), get_animation_for_tile(level.map.tile_at(p)))
                 .with_event(level.event_at(p))
-        })
+        });
+
+        info!("Successfully loaded level {}", level_name);
+
+        tilemap
     }
 }
 

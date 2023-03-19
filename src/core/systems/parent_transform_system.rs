@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use log::{debug, trace};
 
 use crate::core::components::maths::{
     hierarchy::{Children, Parent},
@@ -67,6 +68,7 @@ pub(crate) fn dirty_transform_system(data: &mut GameData) {
         while let Some((transform, entities)) = transform_entities.pop() {
             for entity in entities {
                 if let Ok(child_transform) = data.entry_mut::<&mut Transform>(entity) {
+                    trace!("Updating child Transform of entity {:?}, because parent was marked as dirty", entity);
                     child_transform.compute_global_from_parent(transform.global_translation())
                 }
             }

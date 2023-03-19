@@ -1,5 +1,6 @@
 use hecs::QueryOneError;
 use std::collections::HashMap;
+use log::{debug, trace};
 
 use crate::core::components::maths::hierarchy::{Children, Parent};
 use crate::core::world::{GameData, World};
@@ -37,9 +38,11 @@ pub(crate) fn children_manager_system(data: &mut GameData) {
         }
     });
     component_to_add.drain().for_each(|(e, children)| {
+        trace!("Adding children component on entity {:?}", e);
         let _r = data.add_components(e, (Children(children),));
     });
     entities_to_remove.drain(0..).for_each(|e| {
+        trace!("Removing entity {:?} because the parent has not been found", e);
         let _r = data.remove(e);
     });
 

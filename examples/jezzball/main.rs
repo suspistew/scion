@@ -18,7 +18,7 @@ fn main() {
     Scion::app_with_config(
         ScionConfigBuilder::new()
             .with_app_name("Jezzball scion".to_string())
-            .with_logger_config(LoggerConfig { level_filter: LevelFilter::Off })
+            .with_logger_config(LoggerConfig { scion_level_filter: LevelFilter::Info, level_filter: LevelFilter::Off })
             .with_window_config(
                 WindowConfigBuilder::new()
                     .with_default_background_color(Some(Color::new_rgb(10, 10, 10)))

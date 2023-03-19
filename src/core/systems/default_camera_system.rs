@@ -1,3 +1,4 @@
+use log::debug;
 use crate::core::components::maths::{
     camera::{Camera, DefaultCamera},
     transform::Transform,
@@ -12,6 +13,7 @@ pub(crate) fn default_camera_system(data: &mut GameData) {
     let (subworld, resources) = data.split();
 
     if let Some(e) = default_entity {
+        debug!("Adding default camera to the entity {:?}", e);
         let window = resources.window();
         let mut camera = Camera::new(
             window.width() as f32,
