@@ -110,8 +110,4 @@ impl Renderable2D for UiTextImage {
     fn set_dirty(&mut self, _is_dirty: bool) {}
 }
 
-impl RenderableUi for UiTextImage {
-    fn get_texture_path(&self) -> Option<String> {
-        self.0.get_texture_path()
-    }
-}
+impl RenderableUi for UiTextImage {}

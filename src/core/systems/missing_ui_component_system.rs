@@ -46,7 +46,7 @@ mod tests {
     fn missing_ui_comp_system_test() {
         let mut world = GameData::default();
 
-        let e = world.push((UiImage::new(1., 1., "".to_string()),));
+        let e = world.push((UiImage::new(1., 1.),));
 
         assert_eq!(true, world.entry::<&UiComponent>(e).expect("").get().is_none());
 

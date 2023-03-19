@@ -10,7 +10,6 @@ use crate::{
 /// Renderable 2D UIImage
 #[derive(Debug)]
 pub struct UiImage {
-    image_path: String,
     contents: [TexturedGlVertex; 4],
 }
 
@@ -18,14 +17,14 @@ const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
 impl UiImage {
     /// Creates a ui_image with `width` and `height` using image at `image_path`
-    pub fn new(width: f32, height: f32, image_path: String) -> Self {
+    pub fn new(width: f32, height: f32) -> Self {
         let uvs = [
             Coordinates::new(0., 0.),
             Coordinates::new(0., 1.),
             Coordinates::new(1., 1.),
             Coordinates::new(1., 0.),
         ];
-        UiImage::new_with_uv_map(width, height, image_path, uvs)
+        UiImage::new_with_uv_map(width, height, uvs)
     }
 
     /// Creates a ui_image with `width` and `height` using image at `image_path`
@@ -33,7 +32,6 @@ impl UiImage {
     pub fn new_with_uv_map(
         width: f32,
         height: f32,
-        image_path: String,
         uvs: [Coordinates; 4],
     ) -> Self {
         let a = Coordinates::new(0., 0.);
@@ -47,13 +45,13 @@ impl UiImage {
             TexturedGlVertex::from((&c, &uvs[2])),
             TexturedGlVertex::from((&d, &uvs[3])),
         ];
-        Self { image_path, contents }
+        Self { contents }
     }
 }
 
 impl Renderable2D for UiImage {
     fn vertex_buffer_descriptor(&mut self, _material: Option<&Material>) -> BufferInitDescriptor {
-        wgpu::util::BufferInitDescriptor {
+        BufferInitDescriptor {
             label: Some("UI Image vertex buffer"),
             contents: bytemuck::cast_slice(&self.contents),
             usage: wgpu::BufferUsages::VERTEX,
@@ -61,7 +59,7 @@ impl Renderable2D for UiImage {
     }
 
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
-        wgpu::util::BufferInitDescriptor {
+        BufferInitDescriptor {
             label: Some("UI Image index buffer"),
             contents: bytemuck::cast_slice(&INDICES),
             usage: wgpu::BufferUsages::INDEX,
@@ -73,7 +71,7 @@ impl Renderable2D for UiImage {
     }
 
     fn topology() -> PrimitiveTopology {
-        wgpu::PrimitiveTopology::TriangleList
+        PrimitiveTopology::TriangleList
     }
 
     fn dirty(&self) -> bool {
@@ -84,7 +82,5 @@ impl Renderable2D for UiImage {
 }
 
 impl RenderableUi for UiImage {
-    fn get_texture_path(&self) -> Option<String> {
-        Some(self.image_path.clone())
-    }
+
 }

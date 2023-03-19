@@ -189,22 +189,7 @@ impl ScionBuilder {
         builder.with_package(InternalPackage)
     }
 
-    /// Add a [legion](https://docs.rs/legion/latest/legion/) system to the scheduler.
-    ///
-    /// To create a system, you have two choices :
-    ///
-    /// 1. Using macros (Note that you need to add `legion as dependency to your project`
-    /// ```no_run
-    /// use legion::*;
-    /// #[system]
-    /// fn hello() {
-    ///     println!("Hello world from a system");
-    /// }
-    /// ```
-    /// This will create a function `hello_system()` that you can use on this function
-    ///
-    /// 2. Using complex system builder , see [legion system builder documentation](https://docs.rs/legion/latest/legion/struct.SystemBuilder.html)
-    /// for more precisions.
+    /// Specify a system to add to the scheduler.
     pub fn with_system(mut self, system: fn(&mut GameData)) -> Self {
         self.scheduler.add_system(system);
         self
