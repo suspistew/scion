@@ -1,4 +1,4 @@
-    <img src="banner.png" alt="Scion" />
+<img src="banner.png" alt="Scion" />
 
 Scion is a 2D game library made in rust. 
 
