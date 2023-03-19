@@ -15,7 +15,7 @@ use crate::core::scene::SceneController;
 use atomic_refcell::{AtomicRef, AtomicRefCell, AtomicRefMut};
 use downcast_rs::{impl_downcast, Downcast};
 use hecs::{
-    Component, ComponentError, DynamicBundle, Entity, NoSuchEntity, Query, QueryBorrow, QueryItem,
+    Component, ComponentError, DynamicBundle, Entity, NoSuchEntity, Query, QueryBorrow,
     QueryMut, QueryOne, QueryOneError,
 };
 use crate::core::resources::focus_manager::FocusManager;
@@ -35,7 +35,7 @@ pub trait World {
     fn query<Q: Query>(&self) -> QueryBorrow<'_, Q>;
     fn query_mut<Q: Query>(&mut self) -> QueryMut<'_, Q>;
     fn entry<Q: Query>(&self, entity: Entity) -> Result<QueryOne<'_, Q>, NoSuchEntity>;
-    fn entry_mut<Q: Query>(&mut self, entity: Entity) -> Result<QueryItem<'_, Q>, QueryOneError>;
+    fn entry_mut<Q: Query>(&mut self, entity: Entity) -> Result<Q::Item<'_>, QueryOneError>;
     fn contains(&self, entity: Entity) -> bool;
     fn add_default_camera(&mut self) -> Entity;
 }
@@ -137,6 +137,7 @@ impl GameData {
     }
 
     /// retrieves the focus manager from the resources.
+    #[allow(dead_code)]
     pub(crate) fn focus_manager(&self) -> AtomicRefMut<FocusManager> {
         self.get_resource_mut::<FocusManager>()
             .expect("The engine is missing the mandatory focus manager resource")
@@ -188,7 +189,7 @@ impl World for GameData {
         self.subworld.internal_world.query_one::<Q>(entity)
     }
 
-    fn entry_mut<Q: Query>(&mut self, entity: Entity) -> Result<QueryItem<'_, Q>, QueryOneError> {
+    fn entry_mut<Q: Query>(&mut self, entity: Entity) -> Result<Q::Item<'_>, QueryOneError> {
         self.subworld.internal_world.query_one_mut::<Q>(entity)
     }
 
@@ -252,7 +253,7 @@ impl World for SubWorld {
         self.internal_world.query_one::<Q>(entity)
     }
 
-    fn entry_mut<Q: Query>(&mut self, entity: Entity) -> Result<QueryItem<'_, Q>, QueryOneError> {
+    fn entry_mut<Q: Query>(&mut self, entity: Entity) -> Result<Q::Item<'_>, QueryOneError> {
         self.internal_world.query_one_mut::<Q>(entity)
     }
 

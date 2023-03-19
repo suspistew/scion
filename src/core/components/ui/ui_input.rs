@@ -8,7 +8,7 @@ pub struct UiInput {
     text: String,
     width: usize,
     height: usize,
-    cursor: usize,
+    _cursor: usize,
     font_ref: AssetRef<Font>,
     /// font size when using a TrueType font
     font_size: usize,
@@ -24,7 +24,7 @@ impl UiInput{
             text: "".to_string(),
             width,
             height,
-            cursor: 0,
+            _cursor: 0,
             font_ref,
             font_size: 0,
             font_color: None,
