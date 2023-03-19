@@ -12,6 +12,7 @@ use crate::core::components::{
     },
 };
 use crate::core::components::color::Color;
+use crate::core::components::material::Material;
 use crate::core::resources::font_atlas::FontAtlas;
 use crate::core::world::{GameData, World};
 
@@ -26,7 +27,7 @@ pub(crate) fn sync_text_value_system(data: &mut GameData) {
 
 pub(crate) fn ui_text_bitmap_update_system(data: &mut GameData) {
     let mut parent_to_remove: HashSet<Entity> = HashSet::new();
-    let mut to_add: Vec<(UiTextImage, UiComponent, Transform, Parent)> = Vec::new();
+    let mut to_add: Vec<(UiTextImage, Material, UiComponent, Transform, Parent)> = Vec::new();
     let (world, resources) = data.split();
 
     for (e, (ui_text, transform)) in world.query_mut::<(&mut UiText, &Transform)>() {
@@ -51,7 +52,7 @@ pub(crate) fn ui_text_bitmap_update_system(data: &mut GameData) {
                     let true_type_data = font_atlas.get_texture(&font_path, ui_text.font_size(), &color).expect("Missing data from atlas after insert");
 
 
-                    let mut to_add_secondary: Vec<(UiTextImage, UiComponent, Transform, Parent)> = Vec::new();
+                    let mut to_add_secondary: Vec<(UiTextImage, Material, UiComponent, Transform, Parent)> = Vec::new();
                     let texture_width = true_type_data.width as f32;
                     let texture_height = true_type_data.height  as f32;
                     let mut current_pos = 0.;
@@ -86,9 +87,9 @@ pub(crate) fn ui_text_bitmap_update_system(data: &mut GameData) {
                             UiTextImage(UiImage::new_with_uv_map(
                                 char.end_x-char.start_x,
                                 char.end_y-char.start_y,
-                                texture_path.clone(),
                                 uvs,
                             )),
+                            Material::Texture(texture_path.clone()),
                             UiComponent,
                             char_transform,
                             Parent(e),
@@ -138,8 +139,8 @@ fn update_bitmap(texture_path: String,
                  ui_text: &mut UiText,
                  transform: &Transform,
                  e: Entity
-) -> Vec<(UiTextImage, UiComponent, Transform, Parent)> {
-    let mut to_add: Vec<(UiTextImage, UiComponent, Transform, Parent)> = Vec::new();
+) -> Vec<(UiTextImage, Material, UiComponent, Transform, Parent)> {
+    let mut to_add: Vec<(UiTextImage, Material, UiComponent, Transform, Parent)> = Vec::new();
     let texture_width = texture_columns * width;
     let texture_height = texture_lines * height;
 
@@ -172,9 +173,9 @@ fn update_bitmap(texture_path: String,
             UiTextImage(UiImage::new_with_uv_map(
                 width as f32,
                 height as f32,
-                texture_path.clone(),
                 uvs,
             )),
+            Material::Texture(texture_path.clone()),
             UiComponent,
             char_transform,
             Parent(e),

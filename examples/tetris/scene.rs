@@ -10,6 +10,7 @@ use scion::core::{
     scene::Scene,
 };
 use scion::core::components::color::Color;
+use scion::core::components::material::Material;
 use scion::core::components::ui::ui_input::UiInput;
 use scion::core::resources::asset_manager::AssetManager;
 
@@ -68,7 +69,17 @@ fn add_score_ui(data: &mut GameData) -> Entity {
         Transform::from_xyz(394., 430., 2)
     ));
 
-    let txt = UiText::new("SCORE".to_string(), font_asset.clone()).with_font_size(32).with_font_color(Color::new_rgb(0,0,0));
+    let font2 = Font::Bitmap {
+        texture_path: asset_path().join("font.png").get(),
+        chars: "0123456789ACEOPRSULI".to_string(),
+        texture_columns: 20.,
+        texture_lines: 1.,
+        width: 21.,
+        height: 27.,
+    };
+    let font_asset_2 = data.assets_mut().register_font(font2);
+
+    let txt = UiText::new("SCORE".to_string(), font_asset_2.clone());
     let mut transform = Transform::from_xyz(394., 250., 2);
 
     data.push((txt, transform));
@@ -82,19 +93,19 @@ fn add_score_ui(data: &mut GameData) -> Entity {
 
 fn add_main_ui_mask(data: &mut GameData) {
     let path = asset_path().join("ui.png").get();
-    let image = UiImage::new(544., 704., path);
+    let image = UiImage::new(544., 704.);
 
     let mut t = Transform::default();
     t.set_z(0);
-    data.push((image, t));
+    data.push((image, t, Material::Texture(path)));
 }
 
 fn add_ui_top_overflow(data: &mut GameData) {
     let path = asset_path().join("ui_overflow_top.png").get();
-    let image = UiImage::new(324., 32., path);
+    let image = UiImage::new(324., 32.);
 
     let mut t = Transform::default();
     t.set_z(2);
     t.append_translation(32., 0.);
-    data.push((image, t));
+    data.push((image, t, Material::Texture(path)));
 }

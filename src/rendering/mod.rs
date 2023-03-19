@@ -69,8 +69,4 @@ pub(crate) trait Renderable2D {
     fn set_dirty(&mut self, is_dirty: bool);
 }
 
-pub(crate) trait RenderableUi: Renderable2D {
-    fn get_texture_path(&self) -> Option<String> {
-        None
-    }
-}
+pub(crate) trait RenderableUi: Renderable2D {}

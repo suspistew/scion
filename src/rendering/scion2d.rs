@@ -28,6 +28,7 @@ use crate::{
     },
     utils::file::{read_file_modification_time, FileReaderError},
 };
+use crate::core::resources::font_atlas::TrueTypeData;
 
 #[derive(Default)]
 pub(crate) struct Scion2D {
@@ -256,12 +257,12 @@ impl Scion2D {
         data: &mut GameData,
         device: &&Device,
         _surface_config: &&SurfaceConfiguration,
-        queue: &mut Queue,
+        _queue: &mut Queue,
     ) {
-        for (entity, (component, _)) in data.query::<(&mut T, &Transform)>().iter() {
+        for (entity, (component, _, m)) in data.query::<(&mut T, &Transform, Option<&Material>)>().iter() {
             if !self.vertex_buffers.contains_key(&entity) {
                 let vertex_buffer =
-                    device.create_buffer_init(&component.vertex_buffer_descriptor(None));
+                    device.create_buffer_init(&component.vertex_buffer_descriptor(m));
                 self.vertex_buffers.insert(entity, vertex_buffer);
             }
 
@@ -269,32 +270,6 @@ impl Scion2D {
                 let index_buffer =
                     device.create_buffer_init(&component.indexes_buffer_descriptor());
                 self.index_buffers.insert(entity, index_buffer);
-            }
-            if let Some(texture_path) = component.get_texture_path() {
-                if !self.diffuse_bind_groups.contains_key(texture_path.as_str()) {
-                    let mut atlas = data.font_atlas();
-                    let loaded_texture = if let Some(mut tt_data) = atlas.get_texture_from_path(texture_path.as_str()) {
-                        tt_data.take_texture()
-                    }else{
-                        let path = Path::new(texture_path.as_str());
-                        let timestamp = read_file_modification_time(path);
-                        if let Ok(timestamp) = timestamp {
-                            self.assets_timestamps.insert(texture_path.clone(), timestamp);
-                        }
-                        Texture::from_png(path)
-                    };
-
-
-                    self.diffuse_bind_groups.insert(
-                        texture_path.clone(),
-                        load_texture_to_queue(
-                            &loaded_texture,
-                            queue,
-                            device,
-                            self.texture_bind_group_layout.as_ref().unwrap(),
-                        ),
-                    );
-                }
             }
         }
     }
@@ -369,7 +344,9 @@ impl Scion2D {
         let mut render_infos = Vec::new();
         for (entity, (component, material, transform)) in data
             .query::<(&mut T, &Material, &Transform)>()
-            .without::<(&Tile, &Hide, &HidePropagated)>()
+            .without::<&Tile>()
+            .without::<&Hide>()
+            .without::<&HidePropagated>()
             .iter()
         {
             let path = match material {
@@ -425,14 +402,27 @@ impl Scion2D {
     ) -> Vec<RenderingInfos> {
         let type_name = std::any::type_name::<T>();
         let mut render_infos = Vec::new();
-        for (entity, (component, transform)) in
-            data.query::<(&mut T, &Transform)>().without::<(&Hide, &HidePropagated)>().iter()
+        for (entity, (component, transform, material)) in
+            data.query::<(&mut T, &Transform, Option<&Material>)>()
+                .without::<&Hide>()
+                .without::<&HidePropagated>()
+                .iter()
         {
+            let path = if material.is_some() {
+                match material.unwrap() {
+                    Material::Color(color) => Some(get_path_from_color(&color)),
+                    Material::Texture(p) => Some(p.clone()),
+                    _ => None
+                }
+            }else{
+                None
+            };
+
             render_infos.push(RenderingInfos {
                 layer: transform.translation().z(),
                 range: component.range(),
                 entity,
-                texture_path: component.get_texture_path(),
+                texture_path: path,
                 type_name: type_name.to_string(),
             });
         }
@@ -550,7 +540,12 @@ impl Scion2D {
                             self.diffuse_bind_groups.remove(texture_path.as_str());
                         }
 
-                        let loaded_texture = Texture::from_png(path);
+                        // Check if this is an in_memory_texture from font_atlas
+                        let loaded_texture = match data.font_atlas().get_texture_from_path(texture_path){
+                            Some(t) => t.take_texture(),
+                            None => Texture::from_png(path)
+                        };
+
                         self.diffuse_bind_groups.insert(
                             texture_path.clone(),
                             load_texture_to_queue(

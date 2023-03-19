@@ -38,7 +38,7 @@ impl AssetManager {
     }
 
     pub fn register_font(&mut self, font: Font) -> AssetRef<Font> {
-        let next_ref = AssetRef(self.materials.keys().count(), PhantomData::default());
+        let next_ref = AssetRef(self.fonts.keys().count(), PhantomData::default());
         self.fonts.insert(next_ref.0, font);
         next_ref
     }
