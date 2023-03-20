@@ -1,5 +1,7 @@
-use hecs::QueryOneError;
-use std::collections::HashMap;
+use hecs::{Entity, QueryOneError};
+use std::collections::{BTreeSet, HashMap, HashSet};
+use std::iter::FromIterator;
+use std::time::SystemTime;
 use log::trace;
 
 use crate::core::components::maths::hierarchy::{Children, Parent};
@@ -11,51 +13,38 @@ use crate::core::world::{GameData, World};
 pub(crate) fn children_manager_system(data: &mut GameData) {
     let mut parents = fetch_parent_entities(data);
     let mut component_to_add = HashMap::new();
-    let mut entities_to_remove = Vec::new();
+    let mut entities_to_remove = HashSet::new();
 
-    parents.drain(0..).for_each(|(child_entity, parent_entity)| {
-        match data.entry_mut::<&mut Children>(parent_entity) {
-            Ok(children) => {
-                if !children.0.contains(&child_entity) {
-                    children.0.push(child_entity);
-                }
-            }
-            Err(e) => {
-                match e {
-                    QueryOneError::NoSuchEntity => {
-                        // If the parent has been removed, we delete any child linked to it
-                        entities_to_remove.push(child_entity);
-                    }
-                    QueryOneError::Unsatisfied => {
-                        // If the parent hasn't the Children component, we add it to the buffer
-                        component_to_add
-                            .entry(parent_entity)
-                            .or_insert(Vec::new())
-                            .push(child_entity);
-                    }
-                }
-            }
+    for (e, children) in data.query_mut::<&mut Children>() {
+        if let Some(mut children_entity) = parents.remove(&e) {
+            children.0 = children_entity;
+            parents.remove(&e);
+        } else{
+            entities_to_remove.insert(e);
+        }
+    }
+    parents.drain().for_each(|(parent,mut children)|{
+        if data.contains(parent) {
+            component_to_add.insert(parent, children);
+        }else{
+            entities_to_remove.extend(&children);
         }
     });
     component_to_add.drain().for_each(|(e, children)| {
         trace!("Adding children component on entity {:?}", e);
         let _r = data.add_components(e, (Children(children),));
     });
-    entities_to_remove.drain(0..).for_each(|e| {
+    entities_to_remove.drain().for_each(|e| {
         trace!("Removing entity {:?} because the parent has not been found", e);
         let _r = data.remove(e);
     });
-
-    let entities = data.entities();
-    for (_, c) in data.query_mut::<&mut Children>() {
-        c.0.retain(|e| entities.contains(e));
-    }
 }
 
-fn fetch_parent_entities(data: &mut GameData) -> Vec<(hecs::Entity, hecs::Entity)> {
-    let mut res = Vec::new();
+fn fetch_parent_entities(data: &mut GameData) -> HashMap<hecs::Entity, Vec<hecs::Entity>> {
+    let mut res = HashMap::new();
     for (e, p) in data.query::<&Parent>().iter() {
-        res.push((e, p.0));
+        let entry = res.entry(p.0).or_insert_with(Vec::new);
+        entry.push(e);
     }
     res
 }
@@ -106,6 +95,6 @@ mod tests {
         // we delete the child and then we execute the schedule and test that we have the good result
         children_manager_system(&mut world);
 
-        assert_eq!(0, world.entry::<&Children>(parent).unwrap().get().unwrap().0.len());
+        assert_eq!(true, world.entry::<&Children>(parent).is_err());
     }
 }
