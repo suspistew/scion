@@ -69,7 +69,7 @@ impl Sprite {
                 ];
             }
         }
-        self.contents.as_ref().expect("A computed content is missing in Sprite component").clone()
+        self.contents.as_ref().expect("A computed content is missing in Sprite component 2").clone()
     }
 
     pub(crate) fn indices() -> Vec<u16> {

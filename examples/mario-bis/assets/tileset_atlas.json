@@ -1,0 +1,7 @@
+{
+  "texture": "examples/mario-bis/assets/tileset.png",
+  "width": 4,
+  "height": 4,
+  "tile_size": 16,
+  "pathing": []
+}
