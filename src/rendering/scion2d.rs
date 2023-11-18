@@ -1,7 +1,7 @@
 use hecs::{Component, Entity};
 use std::{cfg, collections::HashMap, ops::Range, path::Path, time::SystemTime};
 
-use wgpu::{util::DeviceExt, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView, SamplerBindingType, TextureFormat};
+use wgpu::{util::DeviceExt, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView, SamplerBindingType, TextureFormat, StoreOp};
 
 use crate::core::world::{GameData, World};
 use crate::rendering::gl_representations::TexturedGlVertex;
@@ -304,6 +304,8 @@ impl Scion2D {
             label: None,
             color_attachments: &[get_default_color_attachment(texture_view, config)],
             depth_stencil_attachment: None,
+            occlusion_query_set: None,
+            timestamp_writes: None
         });
 
         while let Some(rendering_infos) = infos.pop() {
@@ -645,8 +647,8 @@ fn load_texture_to_queue(
         &*texture.bytes,
         wgpu::ImageDataLayout {
             offset: 0,
-            bytes_per_row: std::num::NonZeroU32::new((4 * texture.width) as u32),
-            rows_per_image: std::num::NonZeroU32::new(texture.height as u32),
+            bytes_per_row: Some(4 * &texture.width),
+            rows_per_image: Some(1 * &texture.height),
         },
         texture_size,
     );
@@ -730,7 +732,7 @@ fn get_default_color_attachment<'a>(
                     wgpu::Color { r: 1., g: 0., b: 0., a: 1.0 }
                 },
             ),
-            store: true,
+            store: StoreOp::Store,
         },
     })
 }

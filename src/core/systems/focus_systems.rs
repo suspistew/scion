@@ -30,12 +30,12 @@ pub(crate) fn focus_switcher_system(data: &mut GameData) {
 
                 let current_focused = resource.focus_manager().current_focus_entity();
                 if current_focused.is_some() {
-                    if let Ok(mut input) = world.entry_mut::<&mut UiFocusable>(current_focused.unwrap()) {
+                    if let Ok(input) = world.entry_mut::<&mut UiFocusable>(current_focused.unwrap()) {
                         input.focused = false;
                     }
                 }
                 debug!("Focused tabIndex changed, focus is now on tabIndex {}", rank);
-                let mut new_input = world.entry_mut::<&mut UiFocusable>(e).expect("Previously checked entity doesn't exist");
+                let new_input = world.entry_mut::<&mut UiFocusable>(e).expect("Previously checked entity doesn't exist");
                 new_input.focused = true;
                 resource.focus_manager().change_focus(e, rank);
             }

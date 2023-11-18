@@ -1,11 +1,14 @@
 use serde::{Deserialize, Serialize};
-use winit::event::{ElementState, VirtualKeyCode};
+use winit::event::ElementState;
+use winit::keyboard::{Key, NamedKey};
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Serialize, Deserialize, Copy)]
 pub enum MouseButton {
     Left,
     Right,
     Middle,
+    Back,
+    Forward,
     Other(u16),
 }
 
@@ -87,46 +90,45 @@ impl KeyCode{
     }
 }
 
-impl From<VirtualKeyCode> for KeyCode {
-    fn from(vkc: VirtualKeyCode) -> Self {
-        match vkc {
-            VirtualKeyCode::Escape => KeyCode::Escape,
-            VirtualKeyCode::Left => KeyCode::Left,
-            VirtualKeyCode::Up => KeyCode::Up,
-            VirtualKeyCode::Right => KeyCode::Right,
-            VirtualKeyCode::Down => KeyCode::Down,
-            VirtualKeyCode::A => KeyCode::A,
-            VirtualKeyCode::B => KeyCode::B,
-            VirtualKeyCode::C => KeyCode::C,
-            VirtualKeyCode::D => KeyCode::D,
-            VirtualKeyCode::E => KeyCode::E,
-            VirtualKeyCode::F => KeyCode::F,
-            VirtualKeyCode::G => KeyCode::G,
-            VirtualKeyCode::H => KeyCode::H,
-            VirtualKeyCode::I => KeyCode::I,
-            VirtualKeyCode::J => KeyCode::J,
-            VirtualKeyCode::K => KeyCode::K,
-            VirtualKeyCode::L => KeyCode::L,
-            VirtualKeyCode::M => KeyCode::M,
-            VirtualKeyCode::N => KeyCode::N,
-            VirtualKeyCode::O => KeyCode::O,
-            VirtualKeyCode::P => KeyCode::P,
-            VirtualKeyCode::Q => KeyCode::Q,
-            VirtualKeyCode::R => KeyCode::R,
-            VirtualKeyCode::S => KeyCode::S,
-            VirtualKeyCode::T => KeyCode::T,
-            VirtualKeyCode::U => KeyCode::U,
-            VirtualKeyCode::V => KeyCode::V,
-            VirtualKeyCode::W => KeyCode::W,
-            VirtualKeyCode::X => KeyCode::X,
-            VirtualKeyCode::Y => KeyCode::Y,
-            VirtualKeyCode::Z => KeyCode::Z,
-            VirtualKeyCode::Space => KeyCode::Space,
-            VirtualKeyCode::LShift => KeyCode::LShift,
-            VirtualKeyCode::RShift => KeyCode::RShift,
-            VirtualKeyCode::Tab => KeyCode::Tab,
-            VirtualKeyCode::Apostrophe => KeyCode::Apostrophe,
-            VirtualKeyCode::Back => KeyCode::BackSpace,
+impl From<&Key> for KeyCode {
+    fn from(vkc: &Key) -> Self {
+        match vkc.as_ref() {
+            Key::Named(NamedKey::Escape) => KeyCode::Escape,
+            Key::Named(NamedKey::ArrowLeft) => KeyCode::Left,
+            Key::Named(NamedKey::ArrowUp) => KeyCode::Up,
+            Key::Named(NamedKey::ArrowRight) => KeyCode::Right,
+            Key::Named(NamedKey::ArrowDown) => KeyCode::Down,
+            Key::Character("A") => KeyCode::A,
+            Key::Character("B") => KeyCode::B,
+            Key::Character("C") => KeyCode::C,
+            Key::Character("D") => KeyCode::D,
+            Key::Character("E") => KeyCode::E,
+            Key::Character("F") => KeyCode::F,
+            Key::Character("G") => KeyCode::G,
+            Key::Character("H") => KeyCode::H,
+            Key::Character("I") => KeyCode::I,
+            Key::Character("J") => KeyCode::J,
+            Key::Character("K") => KeyCode::K,
+            Key::Character("L") => KeyCode::L,
+            Key::Character("M") => KeyCode::M,
+            Key::Character("N") => KeyCode::N,
+            Key::Character("O") => KeyCode::O,
+            Key::Character("P") => KeyCode::P,
+            Key::Character("Q") => KeyCode::Q,
+            Key::Character("R") => KeyCode::R,
+            Key::Character("S") => KeyCode::S,
+            Key::Character("T") => KeyCode::T,
+            Key::Character("U") => KeyCode::U,
+            Key::Character("V") => KeyCode::V,
+            Key::Character("W") => KeyCode::W,
+            Key::Character("X") => KeyCode::X,
+            Key::Character("Y") => KeyCode::Y,
+            Key::Character("Z") => KeyCode::Z,
+            Key::Character("\'") => KeyCode::Apostrophe,
+            Key::Named(NamedKey::Space) => KeyCode::Space,
+            Key::Named(NamedKey::Shift) => KeyCode::LShift,
+            Key::Named(NamedKey::Tab) => KeyCode::Tab,
+            Key::Named(NamedKey::Backspace) => KeyCode::BackSpace,
             _ => KeyCode::Any,
         }
     }

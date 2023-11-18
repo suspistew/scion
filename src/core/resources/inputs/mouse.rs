@@ -17,6 +17,8 @@ impl From<winit::event::MouseButton> for MouseButton {
             winit::event::MouseButton::Right => MouseButton::Right,
             winit::event::MouseButton::Middle => MouseButton::Middle,
             winit::event::MouseButton::Other(v) => MouseButton::Other(v),
+            winit::event::MouseButton::Back => MouseButton::Back,
+            winit::event::MouseButton::Forward => MouseButton::Forward
         }
     }
 }

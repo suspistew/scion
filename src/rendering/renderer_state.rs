@@ -19,7 +19,9 @@ impl RendererState {
         let backend = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
         let instance = wgpu::Instance::new(InstanceDescriptor {
             backends: backend,
-            dx12_shader_compiler: wgpu::Dx12Compiler::Fxc
+            dx12_shader_compiler: wgpu::Dx12Compiler::Fxc,
+            flags: wgpu::InstanceFlags::default(),
+            gles_minor_version: wgpu::Gles3MinorVersion::Automatic
         });
 
         let (_size, surface) = unsafe {
@@ -29,7 +31,7 @@ impl RendererState {
         };
 
         let adapter =
-            wgpu::util::initialize_adapter_from_env_or_default(&instance, backend, Some(&surface))
+            wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface))
                 .await
                 .expect("No suitable GPU adapters found on the system!");
 

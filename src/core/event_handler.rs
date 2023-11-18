@@ -1,4 +1,5 @@
 use winit::event::WindowEvent;
+use winit::keyboard::Key;
 
 use crate::core::resources::inputs::{
     mouse::MouseEvent,
@@ -8,11 +9,12 @@ use crate::core::world::GameData;
 
 pub fn update_input_events(window_event: &WindowEvent, data: &mut GameData) {
     match window_event {
-        WindowEvent::KeyboardInput { input, .. } => {
-            if let Some(keycode) = input.virtual_keycode {
+        WindowEvent::KeyboardInput { event,.. } => {
+            if let &Key::Dead(_) = &event.logical_key {
+            }else{
                 let k_event = KeyboardEvent {
-                    keycode: KeyCode::from(keycode),
-                    state: InputState::from(input.state),
+                    keycode: KeyCode::from(&event.logical_key),
+                    state: InputState::from(event.state),
                 };
                 data.inputs().add_keyboard_event(k_event.clone());
             }
