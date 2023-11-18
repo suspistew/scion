@@ -14,28 +14,28 @@ resolver = "2"
 hot-reload = []
 
 [dependencies]
-atomic_refcell = "0.1.6"
-hecs = "0.10.0"
+atomic_refcell = "0.1.13"
+hecs = "0.10.4"
 downcast-rs = "1.2.0"
 
 # window & rendering
-winit = "0.28.3"
-wgpu = { version = "0.15.1", features = ["spirv"] }
-ab_glyph = "0.2.20"
+winit = {version = "0.29", features = ["rwh_05"]}
+wgpu = { version = "0.18.0", features = ["spirv"] }
+ab_glyph = "0.2.23"
 futures = "0.3"
 
 # maths
 ultraviolet = "0.9"
 
 # serialization
-serde = { version = "1.0.130", features = ["derive"] }
-serde_json = "1.0.68"
-bytemuck = { version = "1.7", features = ["derive"] }
+serde = { version = "1.0.192", features = ["derive"] }
+serde_json = "1.0.108"
+bytemuck = { version = "1.14", features = ["derive"] }
 image = { version = "0.24", default-features = false, features = ["png"] }
 
 # logging
-log = { version = "0.4.14", features = ["serde"] }
-fern = { version = "0.6.1", features = ["colored"] }
+log = { version = "0.4.20", features = ["serde"] }
+fern = { version = "0.6.2", features = ["colored"] }
 
 # sound
 rodio = "0.17"

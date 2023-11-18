@@ -28,7 +28,7 @@ impl Animations {
 
     fn run(&mut self, animation_name: &str, status: AnimationStatus) -> bool {
         if self.animations.contains_key(animation_name) {
-            let mut animation = self
+            let animation = self
                 .animations
                 .get_mut(animation_name)
                 .expect("An animation has not been found after the security check");

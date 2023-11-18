@@ -8,6 +8,7 @@ use winit::{
 };
 use winit::dpi::{PhysicalSize, Size};
 
+
 use crate::core::package::Package;
 use crate::core::resources::time::Time;
 use crate::core::scene::{Scene, SceneAction, SceneMachine};
@@ -74,15 +75,15 @@ impl Scion {
     }
 
     fn run(mut self, event_loop: EventLoop<()>) {
-        event_loop.run(move |event, _, control_flow| {
-            *control_flow = ControlFlow::Poll;
+        let _result = event_loop.run(move |event,loopd| {
+            loopd.set_control_flow(ControlFlow::Poll);
 
             match event {
                 Event::WindowEvent { ref event, window_id }
                     if window_id == self.window.as_mut().unwrap().id() =>
                 {
                     match event {
-                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                        WindowEvent::CloseRequested => loopd.exit(),
                         WindowEvent::Resized(physical_size) => {
                             self.game_data
                                 .window()
@@ -92,10 +93,10 @@ impl Scion {
                                 self.window.as_ref().expect("Missing window").scale_factor(),
                             );
                         }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                        WindowEvent::ScaleFactorChanged { scale_factor,  .. } => {
                             self.renderer.as_mut().unwrap().resize(
-                                **new_inner_size,
-                                self.window.as_ref().expect("Missing window").scale_factor(),
+                                self.window.as_ref().expect("Missing window").inner_size(),
+                                *scale_factor,
                             );
                         }
                         WindowEvent::CursorMoved { device_id: _, position, .. } => {
@@ -111,24 +112,23 @@ impl Scion {
                                 position.y / dpi_factor,
                             );
                         }
+                        WindowEvent::RedrawRequested => {
+                            self.renderer.as_mut().unwrap().update(&mut self.game_data);
+                            match self.renderer.as_mut().unwrap().render(&mut self.game_data, &self.config)
+                            {
+                                Ok(_) => {}
+                                Err(e) => log::error!("{:?}", e),
+                            }
+                        }
                         _ => {}
                     }
-
                     update_input_events(event, &mut self.game_data);
                 }
-                Event::MainEventsCleared => {
+                Event::AboutToWait => {
                     self.next_frame();
                     self.layer_machine
                         .apply_scene_action(SceneAction::EndFrame, &mut self.game_data);
                     self.window.as_mut().unwrap().request_redraw();
-                }
-                Event::RedrawRequested(_) => {
-                    self.renderer.as_mut().unwrap().update(&mut self.game_data);
-                    match self.renderer.as_mut().unwrap().render(&mut self.game_data, &self.config)
-                    {
-                        Ok(_) => {}
-                        Err(e) => log::error!("{:?}", e),
-                    }
                 }
                 _ => (),
             }
@@ -159,7 +159,7 @@ impl Scion {
             }
             if let Some(dimensions) = window.new_dimensions() {
                 let w = self.window.as_mut().expect("A window is mandatory to run this game !");
-                w.set_inner_size(Size::Physical(PhysicalSize::new(dimensions.0 * window.dpi() as u32, dimensions.1 * window.dpi() as u32)));
+                let _r = w.request_inner_size(Size::Physical(PhysicalSize::new(dimensions.0 * window.dpi() as u32, dimensions.1 * window.dpi() as u32)));
             }
             window.reset_future_settings()
         }
@@ -215,7 +215,9 @@ impl ScionBuilder {
 
     /// Builds, setups and runs the Scion application, must be called at the end of the building process.
     pub fn run(mut self) {
-        let event_loop = EventLoop::new();
+        let event_loop = EventLoop::new().expect("Event loop could not be created");
+        event_loop.set_control_flow(ControlFlow::Poll);
+
         let window_builder: WindowBuilder = self
             .config
             .window_config

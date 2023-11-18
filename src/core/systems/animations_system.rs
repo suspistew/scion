@@ -44,7 +44,7 @@ pub(crate) fn animation_executer_system(data: &mut GameData) {
             .iter_mut()
             .filter(|(_, v)| v.status != AnimationStatus::Stopped)
             .for_each(|(key, animation)| {
-                for mut modifier in animation.modifiers.iter_mut() {
+                for modifier in animation.modifiers.iter_mut() {
                     let mut timer_created = false;
                     let timer_id = format!("{:?}-{}-{}", entity, key, modifier.to_string());
                     let timer_id = timer_id.as_str();

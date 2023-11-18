@@ -1,7 +1,7 @@
-use hecs::{Entity, QueryOneError};
-use std::collections::{BTreeSet, HashMap, HashSet};
-use std::iter::FromIterator;
-use std::time::SystemTime;
+
+use std::collections::{HashMap, HashSet};
+
+
 use log::trace;
 
 use crate::core::components::maths::hierarchy::{Children, Parent};
@@ -16,14 +16,14 @@ pub(crate) fn children_manager_system(data: &mut GameData) {
     let mut entities_to_remove = HashSet::new();
 
     for (e, children) in data.query_mut::<&mut Children>() {
-        if let Some(mut children_entity) = parents.remove(&e) {
+        if let Some(children_entity) = parents.remove(&e) {
             children.0 = children_entity;
             parents.remove(&e);
         } else{
             entities_to_remove.insert(e);
         }
     }
-    parents.drain().for_each(|(parent,mut children)|{
+    parents.drain().for_each(|(parent,children)|{
         if data.contains(parent) {
             component_to_add.insert(parent, children);
         }else{
