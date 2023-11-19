@@ -11,6 +11,8 @@ use scion::core::{
 };
 use scion::core::components::color::Color;
 use scion::core::components::material::Material;
+use scion::core::components::maths::padding::Padding;
+use scion::core::components::ui::ui_button::UiButton;
 use scion::core::components::ui::ui_input::UiInput;
 
 use crate::{asset_path, resources::TetrisResource};
@@ -57,11 +59,13 @@ fn add_score_ui(data: &mut GameData) -> Entity {
         Transform::from_xyz(394., 330., 2)
     ));
 
-    let mut input2 = UiInput::new(200, 200, font_asset.clone())
-        .with_font_size(16)
+    let mut input2 = UiButton::new(70, 30, font_asset.clone())
+        .with_font_size(18)
         .with_tab_index(13)
-        .with_font_color(Color::new_rgb(0,0,0));
-    input2.set_text("Coucou2".to_string());
+        .with_font_color(Color::new_rgb(0,0,0))
+        .with_padding(Padding::new(Some(8.), Some(10.)))
+        .with_background_color(Color::new_rgb(255,255,255));
+    input2.set_text("Button".to_string());
 
     data.push((
         input2,

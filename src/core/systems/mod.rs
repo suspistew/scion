@@ -1,4 +1,5 @@
 use crate::core::components::material::Material;
+use crate::core::components::ui::ui_button::UiButton;
 use crate::core::components::ui::ui_image::UiImage;
 use crate::core::components::ui::ui_input::UiInput;
 use crate::core::components::ui::ui_text::{UiText, UiTextImage};
@@ -31,6 +32,7 @@ use crate::core::systems::hide_propagation_system::{
 use crate::core::systems::hierarchy_system::children_manager_system;
 use crate::core::systems::missing_ui_component_system::{missing_focus_component_system, missing_ui_component_system};
 use crate::core::systems::parent_transform_system::{dirty_child_system, dirty_transform_system};
+use crate::core::systems::ui_button_systems::{compute_hover, set_childs_on_buttons};
 use crate::core::systems::ui_input_systems::{register_keyboard_inputs_on_ui_input, set_childs_on_inputs, synchronize_input_and_text};
 use crate::core::systems::ui_text_system::{sync_text_value_system, ui_text_bitmap_update_system};
 use crate::core::world::GameData;
@@ -46,6 +48,8 @@ pub(crate) mod parent_transform_system;
 pub(crate) mod ui_text_system;
 pub(crate) mod ui_input_systems;
 pub(crate) mod focus_systems;
+pub(crate) mod ui_button_systems;
+
 
 pub(crate) struct InternalPackage;
 impl Package for InternalPackage {
@@ -86,6 +90,7 @@ impl Package for InternalPackage {
             .with_system(missing_ui_component_system::<UiImage>)
             .with_system(missing_ui_component_system::<UiTextImage>)
             .with_system(missing_ui_component_system::<UiText>)
+            .with_system(missing_ui_component_system::<UiButton>)
             .with_system(missing_focus_component_system::<UiInput>)
             .with_system(asset_ref_resolver_system::<Material, MaterialAssetResolverFn>)
             .with_system(animation_executer_system)
@@ -93,6 +98,8 @@ impl Package for InternalPackage {
             .with_system(dirty_transform_system)
             .with_system(compute_collisions_system)
             .with_system(set_childs_on_inputs)
+            .with_system(set_childs_on_buttons)
+            .with_system(compute_hover)
             .with_system(focus_switcher_system)
             .with_system(register_keyboard_inputs_on_ui_input)
             .with_system(synchronize_input_and_text)

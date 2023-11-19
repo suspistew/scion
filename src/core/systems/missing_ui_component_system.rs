@@ -1,8 +1,10 @@
 use std::any;
-use crate::core::components::ui::{Focusable, UiComponent, UiFocusable};
-use crate::core::world::{GameData, World};
+
 use hecs::Component;
 use log::trace;
+
+use crate::core::components::ui::{Focusable, UiComponent, UiFocusable};
+use crate::core::world::{GameData, World};
 
 /// System responsible to add the UiComponent to any T missing its uiComponent
 pub(crate) fn missing_ui_component_system<T: Component>(data: &mut GameData) {
@@ -33,13 +35,13 @@ pub(crate) fn missing_focus_component_system<T: Component + Focusable>(data: &mu
 
 #[cfg(test)]
 mod tests {
-
-    use super::*;
     use crate::core::components::ui::{ui_image::UiImage, UiComponent};
     use crate::core::components::ui::font::Font;
     use crate::core::components::ui::ui_input::UiInput;
-    use crate::core::resources::asset_manager::{AssetManager, AssetRef};
+    use crate::core::resources::asset_manager::AssetManager;
     use crate::core::world::World;
+
+    use super::*;
 
     #[test]
     fn missing_ui_comp_system_test() {

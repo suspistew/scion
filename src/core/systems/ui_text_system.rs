@@ -83,7 +83,9 @@ pub(crate) fn ui_text_bitmap_update_system(data: &mut GameData) {
                         ];
                         let mut char_transform = Transform::from_xy(current_pos, true_type_data.compute_vertical_offset(char.start_y));
                         current_pos = current_pos + (char.end_x-char.start_x) + 2.;
-                        char_transform.set_z(transform.translation().z());
+                        char_transform.set_z(transform.translation().z()+1);
+                        char_transform.append_x(ui_text.padding().left_or_zero());
+                        char_transform.append_y(ui_text.padding().top_or_zero());
                         to_add_secondary.push((
                             UiTextImage(UiImage::new_with_uv_map(
                                 char.end_x-char.start_x,
