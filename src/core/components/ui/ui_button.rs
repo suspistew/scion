@@ -1,14 +1,18 @@
 use crate::core::components::color::Color;
+use crate::core::components::material::Material;
 use crate::core::components::maths::padding::Padding;
 use crate::core::components::ui::Focusable;
 use crate::core::components::ui::font::Font;
 use crate::core::resources::asset_manager::AssetRef;
+use crate::core::world::Resources;
 
 pub struct UiButton {
     text: String,
     width: usize,
     height: usize,
-    background_color: Option<Color>,
+    background: Option<AssetRef<Material>>,
+    hover: Option<AssetRef<Material>>,
+    clicked: Option<AssetRef<Material>>,
     font_ref: AssetRef<Font>,
     /// font size when using a TrueType font
     font_size: usize,
@@ -16,7 +20,8 @@ pub struct UiButton {
     font_color: Option<Color>,
     tab_index: usize,
     padding: Padding,
-    pub(crate) dirty: bool
+    pub(crate) on_click: Option<fn(&mut Resources)>,
+    pub(crate) dirty: bool,
 }
 
 impl UiButton {
@@ -25,12 +30,15 @@ impl UiButton {
             text: "".to_string(),
             width,
             height,
-            background_color: None,
+            background: None,
+            hover: None,
+            clicked: None,
             font_ref,
             font_size: 0,
             font_color: None,
             tab_index: 0,
             padding: Padding::default(),
+            on_click: None,
             dirty: true
         }
     }
@@ -45,8 +53,26 @@ impl UiButton {
     pub fn font_color(&self) -> Option<Color> {
         self.font_color.clone()
     }
-    pub fn background_color(&self) -> Option<Color> {
-        self.background_color.clone()
+    pub fn background(&self) -> Option<AssetRef<Material>> {
+        self.background.clone()
+    }
+    pub fn clone_background_unchecked(&self) -> AssetRef<Material> {
+        self.background.as_ref().expect("Unchecked unwrap of hover failed").clone()
+    }
+    pub fn hover(&self) -> Option<AssetRef<Material>> {
+        self.hover.clone()
+    }
+
+    pub fn clone_hover_unchecked(&self) -> AssetRef<Material> {
+        self.hover.as_ref().expect("Unchecked unwrap of hover failed").clone()
+    }
+
+    pub fn clicked(&self) -> Option<AssetRef<Material>> {
+        self.clicked.clone()
+    }
+
+    pub fn clone_clicked_unchecked(&self) -> AssetRef<Material> {
+        self.clicked.as_ref().expect("Unchecked unwrap of hover failed").clone()
     }
     pub fn font_size(&self) -> usize {
         self.font_size
@@ -72,8 +98,16 @@ impl UiButton {
         self
     }
 
-    pub fn with_background_color(mut self, color: Color) -> Self{
-        self.background_color = Some(color);
+    pub fn with_background_material(mut self, asset_ref: AssetRef<Material>) -> Self{
+        self.background = Some(asset_ref);
+        self
+    }
+    pub fn with_hover_material(mut self, asset_ref: AssetRef<Material>) -> Self{
+        self.hover = Some(asset_ref);
+        self
+    }
+    pub fn with_clicked_material(mut self, asset_ref: AssetRef<Material>) -> Self{
+        self.clicked = Some(asset_ref);
         self
     }
 
@@ -87,6 +121,12 @@ impl UiButton {
         self
     }
 
+    pub fn with_on_click_action(mut self, on_click: fn(&mut Resources)) -> Self{
+        self.on_click = Some(on_click);
+        self
+    }
+
+
     pub fn set_text(&mut self, text: String) {
         if text.ne(&self.text) {
             self.text = text;
@@ -94,6 +134,10 @@ impl UiButton {
         }
     }
 
+    pub fn with_text(mut self, text: &str) -> Self{
+        self.text = text.to_string();
+        self
+    }
 }
 
 impl Focusable for UiButton {
