@@ -3,6 +3,7 @@ pub mod collider;
 pub mod coordinates;
 pub mod hierarchy;
 pub mod transform;
+pub mod padding;
 
 /// `Pivot` tells where the pivot point of a component is
 pub enum Pivot {

@@ -133,7 +133,7 @@ impl InputsController {
         inputs
     }
 
-    fn input_pressed(&self, input: &Input) -> bool {
+    pub fn input_pressed(&self, input: &Input) -> bool {
         match input {
             Input::Key(keycode) => self.key_pressed(keycode),
             Input::Mouse(mouse_button) => self.mouse.button_pressed(mouse_button),

@@ -10,6 +10,7 @@ use crate::{
     rendering::{Renderable2D, RenderableUi},
 };
 use crate::core::components::color::Color;
+use crate::core::components::maths::padding::Padding;
 use crate::core::resources::asset_manager::AssetRef;
 use crate::core::world::Resources;
 
@@ -21,6 +22,8 @@ pub struct UiText {
     font_size: usize,
     /// font color when using a TrueType font
     font_color: Option<Color>,
+    /// Optional text settings when used in buttons
+    padding: Padding,
     pub(crate) dirty: bool,
     pub(crate) sync_fn: Option<fn(&mut Resources) -> String>
 }
@@ -28,7 +31,7 @@ pub struct UiText {
 impl UiText {
     /// Creates a new `UiText` with `text` as default content and `font`
     pub fn new(text: String, font_ref: AssetRef<Font>) -> Self {
-        Self { text, font_ref, dirty: true, font_size: 10, font_color: None, sync_fn: None }
+        Self { text, font_ref, dirty: true, font_size: 10, font_color: None, sync_fn: None, padding: Padding::default() }
     }
 
     /// provide a fn that will automatically synchronize the text
@@ -48,6 +51,9 @@ impl UiText {
     pub fn font_size(&self) -> usize {
         self.font_size
     }
+    pub fn padding(&self) -> &Padding {
+        &self.padding
+    }
 
     /// retrieves the font color of this `UiText`. Font color is only used on TrueType fonts
     pub fn font_color(&self) -> &Option<Color> {
@@ -60,6 +66,10 @@ impl UiText {
             self.text = text;
             self.dirty = true;
         }
+    }
+
+    pub fn set_padding(&mut self, padding: Padding) {
+        self.padding = padding;
     }
 
     /// retrieve the font of this `UiText`

@@ -1,21 +1,22 @@
 <img src="banner.png" alt="Scion" />
 
-Scion is a 2D game library made in rust. 
+Scion is a 2D game library made in rust.
 
 > Please note that this project is in its first milestones and is subject to change according to convenience needs and big features coming.
-> You can use Scion as you want although I just made this open source to serve the community not to be a competitor to the current Rust game engine eco-system.
+> 
+> You can use Scion as you want, although I just made this open source to serve the community not to be a competitor to the current Rust game engine ecosystem.
 
 ## Why this project? 
 Well, firstly because it's a good way to learn the different aspects of game dev under the hood. 
 Then, because I wanted to create something with modest goals, focused on ease of use and a short list of principles that also serves as a guideline.
 
-Scion is not 'inspired' by any other engine, it's inspired by the needs from real projects. 
+Scion is not 'inspired' by any other engine, it's inspired by the needs from real game projects. This means I don't implement feature juste because I've seen it elsewhere, but because I need it for the next project that uses Scion.
 
 ### Goals
 - Strong focus on **2D** only.
-- **Easy** and **Fun** to use.
-- Clean and readable source code
-- Tauri based Editor
+- **Easy** and **Fun** to use. 
+- Clean and readable source code (at least we'll try to rewrite when necessary)
+- Editor-less, it's a lib and should always be
 
 ### Non goals
 - Ultra/over optimized code and performances. For this, please try other engines or build your own!

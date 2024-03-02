@@ -1,4 +1,5 @@
 use hecs::Entity;
+use log::info;
 use scion::core::world::{GameData, World};
 use scion::core::{
     components::{
@@ -11,6 +12,8 @@ use scion::core::{
 };
 use scion::core::components::color::Color;
 use scion::core::components::material::Material;
+use scion::core::components::maths::padding::Padding;
+use scion::core::components::ui::ui_button::UiButton;
 use scion::core::components::ui::ui_input::UiInput;
 
 use crate::{asset_path, resources::TetrisResource};
@@ -43,13 +46,13 @@ impl Scene for MainScene {
 fn add_score_ui(data: &mut GameData) -> Entity {
     // First we add an UiText to the world
     let font = Font::TrueType {
-        font_path: asset_path().join("rainyhearts.ttf").get(),
+        font_path: asset_path().join("Arial.ttf").get(),
     };
     let font_asset = data.assets_mut().register_font(font);
 
     let mut input = UiInput::new(200, 200, font_asset.clone())
         .with_font_size(16)
-        .with_font_color(Color::new_rgb(0,0,0));
+        .with_font_color(Color::new_rgb(0, 0, 0));
     input.set_text("Coucou".to_string());
 
     data.push((
@@ -57,14 +60,23 @@ fn add_score_ui(data: &mut GameData) -> Entity {
         Transform::from_xyz(394., 330., 2)
     ));
 
-    let mut input2 = UiInput::new(200, 200, font_asset.clone())
+    let background_asset = data.assets_mut().register_material(Material::Color(Color::new_rgb(200, 200, 200)));
+    let hover_asset = data.assets_mut().register_material(Material::Color(Color::new_rgb(160, 160, 160)));
+    let clicked_asset = data.assets_mut().register_material(Material::Color(Color::new_rgb(120, 120, 120)));
+
+    let mut button = UiButton::new(70, 30, font_asset.clone())
         .with_font_size(16)
         .with_tab_index(13)
-        .with_font_color(Color::new_rgb(0,0,0));
-    input2.set_text("Coucou2".to_string());
+        .with_font_color(Color::new_rgb(0, 0, 0))
+        .with_padding(Padding::new(Some(8.), Some(10.)))
+        .with_background_material(background_asset)
+        .with_clicked_material(clicked_asset)
+        .with_hover_material(hover_asset)
+        .with_text("Button")
+        .with_on_click_action(|_res| { info!("Test click at {:?}", std::time::SystemTime::now()); });
 
     data.push((
-        input2,
+        button,
         Transform::from_xyz(394., 430., 2)
     ));
 
