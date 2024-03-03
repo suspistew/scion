@@ -5,3 +5,4 @@ Cargo.lock
 scion.json
 *.iml
 **/.DS_Store
+examples/poc/

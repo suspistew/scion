@@ -173,7 +173,6 @@ fn apply_sprite_modifier(
 ) {
     if let Some(ref mut animation_sprite) = sprite {
         if status == &AnimationStatus::ForceStopped {
-            animation_sprite.set_tile_nb(end_tile_number);
             return;
         }
 
