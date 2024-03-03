@@ -246,7 +246,5 @@ impl ScionBuilder {
         scion.run(event_loop);
     }
 
-    fn add_late_internal_systems_to_schedule(&mut self) {
-        self.scheduler.add_system(collider_cleaner_system);
-    }
+    fn add_late_internal_systems_to_schedule(&mut self) {}
 }

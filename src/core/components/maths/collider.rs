@@ -22,7 +22,7 @@ impl<'a> RectangleColliderInfo<'a> {
 }
 
 /// `ColliderMask` will serve as a 'mask' to allow filter while collisions happen
-#[derive(PartialEq, Clone, Eq, Hash)]
+#[derive(PartialEq, Clone, Eq, Hash, Debug)]
 pub enum ColliderMask {
     None,
     Character,
@@ -231,7 +231,7 @@ fn rectangle_collider_vs_rectangle_collider(
 }
 
 /// Representation of a collision
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Collision {
     pub(crate) mask: ColliderMask,
     pub(crate) entity: Entity,
@@ -249,12 +249,25 @@ impl Collision {
     pub fn coordinates(&self) -> &Coordinates {
         &self.coordinates
     }
+    pub fn area(&self) -> &CollisionArea {
+        &self.collision_area
+    }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct CollisionArea {
     pub(crate) start_point: Coordinates,
     pub(crate) end_point: Coordinates,
+}
+
+impl CollisionArea{
+    pub fn start_point(&self) -> &Coordinates{
+        &self.start_point
+    }
+
+    pub fn end_point(&self) -> &Coordinates{
+        &self.end_point
+    }
 }
 
 /// Internal component used to keep track of a collider debug display

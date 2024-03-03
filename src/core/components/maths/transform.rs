@@ -127,6 +127,13 @@ impl Transform {
         self.local_translation.z = z
     }
 
+    /// Change the y value in the coordinates.
+    pub fn set_y(&mut self, y: f32) {
+        self.local_translation.y = y;
+        self.global_translation.y = y;
+        self.dirty = true;
+    }
+
     /// Configure the minimum global x position for this transform to be min_x
     pub fn set_min_x(&mut self, min_x: Option<f32>) {
         self.bounds.min_x = min_x;
@@ -233,6 +240,11 @@ impl TransformBuilder {
 
     pub fn with_scale(mut self, scale: f32) -> Self {
         self.transform.scale = scale;
+        self
+    }
+
+    pub fn with_z(mut self, z: usize) -> Self {
+        self.transform.local_translation.z = z;
         self
     }
 
