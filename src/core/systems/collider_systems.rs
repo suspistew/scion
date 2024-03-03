@@ -51,15 +51,17 @@ pub(crate) fn compute_collisions_system(data: &mut GameData) {
                         .get(mask)
                         .expect("Impossible to find a collider's entry")
                         .iter()
-                        .filter(|(_e, t, c)| {
+                        .map(|(_e, t, c)| {
                             cpt += 1;
-                            collider.collides_with(transform, c, t)
+                            (_e, t, c, collider.collides_with(transform, c, t))
                         })
-                        .for_each(|(_e, t, c)| {
+                        .filter(|(_e, t, c, collision_area)| collision_area.is_some())
+                        .for_each(|(_e, t, c, collision_area)| {
                             res.entry(*entity).or_insert_with(|| Vec::new()).push(Collision {
                                 mask: c.mask().clone(),
                                 entity: *entity,
                                 coordinates: t.global_translation().clone(),
+                                collision_area: collision_area.expect("Filtered Option is still KO")
                             });
                         })
                 },
@@ -123,6 +125,7 @@ mod tests {
         collider::{Collider, ColliderMask, ColliderType, Collision},
         transform::Transform,
     };
+    use crate::core::components::maths::collider::CollisionArea;
     use crate::core::world::GameData;
 
     #[test]
@@ -142,6 +145,7 @@ mod tests {
             mask: ColliderMask::Character,
             entity: e,
             coordinates: Default::default(),
+            collision_area: CollisionArea{ start_point: Default::default(), end_point: Default::default() }
         }]);
         assert_eq!(1, entry.collisions().len());
 
