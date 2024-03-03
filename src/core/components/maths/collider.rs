@@ -1,6 +1,7 @@
 use crate::core::components::maths::{coordinates::Coordinates, transform::Transform};
 use crate::utils::maths::Vector;
 use hecs::Entity;
+use log::info;
 
 struct RectangleColliderInfo<'a> {
     width: &'a usize,
@@ -129,61 +130,16 @@ impl Collider {
         self_transform: &Transform,
         target_collider: &Collider,
         target_transform: &Transform,
-    ) -> bool {
-        self.can_collide_with(target_collider)
-            && match (&self.collider_type, &target_collider.collider_type) {
-                (ColliderType::Square(self_size), ColliderType::Square(target_size)) => {
-                    rectangle_collider_vs_square_collider(
-                        RectangleColliderInfo::of(
-                            self_size,
-                            self_size,
-                            self_transform,
-                            &self.offset,
-                        ),
-                        RectangleColliderInfo::of(
-                            target_size,
-                            target_size,
-                            target_transform,
-                            &target_collider.offset,
-                        ),
-                    )
-                }
-                (
-                    ColliderType::Rectangle(self_width, self_height),
-                    ColliderType::Rectangle(target_width, target_height),
-                ) => rectangle_collider_vs_square_collider(
+    ) -> Option<CollisionArea> {
+        if !self.can_collide_with(target_collider) {
+            return None;
+        }
+        match (&self.collider_type, &target_collider.collider_type) {
+            (ColliderType::Square(self_size), ColliderType::Square(target_size)) => {
+                rectangle_collider_vs_rectangle_collider(
                     RectangleColliderInfo::of(
-                        self_width,
-                        self_height,
-                        self_transform,
-                        &self.offset,
-                    ),
-                    RectangleColliderInfo::of(
-                        target_width,
-                        target_height,
-                        target_transform,
-                        &target_collider.offset,
-                    ),
-                ),
-                (
-                    ColliderType::Square(self_size),
-                    ColliderType::Rectangle(target_width, target_height),
-                ) => rectangle_collider_vs_square_collider(
-                    RectangleColliderInfo::of(self_size, self_size, self_transform, &self.offset),
-                    RectangleColliderInfo::of(
-                        target_width,
-                        target_height,
-                        target_transform,
-                        &target_collider.offset,
-                    ),
-                ),
-                (
-                    ColliderType::Rectangle(self_width, self_height),
-                    ColliderType::Square(target_size),
-                ) => rectangle_collider_vs_square_collider(
-                    RectangleColliderInfo::of(
-                        self_width,
-                        self_height,
+                        self_size,
+                        self_size,
                         self_transform,
                         &self.offset,
                     ),
@@ -193,8 +149,55 @@ impl Collider {
                         target_transform,
                         &target_collider.offset,
                     ),
-                ),
+                )
             }
+            (
+                ColliderType::Rectangle(self_width, self_height),
+                ColliderType::Rectangle(target_width, target_height),
+            ) => rectangle_collider_vs_rectangle_collider(
+                RectangleColliderInfo::of(
+                    self_width,
+                    self_height,
+                    self_transform,
+                    &self.offset,
+                ),
+                RectangleColliderInfo::of(
+                    target_width,
+                    target_height,
+                    target_transform,
+                    &target_collider.offset,
+                ),
+            ),
+            (
+                ColliderType::Square(self_size),
+                ColliderType::Rectangle(target_width, target_height),
+            ) => rectangle_collider_vs_rectangle_collider(
+                RectangleColliderInfo::of(self_size, self_size, self_transform, &self.offset),
+                RectangleColliderInfo::of(
+                    target_width,
+                    target_height,
+                    target_transform,
+                    &target_collider.offset,
+                ),
+            ),
+            (
+                ColliderType::Rectangle(self_width, self_height),
+                ColliderType::Square(target_size),
+            ) => rectangle_collider_vs_rectangle_collider(
+                RectangleColliderInfo::of(
+                    self_width,
+                    self_height,
+                    self_transform,
+                    &self.offset,
+                ),
+                RectangleColliderInfo::of(
+                    target_size,
+                    target_size,
+                    target_transform,
+                    &target_collider.offset,
+                ),
+            ),
+        }
     }
 
     pub(crate) fn add_collisions(&mut self, collisions: &mut Vec<Collision>) {
@@ -202,23 +205,29 @@ impl Collider {
     }
 }
 
-fn rectangle_collider_vs_square_collider(
+fn rectangle_collider_vs_rectangle_collider(
     self_collider: RectangleColliderInfo,
     target_collider: RectangleColliderInfo,
-) -> bool {
-    let p1 = self_collider.transform.global_translation;
-    let p2 = target_collider.transform.global_translation;
-    let (x_min_p1, x_max_p1, y_min_p1, y_max_p1, x_min_p2, x_max_p2, y_min_p2, y_max_p2) = (
-        p1.x() + self_collider.offset.x,
-        p1.x() + self_collider.offset.x + *self_collider.width as f32,
-        p1.y() + self_collider.offset.y,
-        p1.y() + self_collider.offset.y + *self_collider.height as f32,
-        p2.x() + target_collider.offset.x,
-        p2.x() + target_collider.offset.x + *target_collider.width as f32,
-        p2.y() + target_collider.offset.y,
-        p2.y() + target_collider.offset.y + *target_collider.height as f32,
-    );
-    x_min_p1 < x_max_p2 && x_max_p1 > x_min_p2 && y_min_p1 < y_max_p2 && y_max_p1 > y_min_p2
+) -> Option<CollisionArea> {
+    let (x1, y1) = (self_collider.transform.global_translation.x + self_collider.offset.x,
+                    self_collider.transform.global_translation.y + self_collider.offset.y + (*self_collider.height as f32));
+    let (x2, y2) = (self_collider.transform.global_translation.x + self_collider.offset.x + (*self_collider.width as f32),
+                    self_collider.transform.global_translation.y + self_collider.offset.y);
+    let (x3, y3) = (target_collider.transform.global_translation.x + target_collider.offset.x,
+                    target_collider.transform.global_translation.y + target_collider.offset.y + (*target_collider.height as f32));
+    let (x4, y4) = (target_collider.transform.global_translation.x + target_collider.offset.x + (*target_collider.width as f32),
+                    target_collider.transform.global_translation.y + target_collider.offset.y);
+
+    let x5 = x1.max(x3);
+    let x6 = x2.min(x4);
+    let y5 = y1.min(y3);
+    let y6 = y2.max(y4);
+
+    if x5 > x6 || y6 > y5 {
+        None
+    } else {
+        Some(CollisionArea { start_point: Coordinates::new(x5, y6), end_point: Coordinates::new(x6, y5) })
+    }
 }
 
 /// Representation of a collision
@@ -227,6 +236,7 @@ pub struct Collision {
     pub(crate) mask: ColliderMask,
     pub(crate) entity: Entity,
     pub(crate) coordinates: Coordinates,
+    pub(crate) collision_area: CollisionArea,
 }
 
 impl Collision {
@@ -241,8 +251,15 @@ impl Collision {
     }
 }
 
+#[derive(Clone)]
+pub struct CollisionArea {
+    pub(crate) start_point: Coordinates,
+    pub(crate) end_point: Coordinates,
+}
+
 /// Internal component used to keep track of a collider debug display
 pub(crate) struct ColliderDebug;
+
 
 #[cfg(test)]
 mod tests {
@@ -265,14 +282,18 @@ mod tests {
     #[test]
     fn test_collides_with_square() {
         let bullet = Collider::new(ColliderMask::Bullet, vec![], ColliderType::Square(5));
-        let _ship = Collider::new(ColliderMask::Character, vec![], ColliderType::Square(5));
+        let ship = Collider::new(ColliderMask::Character, vec![], ColliderType::Square(5));
 
         let bullet_transform = Transform::from_xy(4., 4.);
+        let bullet_transform2 = Transform::from_xy(9., 9.);
         let ship_transform_in = Transform::from_xy(5., 5.);
+        let ship_transform_in2 = Transform::from_xy(9., 9.);
         let ship_transform_out = Transform::from_xy(50., 50.);
 
-        assert_eq!(true, bullet.collides_with(&ship_transform_in, &bullet, &bullet_transform));
-        assert_eq!(false, bullet.collides_with(&ship_transform_out, &bullet, &bullet_transform));
+        assert_eq!(true, ship.collides_with(&ship_transform_in, &bullet, &bullet_transform).is_some());
+        assert_eq!(true, ship.collides_with(&ship_transform_in2, &bullet, &bullet_transform).is_some());
+        assert_eq!(true, ship.collides_with(&ship_transform_in, &bullet, &bullet_transform2).is_some());
+        assert_eq!(false, bullet.collides_with(&ship_transform_out, &bullet, &bullet_transform).is_some());
     }
 
     #[test]
@@ -294,7 +315,7 @@ mod tests {
         let bullet_transform = Transform::from_xy(5., 5.);
         let ship_transform = Transform::from_xy(5., 5.);
 
-        assert_eq!(false, bullet.collides_with(&bullet_transform, &ship, &ship_transform));
+        assert_eq!(false, bullet.collides_with(&bullet_transform, &ship, &ship_transform).is_some());
     }
 
     #[test]
@@ -316,6 +337,6 @@ mod tests {
         let bullet_transform = Transform::from_xy(5., 5.);
         let ship_transform = Transform::from_xy(5., 5.);
 
-        assert_eq!(true, bullet.collides_with(&bullet_transform, &ship, &ship_transform));
+        assert_eq!(true, bullet.collides_with(&bullet_transform, &ship, &ship_transform).is_some());
     }
 }
