@@ -1,4 +1,6 @@
 use std::collections::{HashMap, HashSet};
+use hecs::Entity;
+use log::info;
 
 use crate::core::components::{
     color::Color,
@@ -21,10 +23,10 @@ pub(crate) fn collider_cleaner_system(data: &mut GameData) {
 
 /// System responsible to compute collision between colliders, following the mask filters
 pub(crate) fn compute_collisions_system(data: &mut GameData) {
-    let mut res: HashMap<hecs::Entity, Vec<Collision>> = HashMap::default();
+    let mut res: HashMap<Entity, Vec<Collision>> = HashMap::default();
 
     {
-        let colliders: Vec<(hecs::Entity, Transform, Collider)> = {
+        let colliders: Vec<(Entity, Transform, Collider)> = {
             let mut res = Vec::new();
             for (e, (t, c)) in data.query::<(&Transform, &Collider)>().iter() {
                 res.push((e, t.clone(), c.clone()));
@@ -34,7 +36,7 @@ pub(crate) fn compute_collisions_system(data: &mut GameData) {
 
         let mut colliders_by_mask: HashMap<
             ColliderMask,
-            Vec<(hecs::Entity, &Transform, &Collider)>,
+            Vec<(Entity, &Transform, &Collider)>,
         > = HashMap::default();
 
         colliders.iter().for_each(|(e, t, c)| {
@@ -65,6 +67,7 @@ pub(crate) fn compute_collisions_system(data: &mut GameData) {
         });
     }
 
+
     res.drain().for_each(|(e, mut collisions)| {
         data.entry_mut::<&mut Collider>(e)
             .expect("Collisions on unreachable collider")
@@ -74,7 +77,7 @@ pub(crate) fn compute_collisions_system(data: &mut GameData) {
 
 /// System responsible to add a `ColliderDebug` component to each colliders that are in debug mode
 pub(crate) fn debug_colliders_system(data: &mut GameData) {
-    let collider_debug: HashSet<hecs::Entity> = fetch_collider_debug_entities(data);
+    let collider_debug: HashSet<Entity> = fetch_collider_debug_entities(data);
     let mut debug_lines_to_add = Vec::new();
     for (entity, (_, collider)) in data.query_mut::<(&Transform, &mut Collider)>() {
         if collider.debug_lines() && !collider_debug.contains(&entity) {
@@ -104,10 +107,10 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
     });
 }
 
-fn fetch_collider_debug_entities(data: &mut GameData) -> HashSet<hecs::Entity> {
+fn fetch_collider_debug_entities(data: &mut GameData) -> HashSet<Entity> {
     let mut res = HashSet::new();
-    for (e, _) in data.query::<&ColliderDebug>().iter() {
-        res.insert(e);
+    for (_, (_,parent)) in data.query::<(&ColliderDebug, &Parent)>().iter() {
+        res.insert(parent.0);
     }
     res
 }
