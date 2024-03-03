@@ -1,8 +1,9 @@
 
 use std::collections::{HashMap, HashSet};
+use std::process::Child;
 
 
-use log::trace;
+use log::{info, trace};
 
 use crate::core::components::maths::hierarchy::{Children, Parent};
 use crate::core::world::{GameData, World};
@@ -13,6 +14,7 @@ use crate::core::world::{GameData, World};
 pub(crate) fn children_manager_system(data: &mut GameData) {
     let mut parents = fetch_parent_entities(data);
     let mut component_to_add = HashMap::new();
+    let mut components_to_remove = HashSet::new();
     let mut entities_to_remove = HashSet::new();
 
     for (e, children) in data.query_mut::<&mut Children>() {
@@ -20,7 +22,7 @@ pub(crate) fn children_manager_system(data: &mut GameData) {
             children.0 = children_entity;
             parents.remove(&e);
         } else{
-            entities_to_remove.insert(e);
+            components_to_remove.insert(e);
         }
     }
     parents.drain().for_each(|(parent,children)|{
@@ -31,11 +33,12 @@ pub(crate) fn children_manager_system(data: &mut GameData) {
         }
     });
     component_to_add.drain().for_each(|(e, children)| {
-        trace!("Adding children component on entity {:?}", e);
         let _r = data.add_components(e, (Children(children),));
     });
+    components_to_remove.drain().for_each(|e| {
+        let _r = data.remove_component::<Children>(e);
+    });
     entities_to_remove.drain().for_each(|e| {
-        trace!("Removing entity {:?} because the parent has not been found", e);
         let _r = data.remove(e);
     });
 }
@@ -82,8 +85,11 @@ mod tests {
     fn children_manager_system_test_parent_clean() {
         let mut world = GameData::default();
 
-        let child = world.push((1,));
-        let parent = world.push((2, Children(vec![child])));
+        let parent = world.push((2,));
+        let child = world.push((1,Parent(parent)));
+
+        // First iteration must add the 'Children' components to the child
+        children_manager_system(&mut world);
 
         // We check that we have the child
         assert_eq!(
@@ -95,6 +101,7 @@ mod tests {
         // we delete the child and then we execute the schedule and test that we have the good result
         children_manager_system(&mut world);
 
-        assert_eq!(true, world.entry::<&Children>(parent).is_err());
+        let res = world.entry::<&Children>(parent).expect("").get().is_some();
+        assert_eq!(false, res);
     }
 }

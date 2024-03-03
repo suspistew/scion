@@ -13,6 +13,8 @@ use crate::core::components::{
     },
     shapes::polygon::Polygon,
 };
+use crate::core::resources::global_storage::GlobalStorage;
+use crate::core::resources::inputs::types::{Input, KeyCode, Shortcut};
 use crate::core::world::{GameData, World};
 
 pub(crate) fn collider_cleaner_system(data: &mut GameData) {
@@ -79,13 +81,23 @@ pub(crate) fn compute_collisions_system(data: &mut GameData) {
 
 /// System responsible to add a `ColliderDebug` component to each colliders that are in debug mode
 pub(crate) fn debug_colliders_system(data: &mut GameData) {
-    let collider_debug: HashSet<Entity> = fetch_collider_debug_entities(data);
+    let global_debug_activated = handle_global_debug_colliders(data);
+    let mut collider_debug = fetch_collider_debug_entities(data);
     let mut debug_lines_to_add = Vec::new();
+    let mut debug_lines_to_remove = Vec::new();
     for (entity, (_, collider)) in data.query_mut::<(&Transform, &mut Collider)>() {
-        if collider.debug_lines() && !collider_debug.contains(&entity) {
+        if (collider.debug_lines() || global_debug_activated) && !collider_debug.0.contains(&entity) {
             let (width, height) = match collider.collider_type() {
                 ColliderType::Square(size) => (*size as f32, *size as f32),
                 ColliderType::Rectangle(width, height) => (*width as f32 as f32, *height as f32),
+            };
+            let color = match collider.mask() {
+                ColliderMask::None => Color::new_rgb(0, 0, 0),
+                ColliderMask::Character => Color::new_rgb(255, 0, 0),
+                ColliderMask::Bullet => Color::new_rgb(255, 0, 0),
+                ColliderMask::Death => Color::new_rgb(255, 0, 0),
+                ColliderMask::Landscape => Color::new_rgb(0, 255, 0),
+                ColliderMask::Custom(_) => Color::new_rgb(0, 0, 255)
             };
             let offset = collider.offset();
             debug_lines_to_add.push((
@@ -99,22 +111,43 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
                     Coordinates::new(0., height),
                     Coordinates::new(0., 0.),
                 ]),
-                Material::Color(Color::new_rgb(0, 255, 0)),
+                Material::Color(color),
             ));
+        }else if !collider.debug_lines() && !global_debug_activated && collider_debug.0.contains(&entity) {
+            debug_lines_to_remove.push(entity);
         }
     }
 
     debug_lines_to_add.drain(0..).for_each(|components| {
         data.push(components);
     });
+    debug_lines_to_remove.drain(0..).for_each(|e| {
+        let _r = data.remove(collider_debug.1.remove(&e).expect(""));
+    });
 }
 
-fn fetch_collider_debug_entities(data: &mut GameData) -> HashSet<Entity> {
-    let mut res = HashSet::new();
-    for (_, (_,parent)) in data.query::<(&ColliderDebug, &Parent)>().iter() {
-        res.insert(parent.0);
+fn handle_global_debug_colliders(game_data: &mut GameData) -> bool {
+    let shortcut_event = game_data.inputs().shortcut_pressed_event(&vec![Input::Key(KeyCode::LShift), Input::Key(KeyCode::D)]);
+
+    let mut resources = game_data.get_resource_mut::<GlobalStorage>().expect("Missing Global Storage resource");
+    let mut current_val = resources.flags.get("debug_colliders").get_or_insert(&false).clone();
+
+    if shortcut_event {
+        current_val = !current_val;
+        resources.flags.insert("debug_colliders".to_string(), current_val);
     }
-    res
+
+    current_val
+}
+
+fn fetch_collider_debug_entities(data: &mut GameData) -> (HashSet<Entity>, HashMap<Entity, Entity>) {
+    let mut parents = HashSet::new();
+    let mut debug_line: HashMap<Entity, Entity> = HashMap::new();
+    for (e, (_,parent)) in data.query::<(&ColliderDebug, &Parent)>().iter() {
+        parents.insert(parent.0);
+        debug_line.insert(parent.0, e);
+    }
+    (parents, debug_line)
 }
 
 #[cfg(test)]
@@ -126,6 +159,7 @@ mod tests {
         transform::Transform,
     };
     use crate::core::components::maths::collider::CollisionArea;
+    use crate::core::resources::inputs::inputs_controller::InputsController;
     use crate::core::world::GameData;
 
     #[test]
@@ -187,6 +221,8 @@ mod tests {
     #[test]
     fn debug_colliders_system_test() {
         let mut world = GameData::default();
+        world.insert_resource(InputsController::default());
+        world.insert_resource(GlobalStorage::default());
 
         let _collider = world.push((
             Transform::default(),
