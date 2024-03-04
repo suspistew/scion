@@ -16,6 +16,7 @@ use crate::core::resources::asset_manager::AssetManager;
 use crate::core::resources::audio::Audio;
 use crate::core::resources::focus_manager::FocusManager;
 use crate::core::resources::font_atlas::FontAtlas;
+use crate::core::resources::global_storage::GlobalStorage;
 use crate::core::resources::inputs::inputs_controller::InputsController;
 use crate::core::scene::SceneController;
 use crate::core::state::GameState;
@@ -51,6 +52,7 @@ pub(crate) mod focus_systems;
 pub(crate) mod ui_button_systems;
 
 
+
 pub(crate) struct InternalPackage;
 impl Package for InternalPackage {
     fn prepare(&self, data: &mut GameData) {
@@ -75,6 +77,7 @@ impl Package for InternalPackage {
         data.insert_resource(SceneController::default());
         data.insert_resource(Audio::default());
         data.insert_resource(FontAtlas::default());
+        data.insert_resource(GlobalStorage::default());
     }
 
     fn load(self, builder: ScionBuilder) -> ScionBuilder {
