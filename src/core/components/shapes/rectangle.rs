@@ -9,16 +9,18 @@ use crate::{
     },
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
+use crate::utils::maths::Vector;
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
 /// Renderable 2D Rectangle.
-pub struct Rectangle {
+    pub struct Rectangle {
     width: f32,
     height: f32,
     pub vertices: [Coordinates; 4],
     pub uvs: Option<[Coordinates; 4]>,
     contents: [TexturedGlVertex; 4],
+    pivot: Pivot,
     dirty: bool,
 }
 
@@ -27,26 +29,28 @@ impl Rectangle {
     /// When rendering using a texture, you can customize uvs map using `uvs`. By default it will
     /// use 0 to 1 uvs
     pub fn new(width: f32, height: f32, uvs: Option<[Coordinates; 4]>) -> Self {
-        Rectangle::new_with_offset(width, height, uvs, 0., 0.)
+        Rectangle::new_with_pivot(width, height, uvs, Pivot::TopLeft)
     }
 
     pub fn pivot(self, pivot: Pivot) -> Self {
-        let (x_offset, y_offset) = match pivot {
-            Pivot::TopLeft => (0., 0.),
-            Pivot::Center => (self.width / 2., self.height / 2.),
-        };
-
-        Rectangle::new_with_offset(self.width, self.height, self.uvs, x_offset, y_offset)
+        Rectangle::new_with_pivot(self.width, self.height, self.uvs, pivot)
     }
 
-    pub fn new_with_offset(
+    fn compute_pivot_offset(pivot: &Pivot, width: f32, height: f32) -> Vector {
+        match pivot {
+            Pivot::TopLeft => Vector::new(0., 0.),
+            Pivot::Center => Vector::new(width / 2., height / 2.),
+        }
+    }
+
+    pub fn new_with_pivot(
         width: f32,
         height: f32,
         uvs: Option<[Coordinates; 4]>,
-        x_offset: f32,
-        y_offset: f32,
+        pivot: Pivot
     ) -> Self {
-        let a = Coordinates::new(0. - x_offset, 0. - y_offset);
+        let offset = Self::compute_pivot_offset(&pivot, width, height);
+        let a = Coordinates::new(0. - offset.x, 0. - offset.y);
         let b = Coordinates::new(a.x(), a.y() + height);
         let c = Coordinates::new(a.x() + width, a.y() + height);
         let d = Coordinates::new(a.x() + width, a.y());
@@ -57,11 +61,12 @@ impl Rectangle {
             TexturedGlVertex::from((&c, &uvs_ref[2])),
             TexturedGlVertex::from((&d, &uvs_ref[3])),
         ];
-        Self { width, height, vertices: [a, b, c, d], uvs: Some(uvs_ref), contents, dirty: false }
+        Self { width, height, vertices: [a, b, c, d], uvs: Some(uvs_ref), contents, pivot, dirty: false }
     }
 
     pub fn set_height(&mut self, new_height: f32) {
-        let a = Coordinates::new(0., 0.);
+        let offset = Self::compute_pivot_offset(&self.pivot, self.width, self.height);
+        let a = Coordinates::new(0. - offset.x, 0. - offset.y);
         let b = Coordinates::new(a.x(), a.y() + new_height);
         let c = Coordinates::new(a.x() + self.width, a.y() + new_height);
         let d = Coordinates::new(a.x() + self.width, a.y());
@@ -79,7 +84,8 @@ impl Rectangle {
     }
 
     pub fn set_width(&mut self, new_width: f32) {
-        let a = Coordinates::new(0., 0.);
+        let offset = Self::compute_pivot_offset(&self.pivot, self.width, self.height);
+        let a = Coordinates::new(0. - offset.x, 0. - offset.y);
         let b = Coordinates::new(a.x(), a.y() + self.height);
         let c = Coordinates::new(a.x() + new_width, a.y() + self.height);
         let d = Coordinates::new(a.x() + new_width, a.y());
@@ -144,5 +150,9 @@ impl Renderable2D for Rectangle {
 
     fn set_dirty(&mut self, is_dirty: bool) {
         self.dirty = is_dirty
+    }
+
+    fn get_pivot_offset(&self, _material: Option<&Material>) -> Vector {
+        Self::compute_pivot_offset(&self.pivot, self.width, self.height)
     }
 }

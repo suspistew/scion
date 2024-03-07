@@ -28,6 +28,7 @@ use crate::{
     },
     utils::file::{read_file_modification_time, FileReaderError},
 };
+use crate::utils::maths::Vector;
 
 #[derive(Default)]
 pub(crate) struct Scion2D {
@@ -461,8 +462,8 @@ impl Scion2D {
 
         let camera = (&camera1.0, &camera1.1);
 
-        for (entity, (transform, optional_ui_component, _)) in
-            data.query::<(&Transform, Option<&UiComponent>, &T)>().iter()
+        for (entity, (transform, optional_ui_component, renderable, optional_material)) in
+            data.query::<(&Transform, Option<&UiComponent>, &T, Option<&Material>)>().iter()
         {
             if !self.transform_uniform_bind_groups.contains_key(&entity) {
                 let (uniform, uniform_buffer, group) = create_transform_uniform_bind_group(
@@ -471,6 +472,7 @@ impl Scion2D {
                     camera,
                     optional_ui_component.is_some(),
                     self.transform_bind_group_layout.as_ref().unwrap(),
+                    renderable.get_pivot_offset(optional_material)
                 );
                 queue.write_buffer(&uniform_buffer, 0, bytemuck::cast_slice(&[uniform]));
                 self.transform_uniform_bind_groups.insert(entity, (uniform, uniform_buffer, group));
@@ -483,6 +485,7 @@ impl Scion2D {
                     transform,
                     camera,
                     is_ui_component: optional_ui_component.is_some(),
+                    pivot_offset: renderable.get_pivot_offset(optional_material)
                 }));
                 queue.write_buffer(uniform_buffer, 0, bytemuck::cast_slice(&[*uniform]));
             }
@@ -687,8 +690,9 @@ fn create_transform_uniform_bind_group(
     camera: (&Camera, &Transform),
     is_ui_component: bool,
     uniform_bind_group_layout: &BindGroupLayout,
+    offset: Vector
 ) -> (GlUniform, Buffer, BindGroup) {
-    let uniform = GlUniform::from(UniformData { transform, camera, is_ui_component });
+    let uniform = GlUniform::from(UniformData { transform, camera, is_ui_component, pivot_offset: offset});
     let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Uniform Buffer"),
         contents: bytemuck::cast_slice(&[uniform]),

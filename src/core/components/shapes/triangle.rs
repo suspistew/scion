@@ -15,53 +15,53 @@ pub struct Triangle {
     pub vertices: [Coordinates; 3],
     pub uvs: Option<[Coordinates; 3]>,
     contents: [TexturedGlVertex; 3],
+    pivot: Pivot
 }
 
 impl Triangle {
     /// Creates a new square using `length`.
-    /// uvs are mandatory but this will be updated
+    /// uvs are mandatory
     pub fn new(vertices: [Coordinates; 3], uvs: Option<[Coordinates; 3]>) -> Self {
-        let uvs_ref = uvs.as_ref().expect("Uvs are currently mandatory, this need to be fixed");
-        let contents = [
-            TexturedGlVertex::from((&vertices[0], &uvs_ref[0])),
-            TexturedGlVertex::from((&vertices[1], &uvs_ref[1])),
-            TexturedGlVertex::from((&vertices[2], &uvs_ref[2])),
-        ];
-        Self { vertices, uvs, contents }
+        Triangle::new_with_pivot(vertices, uvs, Pivot::TopLeft)
     }
 
     pub fn pivot(self, pivot: Pivot) -> Self {
-        let offset = match pivot {
-            Pivot::TopLeft => Vector::new(0., 0.),
-            Pivot::Center => Vector::new(
-                (self.vertices[0].x + self.vertices[1].x + self.vertices[2].x).abs() / 3.,
-                (self.vertices[0].y + self.vertices[1].y + self.vertices[2].y) / 3.,
-            ),
-        };
-        Triangle::new_with_offset(self.vertices, self.uvs, offset)
+        Triangle::new_with_pivot(self.vertices, self.uvs, pivot)
     }
 
-    fn new_with_offset(
+    fn new_with_pivot(
         vertices: [Coordinates; 3],
         uvs: Option<[Coordinates; 3]>,
-        offset: Vector,
+        pivot: Pivot,
     ) -> Self {
+        let uvs_ref = uvs.as_ref().expect("Uvs are currently mandatory, this need to be fixed");
+        let offset = Self::compute_pivot_offset(&pivot, &vertices);
         let a = Coordinates::new(&vertices[0].x - offset.x, &vertices[0].y - offset.y);
         let b = Coordinates::new(&vertices[1].x - offset.x, &vertices[1].y - offset.y);
         let c = Coordinates::new(&vertices[2].x - offset.x, &vertices[2].y - offset.y);
-        let uvs_ref = uvs.as_ref().expect("Uvs are currently mandatory, this need to be fixed");
         let contents = [
             TexturedGlVertex::from((&a, &uvs_ref[0])),
             TexturedGlVertex::from((&b, &uvs_ref[1])),
             TexturedGlVertex::from((&c, &uvs_ref[2])),
         ];
-        Self { vertices, uvs, contents }
+        Self { vertices, uvs, contents, pivot }
+    }
+
+    fn compute_pivot_offset(pivot: &Pivot,
+                            vertices: &[Coordinates; 3]) -> Vector {
+        match pivot {
+            Pivot::TopLeft => Vector::new(0., 0.),
+            Pivot::Center => Vector::new(
+                (vertices[0].x + vertices[1].x + vertices[2].x).abs() / 3.,
+                (vertices[0].y + vertices[1].y + vertices[2].y) / 3.,
+            ),
+        }
     }
 }
 
 impl Renderable2D for Triangle {
     fn vertex_buffer_descriptor(&mut self, _material: Option<&Material>) -> BufferInitDescriptor {
-        wgpu::util::BufferInitDescriptor {
+        BufferInitDescriptor {
             label: Some("Triangle Vertex Buffer"),
             contents: bytemuck::cast_slice(&self.contents),
             usage: wgpu::BufferUsages::VERTEX,
@@ -69,7 +69,7 @@ impl Renderable2D for Triangle {
     }
 
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
-        wgpu::util::BufferInitDescriptor {
+        BufferInitDescriptor {
             label: Some("Triangle Index Buffer"),
             contents: bytemuck::cast_slice(&INDICES),
             usage: wgpu::BufferUsages::INDEX,
@@ -81,7 +81,7 @@ impl Renderable2D for Triangle {
     }
 
     fn topology() -> PrimitiveTopology {
-        wgpu::PrimitiveTopology::TriangleList
+        PrimitiveTopology::TriangleList
     }
 
     fn dirty(&self) -> bool {
@@ -89,4 +89,8 @@ impl Renderable2D for Triangle {
     }
 
     fn set_dirty(&mut self, _is_dirty: bool) {}
+
+    fn get_pivot_offset(&self, _material: Option<&Material>) -> Vector {
+        Self::compute_pivot_offset(&self.pivot, &self.vertices)
+    }
 }
