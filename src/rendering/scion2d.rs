@@ -40,6 +40,7 @@ pub(crate) struct Scion2D {
     diffuse_bind_groups: HashMap<String, (BindGroup, wgpu::Texture)>,
     transform_uniform_bind_groups: HashMap<Entity, (GlUniform, Buffer, BindGroup)>,
     assets_timestamps: HashMap<String, SystemTime>,
+    first_tick_passed: bool
 }
 
 struct RenderingInfos {
@@ -122,9 +123,10 @@ impl ScionRenderer for Scion2D {
             self.upsert_tilemaps_buffers(data, &device);
             self.upsert_ui_component_buffers::<UiImage>(data, &device, &surface_config, queue);
             self.upsert_ui_component_buffers::<UiTextImage>(data, &device, &surface_config, queue);
-        } else {
+        } else if self.first_tick_passed {
             log::warn!("No camera has been found in resources");
         }
+        self.first_tick_passed = true;
         self.clean_buffers(data);
     }
 
