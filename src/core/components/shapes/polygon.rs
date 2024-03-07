@@ -40,7 +40,6 @@ impl Polygon {
 
     /// Append y to the nth vertice
     pub fn append_y(&mut self, index: usize, y: f32) {
-        println!("{}", self.vertices.get(index).unwrap().y);
         self.vertices.get_mut(index).unwrap().y += y;
         self.compute_contents();
     }

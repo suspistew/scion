@@ -3,6 +3,7 @@ use ultraviolet::{Mat4, Rotor3, Similarity3, Vec3, Vec4};
 use crate::core::components::maths::{
     camera::Camera, coordinates::Coordinates, transform::Transform,
 };
+use crate::utils::maths::Vector;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -155,6 +156,7 @@ pub(crate) struct UniformData<'a> {
     pub transform: &'a Transform,
     pub camera: (&'a Camera, &'a Transform),
     pub is_ui_component: bool,
+    pub pivot_offset: Vector
 }
 
 impl From<UniformData<'_>> for GlUniform {
@@ -162,8 +164,8 @@ impl From<UniformData<'_>> for GlUniform {
         let mut model_trans = Similarity3::identity();
         model_trans.prepend_scaling(uniform_data.transform.scale);
         model_trans.append_translation(Vec3 {
-            x: uniform_data.transform.global_translation.x(),
-            y: uniform_data.transform.global_translation.y(),
+            x: uniform_data.transform.global_translation.x() + uniform_data.pivot_offset.x * uniform_data.transform.scale,
+            y: uniform_data.transform.global_translation.y() + uniform_data.pivot_offset.y * uniform_data.transform.scale,
             z: uniform_data.transform.global_translation.z() as f32,
         });
         if !uniform_data.is_ui_component && !uniform_data.transform.use_screen_as_origin {

@@ -8,6 +8,9 @@ use crate::{
     },
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
+use crate::core::components::maths::Pivot;
+use crate::core::components::shapes::rectangle::Rectangle;
+use crate::utils::maths::Vector;
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
@@ -20,13 +23,19 @@ pub struct Sprite {
     contents: Option<[TexturedGlVertex; 4]>,
     /// Flag to keep track of changed tile number
     dirty: bool,
+    /// Pivot point of the sprite, default topleft
+    pivot: Pivot
 }
 
 impl Sprite {
     /// Creates a new sprite that will use the `tile_number` from the tileset associated in the same
     /// entity
     pub fn new(tile_number: usize) -> Self {
-        Self { tile_number, contents: None, dirty: false }
+        Self { tile_number, contents: None, dirty: false, pivot: Pivot::TopLeft}
+    }
+
+    pub fn pivot(self, pivot: Pivot) -> Self {
+        Self { tile_number: self.tile_number, contents: None, dirty: false, pivot}
     }
 
     /// Modify the current sprite tile number
@@ -37,6 +46,13 @@ impl Sprite {
 
     pub fn get_tile_nb(&self) -> usize {
         self.tile_number
+    }
+
+    fn compute_pivot_offset(pivot: &Pivot, length: usize) -> Vector {
+        match pivot {
+            Pivot::TopLeft => Vector::new(0., 0.),
+            Pivot::Center => Vector::new(length as f32 / 2., length as f32/ 2.),
+        }
     }
 
     fn uv_refs(&self, tileset: &Tileset) -> [Coordinates; 4] {
@@ -56,10 +72,11 @@ impl Sprite {
     pub(crate) fn compute_content(&self, material: Option<&Material>) -> [TexturedGlVertex; 4] {
         if (self.dirty || self.contents.is_none()) && material.is_some() {
             if let Material::Tileset(tileset) = material.unwrap() {
-                let a = Coordinates::new(0., 0.);
-                let b = Coordinates::new(0., tileset.tile_size as f32);
-                let c = Coordinates::new(tileset.tile_size as f32, tileset.tile_size as f32);
-                let d = Coordinates::new(tileset.tile_size as f32, 0.);
+                let offset = Self::compute_pivot_offset(&self.pivot, tileset.tile_size);
+                let a = Coordinates::new(0. - offset.x, 0. - offset.y);
+                let b = Coordinates::new(a.x, a.y + tileset.tile_size as f32);
+                let c = Coordinates::new(a.x + tileset.tile_size as f32, a.y + tileset.tile_size as f32);
+                let d = Coordinates::new(a.x + tileset.tile_size as f32, a.y);
                 let uvs_ref = self.uv_refs(&tileset);
                 return [
                     TexturedGlVertex::from((&a, &uvs_ref[0])),
@@ -116,5 +133,12 @@ impl Renderable2D for Sprite {
 
     fn set_dirty(&mut self, is_dirty: bool) {
         self.dirty = is_dirty;
+    }
+
+    fn get_pivot_offset(&self, material: Option<&Material>) -> Vector {
+        if let Material::Tileset(tileset) = material.unwrap() {
+            Self::compute_pivot_offset(&self.pivot, tileset.tile_size)
+        }else { Vector::default() }
+
     }
 }
