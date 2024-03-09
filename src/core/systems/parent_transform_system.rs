@@ -42,6 +42,7 @@ pub(crate) fn dirty_child_system(data: &mut GameData) {
                             child_transform.dirty_child = false;
                             child_transform
                                 .compute_global_from_parent(parent_transform.global_translation());
+                            child_transform.compute_global_angle_from_parent(parent_transform.global_angle);
                             parents_transform.insert(child, child_transform.clone());
                         } else {
                             // Else we need to check the parent first, in the next iteration
@@ -69,7 +70,8 @@ pub(crate) fn dirty_transform_system(data: &mut GameData) {
             for entity in entities {
                 if let Ok(child_transform) = data.entry_mut::<&mut Transform>(entity) {
                     trace!("Updating child Transform of entity {:?}, because parent was marked as dirty", entity);
-                    child_transform.compute_global_from_parent(transform.global_translation())
+                    child_transform.compute_global_from_parent(transform.global_translation());
+                    child_transform.compute_global_angle_from_parent(transform.global_angle);
                 }
             }
         }

@@ -57,6 +57,9 @@ impl Line {
         ];
         Self { vertices, contents , pivot}
     }
+    pub fn get_pivot(&self) -> Pivot {
+        self.pivot.clone()
+    }
 }
 
 impl Renderable2D for Line {

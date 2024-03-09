@@ -6,25 +6,39 @@ use crate::{
     core::components::{material::Material, maths::coordinates::Coordinates},
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
+use crate::core::components::maths::Pivot;
+use crate::core::components::Square;
+use crate::utils::maths::Vector;
 
 /// Renderable 2D Polygon made of outlines.
 pub struct Polygon {
     pub vertices: Vec<Coordinates>,
     contents: Vec<TexturedGlVertex>,
     indices: Vec<u16>,
+    pivot: Pivot,
     dirty: bool,
 }
 
 impl Polygon {
     /// Creates a new polygon using `vertices`.
-    /// Rendering is done with strip, meaning if you give 3 vertices (a,b,c) then it will create a to b and b to c.
+    /// Rendering is done with strip, meaning if you give 3 vertices (a,b,c) then it will create a to b and b to c and c to a.
     pub fn new(vertices: Vec<Coordinates>) -> Self {
-        let contents = vertices
+        Polygon::new_with_pivot(vertices, Pivot::TopLeft)
+    }
+    pub fn pivot(mut self, pivot: Pivot) -> Self {
+        Polygon::new_with_pivot(self.vertices, pivot)
+    }
+
+    fn new_with_pivot(vertices: Vec<Coordinates>, pivot: Pivot) -> Self {
+        let offset = Self::compute_pivot_offset(&pivot, &vertices);
+        let mut contents: Vec<TexturedGlVertex> = vertices
             .iter()
-            .map(|c| TexturedGlVertex::from((c, &Coordinates::new(0., 0.))))
+            .map(|c| TexturedGlVertex::from((&Coordinates::new(c.x - offset.x, c.y - offset.y), &Coordinates::new(0., 0.))))
             .collect();
-        let indices = (0..vertices.len() as u16).collect();
-        Self { vertices, contents, indices, dirty: true }
+        let last_vertex = vertices.get(0).map(|c| TexturedGlVertex::from((&Coordinates::new(c.x - offset.x, c.y - offset.y), &Coordinates::new(0., 0.)))).unwrap();
+        contents.push(last_vertex);
+        let indices = (0..(vertices.len()+1) as u16).collect();
+        Self { vertices, contents, indices, pivot, dirty: true }
     }
 
     /// Retrieves the vertices list
@@ -52,11 +66,24 @@ impl Polygon {
             .collect();
         self.dirty = true;
     }
+
+    fn compute_pivot_offset(pivot: &Pivot, vertices: &Vec<Coordinates>) -> Vector {
+        match pivot {
+            Pivot::TopLeft => Vector::new(0., 0.),
+            Pivot::Center => {
+                let centroid = crate::utils::maths::centroid_polygon(vertices);
+                Vector::new(centroid.x, centroid.y)
+            }
+        }
+    }
+    pub fn get_pivot(&self) -> Pivot {
+        self.pivot.clone()
+    }
 }
 
 impl Renderable2D for Polygon {
     fn vertex_buffer_descriptor(&mut self, _material: Option<&Material>) -> BufferInitDescriptor {
-        wgpu::util::BufferInitDescriptor {
+        BufferInitDescriptor {
             label: Some("Polygon Vertex Buffer"),
             contents: bytemuck::cast_slice(&self.contents),
             usage: wgpu::BufferUsages::VERTEX,
@@ -64,7 +91,7 @@ impl Renderable2D for Polygon {
     }
 
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
-        wgpu::util::BufferInitDescriptor {
+        BufferInitDescriptor {
             label: Some("Polygon Index Buffer"),
             contents: bytemuck::cast_slice(&self.indices.as_slice()),
             usage: wgpu::BufferUsages::INDEX,
@@ -72,11 +99,11 @@ impl Renderable2D for Polygon {
     }
 
     fn range(&self) -> Range<u32> {
-        0..self.indices.len() as u32
+        0..(self.indices.len() + 1) as u32
     }
 
     fn topology() -> PrimitiveTopology {
-        wgpu::PrimitiveTopology::LineStrip
+        PrimitiveTopology::LineStrip
     }
 
     fn dirty(&self) -> bool {
@@ -85,5 +112,9 @@ impl Renderable2D for Polygon {
 
     fn set_dirty(&mut self, is_dirty: bool) {
         self.dirty = is_dirty;
+    }
+
+    fn get_pivot_offset(&self, _material: Option<&Material>) -> Vector {
+        Self::compute_pivot_offset(&self.pivot, &self.vertices)
     }
 }

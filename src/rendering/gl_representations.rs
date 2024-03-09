@@ -176,7 +176,7 @@ impl From<UniformData<'_>> for GlUniform {
             });
         }
         model_trans
-            .prepend_rotation(Rotor3::from_rotation_xy(uniform_data.transform.angle).normalized());
+            .prepend_rotation(Rotor3::from_rotation_xy(uniform_data.transform.global_angle).normalized());
         let mut model_trans = model_trans.into_homogeneous_matrix();
         let mut camera_view = ultraviolet::projection::lh_ydown::orthographic_wgpu_dx(
             uniform_data.camera.0.left,

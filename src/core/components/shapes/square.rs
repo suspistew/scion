@@ -57,6 +57,9 @@ impl Square {
             Pivot::Center => Vector::new(length / 2., length / 2.),
         }
     }
+    pub fn get_pivot(&self) -> Pivot {
+        self.pivot.clone()
+    }
 }
 
 fn default_uvs() -> [Coordinates; 4] {

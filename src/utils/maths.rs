@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use crate::core::components::maths::coordinates::Coordinates;
 
 /// The standard way to communicate a position in 3 dimensions in `Scion`
 #[derive(Eq, PartialEq, Hash, Clone, Debug, Serialize, Deserialize)]
@@ -77,5 +78,51 @@ impl Vector {
 
     pub fn set_y(&mut self, y: f32) {
         self.y = y;
+    }
+}
+
+
+// https://www.omnicalculator.com/math/centroid#what-is-the-formula-for-the-centroid
+pub fn centroid_polygon(vertices: &Vec<Coordinates>) -> Coordinates {
+    let (mut x, mut y) = (0., 0.);
+    let mut signed_area: f32 = 0.;
+
+    for i in 0..vertices.len() {
+        let current_vertice = vertices.get(i).unwrap();
+        let next_vertice = vertices.get((i + 1) % vertices.len()).unwrap();
+        let current_area = (current_vertice.x * next_vertice.y) - (next_vertice.x * current_vertice.y);
+        signed_area += current_area;
+        x += (current_vertice.x + next_vertice.x) * current_area;
+        y += (current_vertice.y + next_vertice.y) * current_area;
+    }
+    signed_area = signed_area * 0.5;
+    x = x / (6. * signed_area);
+    y = y / (6. * signed_area);
+    Coordinates::new(x, y)
+}
+
+// https://www.omnicalculator.com/math/centroid#what-is-the-formula-for-the-centroid
+pub fn centroid_points(vertices: &Vec<Coordinates>) -> Coordinates {
+    let sum = vertices.iter().fold(Coordinates::default(),
+                                   |mut acc, current|
+                                       Coordinates::new(acc.x + current.x, current.y + acc.y));
+    Coordinates::new(sum.x / vertices.len() as f32, sum.y / vertices.len() as f32)
+}
+
+#[cfg(test)]
+mod test {
+    use crate::core::components::maths::coordinates::Coordinates;
+    use crate::utils::maths::{centroid_points, centroid_polygon};
+
+    #[test]
+    fn test_centroid() {
+        let vertices = vec![Coordinates::new(1., 1.), Coordinates::new(2., 4.), Coordinates::new(5., 4.), Coordinates::new(11., 1.)];
+        println!("Centre par polygone : {:?}", centroid_polygon(&vertices));
+    }
+
+    #[test]
+    fn test_centroid2() {
+        let vertices = vec![Coordinates::new(1., 1.), Coordinates::new(2., 4.), Coordinates::new(5., 4.), Coordinates::new(11., 1.)];
+        println!("Centre par points : {:?}", centroid_points(&vertices));
     }
 }

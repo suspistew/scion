@@ -96,6 +96,9 @@ impl Sprite {
     pub(crate) fn set_content(&mut self, content: [TexturedGlVertex; 4]) {
         self.contents = Some(content);
     }
+    pub fn get_pivot(&self) -> Pivot {
+        self.pivot.clone()
+    }
 }
 
 impl Renderable2D for Sprite {
