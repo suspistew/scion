@@ -1,11 +1,11 @@
-use wgpu::{CompositeAlphaMode, InstanceDescriptor, SurfaceConfiguration, TextureFormat};
+use wgpu::{CompositeAlphaMode, InstanceDescriptor, Surface, SurfaceConfiguration, TextureFormat};
 use winit::{event::WindowEvent, window::Window};
 
 use crate::core::world::GameData;
 use crate::{config::scion_config::ScionConfig, rendering::ScionRenderer};
 
 pub(crate) struct RendererState {
-    surface: wgpu::Surface,
+    surface: Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: SurfaceConfiguration,
@@ -21,12 +21,12 @@ impl RendererState {
             backends: backend,
             dx12_shader_compiler: wgpu::Dx12Compiler::Fxc,
             flags: wgpu::InstanceFlags::default(),
-            gles_minor_version: wgpu::Gles3MinorVersion::Automatic
+            gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
         });
 
         let (_size, surface) = unsafe {
             let size = window.inner_size();
-            let surface = instance.create_surface(&window).expect("Surface unsupported by adapter");
+            let surface = instance.create_surface_unsafe(wgpu::SurfaceTargetUnsafe::from_window(&window).expect("Missed usage surface creation")).expect("Surface unsupported by adapter");
             (size, surface)
         };
 
@@ -42,8 +42,8 @@ impl RendererState {
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
-                    features: wgpu::Features::empty(),
-                    limits: needed_limits,
+                    required_features: wgpu::Features::empty(),
+                    required_limits: needed_limits,
                 },
                 trace_dir.ok().as_ref().map(std::path::Path::new),
             )
@@ -58,6 +58,7 @@ impl RendererState {
             width: w.width * window.scale_factor() as u32,
             height: w.height * window.scale_factor() as u32,
             present_mode: wgpu::PresentMode::Fifo,
+            desired_maximum_frame_latency: 2,
             alpha_mode: CompositeAlphaMode::Auto,
             view_formats: vec![TextureFormat::Bgra8UnormSrgb],
         };
