@@ -2,20 +2,21 @@ use std::collections::{HashMap, HashSet};
 use hecs::Entity;
 use log::info;
 
-use crate::core::components::{
-    color::Color,
-    material::Material,
-    maths::{
-        collider::{Collider, ColliderDebug, ColliderMask, ColliderType, Collision},
-        coordinates::Coordinates,
-        hierarchy::Parent,
-        transform::Transform,
-    },
-    shapes::polygon::Polygon,
-};
+use crate::core::components::{color::Color, material::Material, maths::{
+    collider::{Collider, ColliderDebug, ColliderMask, ColliderType, Collision},
+    coordinates::Coordinates,
+    hierarchy::Parent,
+    transform::Transform,
+}, shapes::polygon::Polygon, Square, Triangle};
+use crate::core::components::maths::Pivot;
+use crate::core::components::shapes::line::Line;
+use crate::core::components::shapes::rectangle::Rectangle;
+use crate::core::components::tiles::sprite::Sprite;
 use crate::core::resources::global_storage::GlobalStorage;
 use crate::core::resources::inputs::types::{Input, KeyCode, Shortcut};
 use crate::core::world::{GameData, World};
+use crate::rendering::Renderable2D;
+use crate::utils::maths::Vector;
 
 pub(crate) fn collider_cleaner_system(data: &mut GameData) {
     for (_, c) in data.query_mut::<&mut Collider>() {
@@ -63,7 +64,7 @@ pub(crate) fn compute_collisions_system(data: &mut GameData) {
                                 mask: c.mask().clone(),
                                 entity: *entity,
                                 coordinates: t.global_translation().clone(),
-                                collision_area: collision_area.expect("Filtered Option is still KO")
+                                collision_area: collision_area.expect("Filtered Option is still KO"),
                             });
                         })
                 },
@@ -85,14 +86,15 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
     let mut collider_debug = fetch_collider_debug_entities(data);
     let mut debug_lines_to_add = Vec::new();
     let mut debug_lines_to_remove = Vec::new();
-    for (entity, (_, collider)) in data.query_mut::<(&Transform, &mut Collider)>() {
+    for (entity, (_, collider, square, rectangle, triangle, polygon, sprite, line))
+    in data.query_mut::<(&Transform, &mut Collider, Option<&Square>, Option<&Rectangle>, Option<&Triangle>, Option<&Polygon>, Option<&Sprite>, Option<&Line>)>() {
         if (collider.debug_lines() || global_debug_activated) && !collider_debug.0.contains(&entity) {
             let (width, height) = match collider.collider_type() {
                 ColliderType::Square(size) => (*size as f32, *size as f32),
-                ColliderType::Rectangle(width, height) => (*width as f32 as f32, *height as f32),
+                ColliderType::Rectangle(width, height) => (*width as f32, *height as f32),
             };
             let color = match collider.mask() {
-                ColliderMask::None => Color::new_rgb(0, 0, 0),
+                ColliderMask::None => Color::new_rgb(255, 255, 255),
                 ColliderMask::Character => Color::new_rgb(255, 0, 0),
                 ColliderMask::Bullet => Color::new_rgb(255, 0, 0),
                 ColliderMask::Death => Color::new_rgb(255, 0, 0),
@@ -100,20 +102,21 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
                 ColliderMask::Custom(_) => Color::new_rgb(0, 0, 255)
             };
             let offset = collider.offset();
+            let pivot = get_pivot(square, rectangle, triangle, polygon, sprite, line);
+            let mut polygon_collider = Polygon::new(vec![
+                Coordinates::new(0., 0.),
+                Coordinates::new(width, 0.),
+                Coordinates::new(width, height),
+                Coordinates::new(0., height)
+            ]).pivot(pivot);
             debug_lines_to_add.push((
                 Parent(entity),
                 ColliderDebug,
                 Transform::from_xyz(offset.x(), offset.y(), 99),
-                Polygon::new(vec![
-                    Coordinates::new(0., 0.),
-                    Coordinates::new(width, 0.),
-                    Coordinates::new(width, height),
-                    Coordinates::new(0., height),
-                    Coordinates::new(0., 0.),
-                ]),
+                polygon_collider,
                 Material::Color(color),
             ));
-        }else if !collider.debug_lines() && !global_debug_activated && collider_debug.0.contains(&entity) {
+        } else if !collider.debug_lines() && !global_debug_activated && collider_debug.0.contains(&entity) {
             debug_lines_to_remove.push(entity);
         }
     }
@@ -124,6 +127,21 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
     debug_lines_to_remove.drain(0..).for_each(|e| {
         let _r = data.remove(collider_debug.1.remove(&e).expect(""));
     });
+}
+
+fn get_pivot(square: Option<&Square>,
+             rectangle: Option<&Rectangle>,
+             triangle: Option<&Triangle>,
+             polygon: Option<&Polygon>,
+             sprite: Option<&Sprite>,
+             line: Option<&Line>) -> Pivot {
+    if sprite.is_some() { sprite.unwrap().get_pivot() }
+    else if square.is_some() { square.unwrap().get_pivot() }
+    else if rectangle.is_some() { rectangle.unwrap().get_pivot() }
+    else if polygon.is_some() { polygon.unwrap().get_pivot() }
+    else if triangle.is_some() { triangle.unwrap().get_pivot() }
+    else if line.is_some() { line.unwrap().get_pivot() }
+    else { Pivot::TopLeft }
 }
 
 fn handle_global_debug_colliders(game_data: &mut GameData) -> bool {
@@ -143,7 +161,7 @@ fn handle_global_debug_colliders(game_data: &mut GameData) -> bool {
 fn fetch_collider_debug_entities(data: &mut GameData) -> (HashSet<Entity>, HashMap<Entity, Entity>) {
     let mut parents = HashSet::new();
     let mut debug_line: HashMap<Entity, Entity> = HashMap::new();
-    for (e, (_,parent)) in data.query::<(&ColliderDebug, &Parent)>().iter() {
+    for (e, (_, parent)) in data.query::<(&ColliderDebug, &Parent)>().iter() {
         parents.insert(parent.0);
         debug_line.insert(parent.0, e);
     }
@@ -152,7 +170,6 @@ fn fetch_collider_debug_entities(data: &mut GameData) -> (HashSet<Entity>, HashM
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
     use crate::core::components::maths::{
         collider::{Collider, ColliderMask, ColliderType, Collision},
@@ -179,7 +196,7 @@ mod tests {
             mask: ColliderMask::Character,
             entity: e,
             coordinates: Default::default(),
-            collision_area: CollisionArea{ start_point: Default::default(), end_point: Default::default() }
+            collision_area: CollisionArea { start_point: Default::default(), end_point: Default::default() },
         }]);
         assert_eq!(1, entry.collisions().len());
 

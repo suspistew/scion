@@ -6,7 +6,7 @@ pub mod transform;
 pub mod padding;
 
 /// `Pivot` tells where the pivot point of a component is
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Pivot {
     /// Pivot is on the top left corner of the shape
     TopLeft,

@@ -6,10 +6,12 @@ use scion::core::components::{Square, Triangle};
 use scion::core::components::animations::{Animation, AnimationModifier, Animations};
 use scion::core::components::color::Color;
 use scion::core::components::material::Material;
+use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
 use scion::core::components::maths::coordinates::Coordinates;
 use scion::core::components::maths::Pivot;
 use scion::core::components::maths::transform::TransformBuilder;
 use scion::core::components::shapes::line::Line;
+use scion::core::components::shapes::polygon::Polygon;
 use scion::core::components::shapes::rectangle::Rectangle;
 use scion::core::components::tiles::sprite::Sprite;
 use scion::core::components::tiles::tileset::Tileset;
@@ -23,7 +25,8 @@ pub struct ShowCaseScene{
     pub triangle_entity: Option<Entity>,
     pub sprite_entity: Option<Entity>,
     pub rect_entity: Option<Entity>,
-    pub line_entity: Option<Entity>
+    pub line_entity: Option<Entity>,
+    pub polygon_entity: Option<Entity>
 }
 
 impl Scene for ShowCaseScene{
@@ -33,7 +36,8 @@ impl Scene for ShowCaseScene{
         self.triangle_entity = Some(create_triangle(data));
         self.sprite_entity = Some(create_sprite(data));
         self.rect_entity = Some(create_rect(data));
-        self.rect_entity = Some(create_line(data));
+        self.line_entity = Some(create_line(data));
+        self.polygon_entity = Some(create_polygon(data));
     }
 }
 
@@ -69,6 +73,7 @@ fn create_sprite(data: &mut GameData) -> Entity {
         TransformBuilder::new().with_xy(250., 50.).with_scale(1.5).build(),
         tileset_ref,
         Sprite::new(0).pivot(Pivot::Center),
+        Collider::new(ColliderMask::None, vec![], ColliderType::Rectangle(75,75)),
         Animations::single("infinite-rotate",
                            Animation::looping(Duration::from_millis(2000),
                                               vec![AnimationModifier::transform(50, None, None, Some(3.))]))
@@ -79,7 +84,8 @@ fn create_rect(data: &mut GameData) -> Entity {
     data.push((
         TransformBuilder::new().with_xy(400., 50.).with_scale(1.5).build(),
         Rectangle::new(50.,100., None).pivot(Pivot::Center),
-        Material::Color(Color::new_rgb(0,0,200)),
+        Material::Color(Color::new(0,0,200,0.3)),
+        Collider::new(ColliderMask::None, vec![], ColliderType::Rectangle(75,150)),
         Animations::single("infinite-rotate",
                            Animation::looping(Duration::from_millis(2000),
                                               vec![AnimationModifier::transform(50, None, None, Some(3.))]))
@@ -90,6 +96,19 @@ fn create_line(data: &mut GameData) -> Entity {
     data.push((
         TransformBuilder::new().with_xy(550., 50.).with_scale(1.5).build(),
         Line::new([Coordinates::new(0.,0.), Coordinates::new(100., 0.)]).pivot(Pivot::Center),
+        Material::Color(Color::new_rgb(0,200,200)),
+        Animations::single("infinite-rotate",
+                           Animation::looping(Duration::from_millis(2000),
+                                              vec![AnimationModifier::transform(50, None, None, Some(3.))]))
+    ))
+}
+
+fn create_polygon(data: &mut GameData) -> Entity {
+    data.push((
+        TransformBuilder::new().with_xy(750., 50.).with_scale(1.5).build(),
+        Polygon::new(vec![Coordinates::new(0., 0.), Coordinates::new(70., 0.), Coordinates::new(70., 25.), Coordinates::new(45., 45.), Coordinates::new(45., 180.), Coordinates::new(95., 188.),
+                          Coordinates::new(95., 200.), Coordinates::new(-25., 200.), Coordinates::new(-25., 188.), Coordinates::new(25., 180.), Coordinates::new(25., 45.), Coordinates::new(0., 25.)])
+            .pivot(Pivot::Center),
         Material::Color(Color::new_rgb(0,200,200)),
         Animations::single("infinite-rotate",
                            Animation::looping(Duration::from_millis(2000),

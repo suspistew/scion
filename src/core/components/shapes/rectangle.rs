@@ -108,6 +108,9 @@ impl Rectangle {
     pub fn width(&self) -> f32 {
         self.width
     }
+    pub fn get_pivot(&self) -> Pivot {
+        self.pivot.clone()
+    }
 }
 
 fn default_uvs() -> [Coordinates; 4] {

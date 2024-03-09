@@ -57,6 +57,9 @@ impl Triangle {
             ),
         }
     }
+    pub fn get_pivot(&self) -> Pivot {
+        self.pivot.clone()
+    }
 }
 
 impl Renderable2D for Triangle {

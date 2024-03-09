@@ -16,7 +16,8 @@ pub struct Transform {
     pub(crate) local_translation: Coordinates,
     pub(crate) global_translation: Coordinates,
     pub(crate) scale: f32,
-    pub(crate) angle: f32,
+    pub(crate) local_angle: f32,
+    pub(crate) global_angle: f32,
     pub(crate) dirty: bool,
     pub(crate) dirty_child: bool,
     pub(crate) use_screen_as_origin: bool,
@@ -29,7 +30,8 @@ impl Default for Transform {
             local_translation: Default::default(),
             global_translation: Default::default(),
             scale: 1.0,
-            angle: 0.0,
+            local_angle: 0.0,
+            global_angle: 0.0,
             dirty: false,
             dirty_child: true,
             use_screen_as_origin: false,
@@ -45,7 +47,8 @@ impl Transform {
             local_translation: translation,
             global_translation: translation,
             scale,
-            angle,
+            local_angle: angle,
+            global_angle: angle,
             dirty: false,
             dirty_child: true,
             use_screen_as_origin: false,
@@ -104,7 +107,9 @@ impl Transform {
 
     /// Append an angle to this transform's angle
     pub fn append_angle(&mut self, angle: f32) {
-        self.angle += angle;
+        self.local_angle += angle;
+        self.global_angle += angle;
+        self.dirty = true;
     }
 
     /// Get the transform's coordinates
@@ -189,6 +194,10 @@ impl Transform {
         self.handle_bounds();
     }
 
+    pub(crate) fn compute_global_angle_from_parent(&mut self, parent_angle: f32){
+        self.global_angle = self.local_angle + parent_angle;
+    }
+
     fn handle_bounds(&mut self) {
         if let Some(min_x) = self.bounds.min_x {
             if self.global_translation.x < min_x {
@@ -249,7 +258,7 @@ impl TransformBuilder {
     }
 
     pub fn with_angle(mut self, angle: f32) -> Self {
-        self.transform.angle = angle;
+        self.transform.local_angle = angle;
         self
     }
 
