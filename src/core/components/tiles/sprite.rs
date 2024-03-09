@@ -24,18 +24,18 @@ pub struct Sprite {
     /// Flag to keep track of changed tile number
     dirty: bool,
     /// Pivot point of the sprite, default topleft
-    pivot: Pivot
+    pivot: Pivot,
 }
 
 impl Sprite {
     /// Creates a new sprite that will use the `tile_number` from the tileset associated in the same
     /// entity
     pub fn new(tile_number: usize) -> Self {
-        Self { tile_number, contents: None, dirty: false, pivot: Pivot::TopLeft}
+        Self { tile_number, contents: None, dirty: false, pivot: Pivot::TopLeft }
     }
 
     pub fn pivot(self, pivot: Pivot) -> Self {
-        Self { tile_number: self.tile_number, contents: None, dirty: false, pivot}
+        Self { tile_number: self.tile_number, contents: None, dirty: false, pivot }
     }
 
     /// Modify the current sprite tile number
@@ -51,7 +51,7 @@ impl Sprite {
     fn compute_pivot_offset(pivot: &Pivot, length: usize) -> Vector {
         match pivot {
             Pivot::TopLeft => Vector::new(0., 0.),
-            Pivot::Center => Vector::new(length as f32 / 2., length as f32/ 2.),
+            Pivot::Center => Vector::new(length as f32 / 2., length as f32 / 2.),
         }
     }
 
@@ -136,9 +136,10 @@ impl Renderable2D for Sprite {
     }
 
     fn get_pivot_offset(&self, material: Option<&Material>) -> Vector {
-        if let Material::Tileset(tileset) = material.unwrap() {
+        if (material.is_none()) {
+            Vector::default()
+        } else if let Material::Tileset(tileset) = material.unwrap() {
             Self::compute_pivot_offset(&self.pivot, tileset.tile_size)
-        }else { Vector::default() }
-
+        } else { Vector::default() }
     }
 }
