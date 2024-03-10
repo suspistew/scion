@@ -96,9 +96,6 @@ impl Sprite {
     pub(crate) fn set_content(&mut self, content: [TexturedGlVertex; 4]) {
         self.contents = Some(content);
     }
-    pub fn get_pivot(&self) -> Pivot {
-        self.pivot.clone()
-    }
 }
 
 impl Renderable2D for Sprite {
@@ -144,5 +141,8 @@ impl Renderable2D for Sprite {
         } else if let Material::Tileset(tileset) = material.unwrap() {
             Self::compute_pivot_offset(&self.pivot, tileset.tile_size)
         } else { Vector::default() }
+    }
+    fn get_pivot(&self) -> Pivot {
+        self.pivot.clone()
     }
 }

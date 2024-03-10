@@ -55,10 +55,7 @@ impl Line {
                 &Coordinates::new(0., 0.),
             )),
         ];
-        Self { vertices, contents , pivot}
-    }
-    pub fn get_pivot(&self) -> Pivot {
-        self.pivot.clone()
+        Self { vertices, contents, pivot }
     }
 }
 
@@ -95,5 +92,8 @@ impl Renderable2D for Line {
 
     fn get_pivot_offset(&self, _material: Option<&Material>) -> Vector {
         Self::compute_pivot_offset(&self.pivot, &self.vertices)
+    }
+    fn get_pivot(&self) -> Pivot {
+        self.pivot.clone()
     }
 }

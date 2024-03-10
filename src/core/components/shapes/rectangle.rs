@@ -108,9 +108,6 @@ impl Rectangle {
     pub fn width(&self) -> f32 {
         self.width
     }
-    pub fn get_pivot(&self) -> Pivot {
-        self.pivot.clone()
-    }
 }
 
 fn default_uvs() -> [Coordinates; 4] {
@@ -157,5 +154,8 @@ impl Renderable2D for Rectangle {
 
     fn get_pivot_offset(&self, _material: Option<&Material>) -> Vector {
         Self::compute_pivot_offset(&self.pivot, self.width, self.height)
+    }
+    fn get_pivot(&self) -> Pivot {
+        self.pivot.clone()
     }
 }

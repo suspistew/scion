@@ -1,7 +1,10 @@
-use crate::core::components::maths::{coordinates::Coordinates, transform::Transform};
-use crate::utils::maths::Vector;
+use geo_clipper::Clipper;
+use geo_types::{Coord, LineString};
+use crate::core::components::maths::{coordinates::Coordinates, Pivot, transform::Transform};
+use crate::utils::maths::{centroid_polygon, rotate_point_around_pivot, Vector};
 use hecs::Entity;
 use log::info;
+use crate::core::components::shapes::polygon::Polygon;
 
 struct RectangleColliderInfo<'a> {
     width: &'a usize,
@@ -48,6 +51,8 @@ pub struct Collider {
     collisions: Vec<Collision>,
     offset: Vector,
     debug_lines: bool,
+    local_pivot: Option<Pivot>,
+    parent_pivot: Option<Pivot>,
 }
 
 impl Collider {
@@ -65,11 +70,18 @@ impl Collider {
             collisions: vec![],
             offset: Vector::default(),
             debug_lines: false,
+            local_pivot: None,
+            parent_pivot: None,
         }
     }
 
     pub fn with_debug_lines(mut self) -> Self {
         self.debug_lines = true;
+        self
+    }
+
+    pub fn with_custom_pivot(mut self, pivot: Pivot) -> Self {
+        self.local_pivot = Some(pivot);
         self
     }
 
@@ -120,6 +132,60 @@ impl Collider {
     pub(crate) fn clear_collisions(&mut self) {
         self.collisions.clear();
     }
+    pub(crate) fn set_parent_pivot(&mut self, parent_pivot: Pivot) {
+        self.parent_pivot = Some(parent_pivot);
+    }
+
+    pub(crate) fn get_pivot(&self) -> Pivot {
+        if self.local_pivot.is_some() {
+            self.local_pivot.unwrap().clone()
+        } else if self.parent_pivot.is_some() {
+            self.parent_pivot.unwrap()
+        } else {
+            Pivot::TopLeft
+        }
+    }
+
+    pub(crate) fn collider_polygon(&self, transform: &Transform) -> geo_types::Polygon::<f32> {
+        let base_x = transform.global_translation.x + self.offset.x;
+        let base_y = transform.global_translation.y + self.offset.y;
+        let vec = self.collider_coordinates(base_x, base_y);
+        let pivot_point = match self.get_pivot() {
+            Pivot::TopLeft => { Coordinates::new(base_x, base_y) }
+            Pivot::Center => { centroid_polygon(&vec) }
+        };
+
+        let coords: Vec<Coord<f32>> = vec.iter().map(|c| rotate_point_around_pivot(c, &pivot_point, transform.global_angle))
+            .map(|c| {
+                Coord { x: c.x, y: c.y }
+            })
+            .collect();
+
+
+        geo_types::Polygon::<f32>::new(LineString::<f32>(coords), vec![])
+    }
+
+    pub(crate) fn collider_coordinates(&self, base_x: f32, base_y: f32) -> Vec<Coordinates> {
+        match self.collider_type() {
+            ColliderType::Square(size) => {
+                vec![
+                    Coordinates::new(base_x + 0., base_y + 0.),
+                    Coordinates::new(base_x + *size as f32, base_y + 0.),
+                    Coordinates::new(base_x + *size as f32, base_y + *size as f32),
+                    Coordinates::new(base_x + 0., base_y + *size as f32),
+                ]
+            }
+            ColliderType::Rectangle(width, height) => {
+                vec![
+                    Coordinates::new(base_x + 0., base_y + 0.),
+                    Coordinates::new(base_x + *width as f32, base_y + 0.),
+                    Coordinates::new(base_x + *width as f32, base_y + *height as f32),
+                    Coordinates::new(base_x + 0., base_y + *height as f32),
+                ]
+            }
+        }
+    }
+
 
     pub(crate) fn can_collide_with(&self, other: &Collider) -> bool {
         self.collision_filter.is_empty() || self.collision_filter.contains(&other.collider_mask)
@@ -134,99 +200,24 @@ impl Collider {
         if !self.can_collide_with(target_collider) {
             return None;
         }
-        match (&self.collider_type, &target_collider.collider_type) {
-            (ColliderType::Square(self_size), ColliderType::Square(target_size)) => {
-                rectangle_collider_vs_rectangle_collider(
-                    RectangleColliderInfo::of(
-                        self_size,
-                        self_size,
-                        self_transform,
-                        &self.offset,
-                    ),
-                    RectangleColliderInfo::of(
-                        target_size,
-                        target_size,
-                        target_transform,
-                        &target_collider.offset,
-                    ),
-                )
-            }
-            (
-                ColliderType::Rectangle(self_width, self_height),
-                ColliderType::Rectangle(target_width, target_height),
-            ) => rectangle_collider_vs_rectangle_collider(
-                RectangleColliderInfo::of(
-                    self_width,
-                    self_height,
-                    self_transform,
-                    &self.offset,
-                ),
-                RectangleColliderInfo::of(
-                    target_width,
-                    target_height,
-                    target_transform,
-                    &target_collider.offset,
-                ),
-            ),
-            (
-                ColliderType::Square(self_size),
-                ColliderType::Rectangle(target_width, target_height),
-            ) => rectangle_collider_vs_rectangle_collider(
-                RectangleColliderInfo::of(self_size, self_size, self_transform, &self.offset),
-                RectangleColliderInfo::of(
-                    target_width,
-                    target_height,
-                    target_transform,
-                    &target_collider.offset,
-                ),
-            ),
-            (
-                ColliderType::Rectangle(self_width, self_height),
-                ColliderType::Square(target_size),
-            ) => rectangle_collider_vs_rectangle_collider(
-                RectangleColliderInfo::of(
-                    self_width,
-                    self_height,
-                    self_transform,
-                    &self.offset,
-                ),
-                RectangleColliderInfo::of(
-                    target_size,
-                    target_size,
-                    target_transform,
-                    &target_collider.offset,
-                ),
-            ),
+
+        let self_polygon = self.collider_polygon(self_transform);
+        let target_polygon = target_collider.collider_polygon(target_transform);
+        let result = self_polygon.intersection(&target_polygon, 1.0);
+
+        if result.0.len() > 0 {
+            let collision = result.0.get(0).unwrap();
+            let coordinates: Vec<Coordinates> = collision.exterior().0.iter().map(|c| Coordinates::new(c.x, c.y)).collect();
+            Some(CollisionArea{
+                coordinates
+            })
+        } else {
+            None
         }
     }
 
     pub(crate) fn add_collisions(&mut self, collisions: &mut Vec<Collision>) {
         self.collisions.append(collisions);
-    }
-}
-
-fn rectangle_collider_vs_rectangle_collider(
-    self_collider: RectangleColliderInfo,
-    target_collider: RectangleColliderInfo,
-) -> Option<CollisionArea> {
-    let (x1, y1) = (self_collider.transform.global_translation.x + self_collider.offset.x,
-                    self_collider.transform.global_translation.y + self_collider.offset.y + (*self_collider.height as f32));
-    let (x2, y2) = (self_collider.transform.global_translation.x + self_collider.offset.x + (*self_collider.width as f32),
-                    self_collider.transform.global_translation.y + self_collider.offset.y);
-    let (x3, y3) = (target_collider.transform.global_translation.x + target_collider.offset.x,
-                    target_collider.transform.global_translation.y + target_collider.offset.y + (*target_collider.height as f32));
-    let (x4, y4) = (target_collider.transform.global_translation.x + target_collider.offset.x + (*target_collider.width as f32),
-                    target_collider.transform.global_translation.y + target_collider.offset.y);
-
-    let x5 = x1.max(x3);
-    let x6 = x2.min(x4);
-    let y5 = y1.min(y3);
-    let y6 = y2.max(y4);
-
-    if x5 > x6 || y6 > y5 {
-        None
-    } else {
-        Some(CollisionArea { start_point: Coordinates::new(x5, y6), end_point: Coordinates::new(x6, y5) })
     }
 }
 
@@ -256,18 +247,30 @@ impl Collision {
 
 #[derive(Clone, Debug)]
 pub struct CollisionArea {
-    pub(crate) start_point: Coordinates,
-    pub(crate) end_point: Coordinates,
+    pub(crate) coordinates: Vec<Coordinates>,
 }
 
-impl CollisionArea{
-    pub fn start_point(&self) -> &Coordinates{
-        &self.start_point
+impl CollisionArea {
+    pub fn polygon(&self) -> &Vec<Coordinates> {
+        &self.coordinates
     }
 
-    pub fn end_point(&self) -> &Coordinates{
-        &self.end_point
+    pub fn max_x(&self) -> f32 {
+        self.coordinates.iter().map(|c|c.x).reduce(f32::max).unwrap()
     }
+
+    pub fn min_x(&self) -> f32 {
+        self.coordinates.iter().map(|c|c.x).reduce(f32::min).unwrap()
+    }
+
+    pub fn max_y(&self) -> f32 {
+        self.coordinates.iter().map(|c|c.y).reduce(f32::max).unwrap()
+    }
+
+    pub fn min_y(&self) -> f32 {
+        self.coordinates.iter().map(|c|c.y).reduce(f32::min).unwrap()
+    }
+
 }
 
 /// Internal component used to keep track of a collider debug display

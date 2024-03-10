@@ -57,9 +57,6 @@ impl Square {
             Pivot::Center => Vector::new(length / 2., length / 2.),
         }
     }
-    pub fn get_pivot(&self) -> Pivot {
-        self.pivot.clone()
-    }
 }
 
 fn default_uvs() -> [Coordinates; 4] {
@@ -104,5 +101,8 @@ impl Renderable2D for Square {
 
     fn get_pivot_offset(&self, _m: Option<&Material>) -> Vector {
         Self::compute_pivot_offset(&self.pivot, self.length)
+    }
+    fn get_pivot(&self) -> Pivot {
+        self.pivot.clone()
     }
 }

@@ -1,3 +1,4 @@
+use log::info;
 use crate::{core::components::maths::coordinates::Coordinates, utils::maths::Vector};
 
 /// represents the bounds for a Transoform with min and max values
@@ -109,6 +110,12 @@ impl Transform {
     pub fn append_angle(&mut self, angle: f32) {
         self.local_angle += angle;
         self.global_angle += angle;
+        self.dirty = true;
+    }
+
+    pub fn set_angle(&mut self, angle: f32) {
+        self.local_angle = angle;
+        self.global_angle = angle;
         self.dirty = true;
     }
 
@@ -259,6 +266,7 @@ impl TransformBuilder {
 
     pub fn with_angle(mut self, angle: f32) -> Self {
         self.transform.local_angle = angle;
+        self.transform.global_angle = angle;
         self
     }
 
