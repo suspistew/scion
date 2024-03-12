@@ -1,10 +1,13 @@
-mod scene;
+use geo_clipper::Clipper;
 
 use scion::config::scion_config::{ScionConfig, ScionConfigBuilder};
 use scion::config::window_config::WindowConfigBuilder;
 use scion::core::components::color::Color;
 use scion::Scion;
+
 use crate::scene::ShowCaseScene;
+
+mod scene;
 
 fn main() {
     Scion::app_with_config(create_config())

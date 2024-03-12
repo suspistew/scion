@@ -11,6 +11,7 @@ use scion::core::components::material::Material;
 use scion::core::components::maths::camera::Camera;
 use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
 use scion::core::components::maths::hierarchy::Parent;
+use scion::core::components::maths::Pivot;
 use scion::core::components::maths::transform::{Transform, TransformBuilder};
 use scion::core::components::tiles::sprite::Sprite;
 use scion::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
@@ -139,7 +140,7 @@ impl Scene for MainScene {
         }
         self.direction = direction;
         if !self.jumping && !collisions.contains(&Direction::BOTTOM){
-            self.vertical_force = self.vertical_force - 2.0;
+            self.vertical_force = self.vertical_force - 1.0;
         } else if !self.jumping && collisions.contains(&Direction::BOTTOM){
             self.vertical_force = 0.0;
         }
@@ -160,19 +161,22 @@ impl MainScene{
         let mut res = Vec::new();
         let mut y_bottom = None;
         current_collisions.iter().for_each(|col| {
-            if col.coordinates().y() >= (current_pos.y() + 8.){
-                y_bottom = Some(col.coordinates().y());
+            if col.area().min_y() >= (current_pos.y() + 12.){
+                y_bottom = Some(col.area().min_y());
                 res.push(Direction::BOTTOM);
-            }else if col.area().start_point().x() == current_pos.x() + 8. && col.area().start_point().y() < (current_pos.y() + 8. + 47.){
-                res.push(Direction::LEFT);
-            } else if col.area().end_point().x() == (current_pos.x() + 8. + 39.) && col.area().start_point().y() < (current_pos.y() + 8. + 47.){
-                res.push(Direction::RIGHT);
+            }else{
+                if col.area().max_x() >= current_pos.x() + 8.
+                    && col.area().max_x() < current_pos.x() + 32.
+                    && col.area().min_y() <= (current_pos.y() + 8. + 47.){
+                    res.push(Direction::LEFT);
+                } else if col.area().min_x() <= (current_pos.x() + 47.) && col.area().min_y() <= (current_pos.y() + 8. + 47.){
+                    res.push(Direction::RIGHT);
+                }
             }
-
         });
 
         if y_bottom.is_some(){
-            data.entry_mut::<&mut Transform>(char_entity).expect("").set_y(y_bottom.unwrap() - 8. - 47.);
+            data.entry_mut::<&mut Transform>(char_entity).expect("").set_y(y_bottom.unwrap() - 9. - 45.);
             self.vertical_force = 0.;
         }
         res

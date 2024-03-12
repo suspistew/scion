@@ -1,4 +1,9 @@
 use crate::core::components::material::Material;
+use crate::core::components::shapes::rectangle::Rectangle;
+use crate::core::components::{Square, Triangle};
+use crate::core::components::shapes::line::Line;
+use crate::core::components::shapes::polygon::Polygon;
+use crate::core::components::tiles::sprite::Sprite;
 use crate::core::components::ui::ui_button::UiButton;
 use crate::core::components::ui::ui_image::UiImage;
 use crate::core::components::ui::ui_input::UiInput;
@@ -23,7 +28,7 @@ use crate::core::state::GameState;
 use crate::core::systems::animations_system::animation_executer_system;
 use crate::core::systems::asset_ref_resolver_system::asset_ref_resolver_system;
 use crate::core::systems::asset_ref_resolver_system::MaterialAssetResolverFn;
-use crate::core::systems::collider_systems::{collider_cleaner_system, compute_collisions_system, debug_colliders_system};
+use crate::core::systems::collider_systems::{collider_cleaner_system, collider_pivot_propagation_system, compute_collisions_system, debug_colliders_system};
 use crate::core::systems::default_camera_system::camera_dpi_system;
 use crate::core::systems::default_camera_system::default_camera_system;
 use crate::core::systems::focus_systems::focus_switcher_system;
@@ -91,6 +96,12 @@ impl Package for InternalPackage {
             .with_system(children_manager_system)
             .with_system(hide_propagated_deletion_system)
             .with_system(hide_propagation_system)
+            .with_system(collider_pivot_propagation_system::<Sprite>)
+            .with_system(collider_pivot_propagation_system::<Rectangle>)
+            .with_system(collider_pivot_propagation_system::<Square>)
+            .with_system(collider_pivot_propagation_system::<Triangle>)
+            .with_system(collider_pivot_propagation_system::<Polygon>)
+            .with_system(collider_pivot_propagation_system::<Line>)
             .with_system(missing_ui_component_system::<UiImage>)
             .with_system(missing_ui_component_system::<UiTextImage>)
             .with_system(missing_ui_component_system::<UiText>)

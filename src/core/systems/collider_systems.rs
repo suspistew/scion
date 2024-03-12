@@ -1,5 +1,5 @@
 use std::collections::{HashMap, HashSet};
-use hecs::Entity;
+use hecs::{Component, Entity};
 use log::info;
 
 use crate::core::components::{color::Color, material::Material, maths::{
@@ -12,6 +12,7 @@ use crate::core::components::maths::Pivot;
 use crate::core::components::shapes::line::Line;
 use crate::core::components::shapes::rectangle::Rectangle;
 use crate::core::components::tiles::sprite::Sprite;
+use crate::core::components::ui::UiComponent;
 use crate::core::resources::global_storage::GlobalStorage;
 use crate::core::resources::inputs::types::{Input, KeyCode, Shortcut};
 use crate::core::world::{GameData, World};
@@ -86,8 +87,8 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
     let mut collider_debug = fetch_collider_debug_entities(data);
     let mut debug_lines_to_add = Vec::new();
     let mut debug_lines_to_remove = Vec::new();
-    for (entity, (_, collider, square, rectangle, triangle, polygon, sprite, line))
-    in data.query_mut::<(&Transform, &mut Collider, Option<&Square>, Option<&Rectangle>, Option<&Triangle>, Option<&Polygon>, Option<&Sprite>, Option<&Line>)>() {
+    for (entity, (_, collider))
+    in data.query_mut::<(&Transform, &mut Collider)>() {
         if (collider.debug_lines() || global_debug_activated) && !collider_debug.0.contains(&entity) {
             let (width, height) = match collider.collider_type() {
                 ColliderType::Square(size) => (*size as f32, *size as f32),
@@ -102,13 +103,12 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
                 ColliderMask::Custom(_) => Color::new_rgb(0, 0, 255)
             };
             let offset = collider.offset();
-            let pivot = get_pivot(square, rectangle, triangle, polygon, sprite, line);
             let mut polygon_collider = Polygon::new(vec![
                 Coordinates::new(0., 0.),
                 Coordinates::new(width, 0.),
                 Coordinates::new(width, height),
                 Coordinates::new(0., height)
-            ]).pivot(pivot);
+            ]).pivot(collider.get_pivot());
             debug_lines_to_add.push((
                 Parent(entity),
                 ColliderDebug,
@@ -129,19 +129,11 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
     });
 }
 
-fn get_pivot(square: Option<&Square>,
-             rectangle: Option<&Rectangle>,
-             triangle: Option<&Triangle>,
-             polygon: Option<&Polygon>,
-             sprite: Option<&Sprite>,
-             line: Option<&Line>) -> Pivot {
-    if sprite.is_some() { sprite.unwrap().get_pivot() }
-    else if square.is_some() { square.unwrap().get_pivot() }
-    else if rectangle.is_some() { rectangle.unwrap().get_pivot() }
-    else if polygon.is_some() { polygon.unwrap().get_pivot() }
-    else if triangle.is_some() { triangle.unwrap().get_pivot() }
-    else if line.is_some() { line.unwrap().get_pivot() }
-    else { Pivot::TopLeft }
+/// System responsible to add the UiComponent to any T missing its uiComponent
+pub(crate) fn collider_pivot_propagation_system<T: Component + Renderable2D>(data: &mut GameData) {
+    for (_, (renderable, collider)) in data.query_mut::<(&T, &mut Collider)>(){
+        collider.set_parent_pivot(renderable.get_pivot());
+    }
 }
 
 fn handle_global_debug_colliders(game_data: &mut GameData) -> bool {
@@ -196,7 +188,7 @@ mod tests {
             mask: ColliderMask::Character,
             entity: e,
             coordinates: Default::default(),
-            collision_area: CollisionArea { start_point: Default::default(), end_point: Default::default() },
+            collision_area: CollisionArea { coordinates: vec![]},
         }]);
         assert_eq!(1, entry.collisions().len());
 

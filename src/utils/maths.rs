@@ -1,3 +1,4 @@
+use std::f32::consts::PI;
 use serde::{Deserialize, Serialize};
 use crate::core::components::maths::coordinates::Coordinates;
 
@@ -109,10 +110,22 @@ pub fn centroid_points(vertices: &Vec<Coordinates>) -> Coordinates {
     Coordinates::new(sum.x / vertices.len() as f32, sum.y / vertices.len() as f32)
 }
 
+pub fn rotate_point_around_pivot(point: &Coordinates, pivot: &Coordinates, angle: f32) -> Coordinates{
+    if angle != 0.{
+        let angle_rad = angle;
+        let x2 = pivot.x + (point.x - pivot.x) * angle_rad.cos() - (point.y - pivot.y) * angle_rad.sin();
+        let y2 = pivot.y + (point.x - pivot.x) * angle_rad.sin() + (point.y - pivot.y) * angle_rad.cos();
+        Coordinates::new(x2, y2)
+    }else{
+        Coordinates::new(point.x, point.y)
+    }
+
+}
+
 #[cfg(test)]
 mod test {
     use crate::core::components::maths::coordinates::Coordinates;
-    use crate::utils::maths::{centroid_points, centroid_polygon};
+    use crate::utils::maths::{centroid_points, centroid_polygon, rotate_point_around_pivot};
 
     #[test]
     fn test_centroid() {
@@ -124,5 +137,13 @@ mod test {
     fn test_centroid2() {
         let vertices = vec![Coordinates::new(1., 1.), Coordinates::new(2., 4.), Coordinates::new(5., 4.), Coordinates::new(11., 1.)];
         println!("Centre par points : {:?}", centroid_points(&vertices));
+    }
+
+    #[test]
+    fn test_pivot() {
+        let angle :f32 = 45.;
+        let angle = angle.to_radians();
+        let r = rotate_point_around_pivot(&Coordinates::new(128.,681.), &Coordinates::new(96., 681.), angle );
+        println!("{:?}", r);
     }
 }

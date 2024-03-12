@@ -57,9 +57,6 @@ impl Triangle {
             ),
         }
     }
-    pub fn get_pivot(&self) -> Pivot {
-        self.pivot.clone()
-    }
 }
 
 impl Renderable2D for Triangle {
@@ -95,5 +92,8 @@ impl Renderable2D for Triangle {
 
     fn get_pivot_offset(&self, _material: Option<&Material>) -> Vector {
         Self::compute_pivot_offset(&self.pivot, &self.vertices)
+    }
+    fn get_pivot(&self) -> Pivot {
+        self.pivot.clone()
     }
 }

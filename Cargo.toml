@@ -26,6 +26,8 @@ futures = "0.3"
 
 # maths
 ultraviolet = "0.9"
+geo-types = "0.7.13"
+geo-clipper = "0.8.0"
 
 # serialization
 serde = { version = "1.0.197", features = ["derive"] }
