@@ -18,6 +18,7 @@ use scion::core::components::tiles::tileset::Tileset;
 use scion::core::scene::Scene;
 use scion::core::world::{GameData, World};
 use scion::utils::file::app_base_path;
+use scion::utils::maths::Vector;
 
 #[derive(Default)]
 pub struct ShowCaseScene{
@@ -58,6 +59,11 @@ fn create_triangle(data: &mut GameData) -> Entity {
         Triangle::new([Coordinates::new(25., 0.), Coordinates::new(50., 50.), Coordinates::new(0., 50.)],
                       Some([Coordinates::new(0.5, 0.), Coordinates::new(1., 1.), Coordinates::new(0., 1.)])).pivot(Pivot::Center),
         Material::Color(Color::new_rgb(0,200,0)),
+        Collider::new(ColliderMask::None, vec![ColliderMask::Bullet], ColliderType::Polygon(
+            vec![Coordinates::new(-25., -45.),
+                 Coordinates::new(0., 0.),
+                 Coordinates::new(25., 0.), Coordinates::new(25., 0.), Coordinates::new(50., 50.), Coordinates::new(0., 50.)]
+        )).with_offset(Vector::new(25.,25.)),
         Animations::single("infinite-rotate",
                            Animation::looping(Duration::from_millis(2000),
                                               vec![AnimationModifier::transform(50, None, None, Some(3.))]))
@@ -73,7 +79,7 @@ fn create_sprite(data: &mut GameData) -> Entity {
         TransformBuilder::new().with_xy(250., 50.).with_scale(1.5).build(),
         tileset_ref,
         Sprite::new(0).pivot(Pivot::Center),
-        Collider::new(ColliderMask::None, vec![], ColliderType::Rectangle(75,75)),
+        Collider::new(ColliderMask::Bullet, vec![], ColliderType::Rectangle(75,75)),
         Animations::single("infinite-rotate",
                            Animation::looping(Duration::from_millis(2000),
                                               vec![AnimationModifier::transform(50, None, None, Some(3.))]))

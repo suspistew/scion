@@ -6,24 +6,6 @@ use hecs::Entity;
 use log::info;
 use crate::core::components::shapes::polygon::Polygon;
 
-struct RectangleColliderInfo<'a> {
-    width: &'a usize,
-    height: &'a usize,
-    transform: &'a Transform,
-    offset: &'a Vector,
-}
-
-impl<'a> RectangleColliderInfo<'a> {
-    fn of(
-        width: &'a usize,
-        height: &'a usize,
-        transform: &'a Transform,
-        offset: &'a Vector,
-    ) -> Self {
-        Self { width, height, transform, offset }
-    }
-}
-
 /// `ColliderMask` will serve as a 'mask' to allow filter while collisions happen
 #[derive(PartialEq, Clone, Eq, Hash, Debug)]
 pub enum ColliderMask {
@@ -32,6 +14,7 @@ pub enum ColliderMask {
     Bullet,
     Death,
     Landscape,
+    Item,
     Custom(String),
 }
 
@@ -40,6 +23,7 @@ pub enum ColliderMask {
 pub enum ColliderType {
     Square(usize),
     Rectangle(usize, usize),
+    Polygon(Vec<Coordinates>)
 }
 
 /// The main collider representation to add to an entity, using the new function
@@ -182,6 +166,9 @@ impl Collider {
                     Coordinates::new(base_x + *width as f32, base_y + *height as f32),
                     Coordinates::new(base_x + 0., base_y + *height as f32),
                 ]
+            }
+            ColliderType::Polygon(coordinates) => {
+                coordinates.iter().map(|c|  Coordinates::new(base_x + c.x, base_y + c.y)).collect()
             }
         }
     }

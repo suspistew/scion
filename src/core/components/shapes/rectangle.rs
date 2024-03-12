@@ -121,7 +121,7 @@ fn default_uvs() -> [Coordinates; 4] {
 
 impl Renderable2D for Rectangle {
     fn vertex_buffer_descriptor(&mut self, _material: Option<&Material>) -> BufferInitDescriptor {
-        wgpu::util::BufferInitDescriptor {
+        BufferInitDescriptor {
             label: Some("Rectangle Vertex Buffer"),
             contents: bytemuck::cast_slice(&self.contents),
             usage: wgpu::BufferUsages::VERTEX,
@@ -129,7 +129,7 @@ impl Renderable2D for Rectangle {
     }
 
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
-        wgpu::util::BufferInitDescriptor {
+        BufferInitDescriptor {
             label: Some("Rectangle Index Buffer"),
             contents: bytemuck::cast_slice(&INDICES),
             usage: wgpu::BufferUsages::INDEX,

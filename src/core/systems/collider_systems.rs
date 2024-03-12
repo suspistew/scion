@@ -8,7 +8,7 @@ use crate::core::components::{color::Color, material::Material, maths::{
     hierarchy::Parent,
     transform::Transform,
 }, shapes::polygon::Polygon, Square, Triangle};
-use crate::core::components::maths::Pivot;
+use crate::core::components::maths::{collider, Pivot};
 use crate::core::components::shapes::line::Line;
 use crate::core::components::shapes::rectangle::Rectangle;
 use crate::core::components::tiles::sprite::Sprite;
@@ -90,25 +90,18 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
     for (entity, (_, collider))
     in data.query_mut::<(&Transform, &mut Collider)>() {
         if (collider.debug_lines() || global_debug_activated) && !collider_debug.0.contains(&entity) {
-            let (width, height) = match collider.collider_type() {
-                ColliderType::Square(size) => (*size as f32, *size as f32),
-                ColliderType::Rectangle(width, height) => (*width as f32, *height as f32),
-            };
             let color = match collider.mask() {
                 ColliderMask::None => Color::new_rgb(255, 255, 255),
                 ColliderMask::Character => Color::new_rgb(255, 0, 0),
                 ColliderMask::Bullet => Color::new_rgb(255, 0, 0),
                 ColliderMask::Death => Color::new_rgb(255, 0, 0),
                 ColliderMask::Landscape => Color::new_rgb(0, 255, 0),
-                ColliderMask::Custom(_) => Color::new_rgb(0, 0, 255)
+                ColliderMask::Custom(_) => Color::new_rgb(0, 0, 255),
+                ColliderMask::Item => Color::new_rgb(0, 255, 255),
             };
             let offset = collider.offset();
-            let mut polygon_collider = Polygon::new(vec![
-                Coordinates::new(0., 0.),
-                Coordinates::new(width, 0.),
-                Coordinates::new(width, height),
-                Coordinates::new(0., height)
-            ]).pivot(collider.get_pivot());
+            let mut polygon_collider =
+                Polygon::new(collider.collider_coordinates(0.,0.)).pivot(collider.get_pivot());
             debug_lines_to_add.push((
                 Parent(entity),
                 ColliderDebug,
