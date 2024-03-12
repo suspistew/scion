@@ -303,7 +303,7 @@ mod tests {
         let bullet_transform = Transform::from_xy(4., 4.);
         let bullet_transform2 = Transform::from_xy(9., 9.);
         let ship_transform_in = Transform::from_xy(5., 5.);
-        let ship_transform_in2 = Transform::from_xy(9., 9.);
+        let ship_transform_in2 = Transform::from_xy(8.99999, 8.99999);
         let ship_transform_out = Transform::from_xy(50., 50.);
 
         assert_eq!(true, ship.collides_with(&ship_transform_in, &bullet, &bullet_transform).is_some());
