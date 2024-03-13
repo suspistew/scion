@@ -11,6 +11,7 @@ use crate::core::components::Square;
 use crate::utils::maths::Vector;
 
 /// Renderable 2D Polygon made of outlines.
+#[derive(Debug)]
 pub struct Polygon {
     pub vertices: Vec<Coordinates>,
     contents: Vec<TexturedGlVertex>,
@@ -37,7 +38,7 @@ impl Polygon {
             .collect();
         let last_vertex = vertices.get(0).map(|c| TexturedGlVertex::from((&Coordinates::new(c.x - offset.x, c.y - offset.y), &Coordinates::new(0., 0.)))).unwrap();
         contents.push(last_vertex);
-        let indices = (0..(vertices.len()+1) as u16).collect();
+        let indices = (0..contents.len() as u16).collect();
         Self { vertices, contents, indices, pivot, dirty: true }
     }
 
