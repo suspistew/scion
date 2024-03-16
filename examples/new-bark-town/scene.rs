@@ -212,7 +212,7 @@ impl MainScene {
     fn load_map(&mut self, level_name: String, data: &mut GameData) -> Entity {
         debug!("Starting to load new level named {}", level_name);
         let asset_ref = data.assets_mut().register_tileset(
-            Tileset::from_atlas("examples/new-bark-town/assets/nbt_atlas.json").unwrap(),
+            Tileset::from_atlas("examples/new-bark-town/assets/nbt_atlas.json", "examples/new-bark-town/assets/nbt.png").unwrap(),
         );
         let mut level = read_level(level_name.as_str());
         let mut scale = Transform::default();
@@ -290,10 +290,12 @@ fn add_character(
     start_y: usize,
     direction: &String,
 ) -> Entity {
-    let asset_ref = data.assets_mut().register_tileset(Tileset::new(
+    let asset_ref = data.assets_mut().register_tileset( Tileset::new(
+        "character".to_string(),
         "examples/new-bark-town/assets/character.png".to_string(),
         10,
         8,
+        16,
         16,
     ));
     let mut animations = Animations::new(animations::char_animations());

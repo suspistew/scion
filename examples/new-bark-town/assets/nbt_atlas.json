@@ -1,12 +1,34 @@
 {
-  "texture": "examples/new-bark-town/assets/nbt.png",
+  "total_tiles": 120,
   "width": 12,
   "height": 10,
-  "tile_size": 16,
-  "pathing": [
-    {
-      "pathing_type": "WALKABLE",
-      "tiles": [4, 58, 60, 61, 106, 80, 78, 73, 74, 85, 86, 39, 24, 25, 39, 102, 116,117, 46, 47, 59, 29]
-    }
-  ]
+  "tile_width": 16,
+  "tile_height": 16,
+  "name": "nbt",
+  "pathing": {
+    "WALKABLE": [
+      4,
+      58,
+      60,
+      61,
+      106,
+      80,
+      78,
+      73,
+      74,
+      85,
+      86,
+      39,
+      24,
+      25,
+      39,
+      102,
+      116,
+      117,
+      46,
+      47,
+      59,
+      29
+    ]
+  }
 }

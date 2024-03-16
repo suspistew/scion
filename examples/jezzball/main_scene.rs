@@ -96,7 +96,7 @@ impl Scene for MainScene {
         world.add_default_camera();
 
         let ball_asset =
-            resources.assets_mut().register_tileset(Tileset::new(ball_asset(), 4, 4, 28));
+            resources.assets_mut().register_tileset(Tileset::new("balls".to_string(), ball_asset(), 4, 4, 28, 28));
         let assets = JezzBallAssets { ball_asset };
 
         // Creating the level
@@ -458,7 +458,7 @@ fn compute_sides(pos: (usize, usize)) -> Vec<(usize, usize)> {
 }
 
 fn add_tilemap(data: &mut GameData) -> Entity {
-    let cases_asset = data.assets_mut().register_tileset(Tileset::new(cases_asset(), 3, 2, 16));
+    let cases_asset = data.assets_mut().register_tileset(Tileset::new("cases".to_string(), cases_asset(), 3, 2, 16, 16));
     let infos = TilemapInfo::new(
         Dimensions::new(68, 38, 1),
         Transform::from_xyz(10., 10., 10),

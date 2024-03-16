@@ -72,11 +72,11 @@ impl Sprite {
     pub(crate) fn compute_content(&self, material: Option<&Material>) -> [TexturedGlVertex; 4] {
         if (self.dirty || self.contents.is_none()) && material.is_some() {
             if let Material::Tileset(tileset) = material.unwrap() {
-                let offset = Self::compute_pivot_offset(&self.pivot, tileset.tile_size);
+                let offset = Self::compute_pivot_offset(&self.pivot, tileset.tile_width);
                 let a = Coordinates::new(0. - offset.x, 0. - offset.y);
-                let b = Coordinates::new(a.x, a.y + tileset.tile_size as f32);
-                let c = Coordinates::new(a.x + tileset.tile_size as f32, a.y + tileset.tile_size as f32);
-                let d = Coordinates::new(a.x + tileset.tile_size as f32, a.y);
+                let b = Coordinates::new(a.x, a.y + tileset.tile_width as f32);
+                let c = Coordinates::new(a.x + tileset.tile_width as f32, a.y + tileset.tile_width as f32);
+                let d = Coordinates::new(a.x + tileset.tile_width as f32, a.y);
                 let uvs_ref = self.uv_refs(&tileset);
                 return [
                     TexturedGlVertex::from((&a, &uvs_ref[0])),
@@ -139,7 +139,7 @@ impl Renderable2D for Sprite {
         if (material.is_none()) {
             Vector::default()
         } else if let Material::Tileset(tileset) = material.unwrap() {
-            Self::compute_pivot_offset(&self.pivot, tileset.tile_size)
+            Self::compute_pivot_offset(&self.pivot, tileset.tile_width)
         } else { Vector::default() }
     }
     fn get_pivot(&self) -> Pivot {

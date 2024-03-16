@@ -34,9 +34,11 @@ impl Scene for MainScene {
         let _r = data.timers().add_timer("action_reset_timer", TimerType::Manual, 0.2);
         let mut tetris = TetrisResource::default();
         tetris.asset = Some(data.assets_mut().register_tileset(Tileset::new(
+            "tetris_asset".to_string(),
             asset_path().join("blocs.png").get(),
             8,
             1,
+            32,
             32,
         )));
         data.insert_resource(tetris);

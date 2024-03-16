@@ -126,7 +126,7 @@ function buildSingleLayer(layer, tilesets) {
 
     return {
         name: layer.name,
-        tiles: Base64.encode(JSON.stringify(layerTiles)),
+        tiles_encoded: Base64.encode(JSON.stringify(layerTiles)),
         properties: layer.properties(),
     };
 }
@@ -149,7 +149,7 @@ function buildMapTilesets(map) {
         let current_tileset = map.tilesets[i];
         tilesets[i] = {
             index: i,
-            totalTiles: current_tileset.tileCount,
+            total_tiles: current_tileset.tileCount,
             name: current_tileset.name
         };
     }
@@ -198,9 +198,14 @@ function mapClass(object) {
     const remainingLetters = objectType.slice(1).toLowerCase();
     objectType = firstLetterCap + remainingLetters;
     if (OBJECT_TYPES.indexOf(objectType) !== -1) {
-        return objectType;
+        return {
+            tag: objectType
+        };
     }
-    return "Custom(" + objectType + ")";
+    return {
+        tag: "Custom",
+        content:objectType
+    };
 }
 
 function computeObject(o) {
@@ -215,9 +220,7 @@ function computeObject(o) {
             }
             break;
         case 'Polygon':
-            polygon = {
-                coordinates: o.polygon && o.polygon.length > 0 ? o.polygon : null
-            }
+            polygon = o.polygon;
             break;
     }
 
@@ -230,7 +233,7 @@ function computeObject(o) {
     return {
         name: o.name,
         class: mapClass(o),
-        shapeType: shapeType,
+        shape_type: shapeType,
         position: {
             x: o.x,
             y: o.y
@@ -247,9 +250,13 @@ function computeObject(o) {
 
 function buildScionTileset(tileset) {
     return {
-        type: 'Tilemap',
-        totalTiles: tileset.tileCount,
+        type: 'Tileset',
         name: tileset.name,
+        total_tiles: tileset.tileCount,
+        width: tileset.columnCount,
+        height: tileset.imageHeight / tileset.tileHeight,
+        tile_width: tileset.tileWidth,
+        tile_height: tileset.tileHeight,
         properties: tileset.properties(),
         tiles: buildTiles(tileset)
     }
@@ -279,9 +286,19 @@ function buildTiles(tileset) {
         }
 
         if (i > 0 || tileset.tiles[currentTile].objectGroup || tileset.tiles[currentTile].objectGroup || tileset.tiles[currentTile].frames.length > 0) {
+            let animation = tileset.tiles[currentTile].frames;
+            let animationFinal = [];
+            if(animation.length > 0){
+                for(frame in animation){
+                    animationFinal.push({
+                        duration: animation[frame].duration,
+                        tile_id: animation[frame].tileId
+                    });
+                }
+            }
             tiles[currentTile] = {
                 properties: i > 0 ? props : null,
-                animation: tileset.tiles[currentTile].frames.length > 0 ? tileset.tiles[currentTile].frames : null,
+                animation: animationFinal.length > 0 ? animationFinal : null,
                 objects: objects
             }
         }

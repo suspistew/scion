@@ -7,6 +7,7 @@ use std::{
     time::SystemTime,
 };
 
+#[derive(Debug)]
 pub struct FileReaderError {
     _msg: String,
 }
@@ -48,6 +49,22 @@ pub fn app_base_path() -> PathBuilder {
         Err(e) => {
             log::error!("Error while creating the app base_path {:?}, will use default.", e);
             PathBuilder { path_buff: Default::default() }
+        }
+    };
+}
+
+/// This will give you the path to the executable (when in build mode) or to the root of the current project.
+/// joined with the giver path
+pub fn app_base_path_join(path: &str) -> String {
+    if let Some(manifest_dir) = env::var_os("CARGO_MANIFEST_DIR") {
+        return PathBuilder { path_buff: path::PathBuf::from(manifest_dir) }.join(path).get();
+    }
+
+    return match env::current_exe() {
+        Ok(p) => PathBuilder { path_buff: p }.join(path).get(),
+        Err(e) => {
+            log::error!("Error while creating the app base_path {:?}, will use default.", e);
+            PathBuilder { path_buff: Default::default() }.join(path).get()
         }
     };
 }
