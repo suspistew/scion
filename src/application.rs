@@ -203,7 +203,7 @@ impl ScionBuilder {
 
     /// Add a normal game layer to the pile. Every layer added before in the pile will be called
     pub fn with_scene<T: Scene + Default + 'static>(mut self) -> Self {
-        self.scene = Some(Box::new(T::default()));
+        self.scene = Some(Box::<T>::default());
         self
     }
 

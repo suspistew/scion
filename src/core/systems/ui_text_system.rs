@@ -59,7 +59,7 @@ pub(crate) fn ui_text_bitmap_update_system(data: &mut GameData) {
                     let mut current_pos = 0.;
                     for character in ui_text.text().chars() {
                         if character.is_whitespace() {
-                            current_pos = current_pos + 5.;
+                            current_pos += 5.;
                             continue;
                         }
                         let char = true_type_data.character_positions.get(&character).unwrap();
@@ -121,13 +121,13 @@ pub(crate) fn ui_text_bitmap_update_system(data: &mut GameData) {
 }
 
 fn add_font_to_atlas_if_missing(size: usize, color: &Color, font_path: &str,  font_atlas: &mut AtomicRefMut<FontAtlas>) {
-    if let None = font_atlas.get_texture(&font_path, size, &color) {
+    if font_atlas.get_texture(font_path, size, color).is_none() {
         debug!("Adding font to atlas: [path: {}; size:{}; color:{:?}", font_path, size, color);
         let res = crate::core::resources::font_atlas::generate_bitmap(Font::TrueType { font_path: font_path.to_string() },
                                                                       size,
-                                                                      &color);
+                                                                      color);
         if let Ok(texture) = res {
-            font_atlas.add_texture(font_path.to_string(), size, &color, texture);
+            font_atlas.add_texture(font_path.to_string(), size, color, texture);
         }
     }
 }
@@ -174,8 +174,8 @@ fn update_bitmap(texture_path: String,
         char_transform.set_z(transform.translation().z());
         to_add.push((
             UiTextImage(UiImage::new_with_uv_map(
-                width as f32,
-                height as f32,
+                width,
+                height,
                 uvs,
             )),
             Material::Texture(texture_path.clone()),
@@ -198,7 +198,7 @@ fn update_bitmap(texture_path: String,
                 ui_text::{UiText, UiTextImage},
             },
         };
-        use crate::core::resources::asset_manager::{AssetManager, AssetRef};
+        use crate::core::resources::asset_manager::{AssetManager};
         use crate::core::world::World;
 
         fn get_test_ui_text(assets: &mut AssetManager) -> UiText {

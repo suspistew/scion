@@ -47,7 +47,7 @@ impl AssetManager {
     }
 
     pub fn register_material(&mut self, material: Material) -> AssetRef<Material> {
-        let next_ref = AssetRef(self.materials.keys().count(), PhantomData::default());
+        let next_ref = AssetRef(self.materials.keys().count(), PhantomData);
         self.materials.insert(next_ref.0, material);
         next_ref
     }
@@ -63,7 +63,7 @@ impl AssetManager {
             }
             None => {
                 debug!("Registering new tileset '{}' into the registry", tileset.name);
-                let next_ref = AssetRef(self.materials.keys().count(), PhantomData::default());
+                let next_ref = AssetRef(self.materials.keys().count(), PhantomData);
                 self.asset_ref_registry.insert(AssetType::Tileset(tileset.name.to_string()), next_ref.0);
                 self.materials.insert(next_ref.0, Material::Tileset(tileset));
                 next_ref
@@ -93,19 +93,16 @@ impl AssetManager {
 
     pub fn register_tilesets_atlas_and_textures(&mut self, data: Vec<(&str, &str, &str)>) { // FIXME improve signature
         data.iter().for_each(|(tileset_name, atlas_path, texture_path)|
-            self.register_tileset_atlas_and_texture(*tileset_name, *atlas_path, *texture_path));
+            self.register_tileset_atlas_and_texture(tileset_name, atlas_path, texture_path));
     }
 
 
     pub(crate) fn retrieve_asset_ref_for_tileset_name(&self, tileset_name: &str) -> Option<AssetRef<Material>>{
-        match self.asset_ref_registry.get(&AssetType::Tileset(tileset_name.to_string())) {
-            None => None,
-            Some(id) => Some(AssetRef(*id, PhantomData::default()))
-        }
+        self.asset_ref_registry.get(&AssetType::Tileset(tileset_name.to_string())).map(|id| AssetRef(*id, PhantomData))
     }
 
     pub fn register_font(&mut self, font: Font) -> AssetRef<Font> {
-        let next_ref = AssetRef(self.fonts.keys().count(), PhantomData::default());
+        let next_ref = AssetRef(self.fonts.keys().count(), PhantomData);
         self.fonts.insert(next_ref.0, font);
         next_ref
     }

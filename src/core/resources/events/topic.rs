@@ -20,8 +20,8 @@ impl Topic {
     pub(crate) fn cleanup_overflow(&mut self) -> usize {
         if self.messages.len() > self.configuration.limit {
             let overflow = self.messages.len() - self.configuration.limit;
-            self.messages = (&self.messages
-                [self.messages.len() - self.configuration.limit..self.messages.len()])
+            self.messages = self.messages
+                [self.messages.len() - self.configuration.limit..self.messages.len()]
                 .to_vec();
             overflow
         } else {
@@ -31,7 +31,7 @@ impl Topic {
 
     pub(crate) fn cleanup_outdated(&mut self, min_index: usize) {
         if min_index > 0 {
-            self.messages = (&self.messages[min_index..self.messages.len()]).to_vec();
+            self.messages = self.messages[min_index..self.messages.len()].to_vec();
         }
     }
 }

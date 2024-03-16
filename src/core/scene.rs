@@ -72,7 +72,7 @@ impl SceneController {
     /// Replace the current scene with the name `` with the scene created from type `T`. (Useful for level switching).
     /// Note that the scene's stop will happen at the end of the frame.
     pub fn switch<T: Scene + Default + 'static>(&mut self) {
-        self.action = Some(SceneTrans::Switch(Box::new(T::default())));
+        self.action = Some(SceneTrans::Switch(Box::<T>::default()));
     }
 
     pub(crate) fn action(&mut self) -> Option<SceneTrans> {
@@ -105,7 +105,7 @@ mod tests {
         let mut world = GameData::default();
         world.insert_resource(SceneController::default());
 
-        let scene = Box::new(A::default());
+        let scene = Box::new(A);
         let mut machine = SceneMachine { current_scene: Some(scene) };
 
         world.scene_controller().switch::<B>();

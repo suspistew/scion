@@ -61,7 +61,7 @@ impl Renderable2D for UiImage {
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
         BufferInitDescriptor {
             label: Some("UI Image index buffer"),
-            contents: bytemuck::cast_slice(&INDICES),
+            contents: bytemuck::cast_slice(INDICES),
             usage: wgpu::BufferUsages::INDEX,
         }
     }

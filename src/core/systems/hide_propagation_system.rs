@@ -13,7 +13,7 @@ pub(crate) fn hide_propagation_system(data: &mut GameData) {
             let mut child_entry = data
                 .entry::<&HidePropagated>(*child)
                 .expect("Unreachable child during hide propagation");
-            if let None = child_entry.get() {
+            if child_entry.get().is_none() {
                 to_add.push(*child);
             }
         });
@@ -60,11 +60,11 @@ mod tests {
         let child = world.push((2,));
         let _parent = world.push((1, Hide, Children(vec![child])));
 
-        assert_eq!(true, world.entry::<&HidePropagated>(child).unwrap().get().is_none());
+        assert!(world.entry::<&HidePropagated>(child).unwrap().get().is_none());
 
         hide_propagation_system(&mut world);
 
-        assert_eq!(true, world.entry::<&HidePropagated>(child).unwrap().get().is_some());
+        assert!(world.entry::<&HidePropagated>(child).unwrap().get().is_some());
     }
 
     #[test]
@@ -74,10 +74,10 @@ mod tests {
         let parent = world.push((1,));
         let child = world.push((2, HidePropagated, Parent(parent)));
 
-        assert_eq!(true, world.entry::<&HidePropagated>(child).unwrap().get().is_some());
+        assert!(world.entry::<&HidePropagated>(child).unwrap().get().is_some());
 
         hide_propagated_deletion_system(&mut world);
 
-        assert_eq!(true, world.entry::<&HidePropagated>(child).unwrap().get().is_none());
+        assert!(world.entry::<&HidePropagated>(child).unwrap().get().is_none());
     }
 }

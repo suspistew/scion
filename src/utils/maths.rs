@@ -96,9 +96,9 @@ pub fn centroid_polygon(vertices: &Vec<Coordinates>) -> Coordinates {
         x += (current_vertice.x + next_vertice.x) * current_area;
         y += (current_vertice.y + next_vertice.y) * current_area;
     }
-    signed_area = signed_area * 0.5;
-    x = x / (6. * signed_area);
-    y = y / (6. * signed_area);
+    signed_area *= 0.5;
+    x /= 6. * signed_area;
+    y /= 6. * signed_area;
     Coordinates::new(x, y)
 }
 

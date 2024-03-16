@@ -41,23 +41,21 @@ pub trait ScionRenderer {
 }
 
 /// Type of renderer to use to render the game.
+#[derive(Default)]
 pub enum RendererType {
     /// Internal 2D Renderer. Will render everything that is in [`bidimensional`]
+    #[default]
     Scion2D,
     /// Provide your own renderer
     Custom(Box<dyn ScionRenderer>),
 }
 
-impl Default for RendererType {
-    fn default() -> Self {
-        RendererType::Scion2D
-    }
-}
+
 
 impl RendererType {
     pub(crate) fn into_boxed_renderer(self) -> Box<dyn ScionRenderer> {
         match self {
-            RendererType::Scion2D => Box::new(Scion2D::default()),
+            RendererType::Scion2D => Box::<Scion2D>::default(),
             RendererType::Custom(boxed) => boxed,
         }
     }

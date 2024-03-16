@@ -24,7 +24,7 @@ pub mod importer {
 
     /// Import a tilemap from a .scion format located at `path`, into a TilemapAtlas
     pub fn import_tilemap(path: &str) -> TilemapAtlas {
-        match crate::utils::file::read_file(&Path::new(path)) {
+        match crate::utils::file::read_file(Path::new(path)) {
             Ok(file) => {
                 let mut tilemap: TilemapAtlas = serde_json::from_slice(file.as_slice()).expect("");
                 tilemap.layers.iter_mut().for_each(|l| {
@@ -33,7 +33,7 @@ pub mod importer {
                     l.tiles_encoded = None;
                 });
                 debug!("Tilemap at path {} has been loaded", path);
-                return tilemap;
+                tilemap
             }
             Err(e) => panic!("{:?}", e)
         }
@@ -41,11 +41,11 @@ pub mod importer {
 
     /// Import a tileset from a .scion format located at `path`, into a TilesetAtlas
     pub fn import_tileset(path: &str) -> TilesetAtlas {
-        match crate::utils::file::read_file(&Path::new(path)) {
+        match crate::utils::file::read_file(Path::new(path)) {
             Ok(file) => {
                 let tileset: TilesetAtlas = serde_json::from_slice(file.as_slice()).expect("");
                 debug!("Tileset at path {} has been loaded", path);
-                return tileset;
+                tileset
             }
             Err(e) => std::panic::panic_any(e)
         }
@@ -70,7 +70,7 @@ pub mod importer {
             load_tileset(resources, &t.name)
         }).collect();
 
-        let tileset_ref = tileset_refs.get(0).unwrap();
+        let tileset_ref = tileset_refs.first().unwrap();
         let asset_manager = resources.assets();
         let opt_tileset = asset_manager.retrieve_tileset(tileset_ref);
         let tileset = opt_tileset.unwrap();
@@ -95,7 +95,7 @@ pub mod importer {
                         if let Some(vec_anim) = &config.animation {
                             let time: usize = vec_anim.iter().map(|a| a.duration).sum();
                             let frames: Vec<usize> = vec_anim.iter().map(|a| a.tile_id).collect();
-                            let end_tile = *frames.get(frames.len() - 1).unwrap();
+                            let end_tile = *frames.last().unwrap();
                             debug!("Duration of animation : {:?}", time);
                             Some(Animation::looping(Duration::from_millis(time as u64), vec![AnimationModifier::sprite(frames, end_tile)]))
                         } else {
@@ -159,7 +159,7 @@ pub mod data {
                 tile_width: self.tile_width,
                 tile_height: self.tile_height,
                 texture: texture_path,
-                pathing: self.pathing.unwrap_or_else(|| HashMap::default()),
+                pathing: self.pathing.unwrap_or_default(),
                 tiles: self.tiles,
             }
         }

@@ -119,7 +119,7 @@ impl Scene for MainScene {
         let mut to_modify = Vec::new();
         let mut modified = false;
         data.events()
-            .poll::<(usize, usize, usize, usize)>(&self.subscriber_id.as_ref().unwrap())
+            .poll::<(usize, usize, usize, usize)>(self.subscriber_id.as_ref().unwrap())
             .unwrap()
             .into_iter()
             .for_each(|(x_min, x_max, y_min, y_max)| {
@@ -178,12 +178,10 @@ impl Scene for MainScene {
             if change_mouse_state {
                 let new_icon = self.compute_new_icon();
                 data.window().set_cursor(new_icon);
-            } else {
-                if self.mouse_state != CursorState::ROW && self.mouse_state != CursorState::COLUMN {
-                    self.mouse_state = self.state_before_border.as_ref().unwrap().clone();
-                    self.state_before_border = None;
-                    self.change_cursor(data);
-                }
+            } else if self.mouse_state != CursorState::ROW && self.mouse_state != CursorState::COLUMN {
+                self.mouse_state = self.state_before_border.as_ref().unwrap().clone();
+                self.state_before_border = None;
+                self.change_cursor(data);
             }
         }
         let (world, resources) = data.split();
@@ -427,7 +425,7 @@ fn pathfind_from(
             )
             .unwrap_or(2);
             if sprite != 2 {
-                res.push(side_pos.clone());
+                res.push(*side_pos);
                 let mut recursive_call_result = pathfind_from(*side_pos, data, tilemap, visited);
                 res.append(&mut recursive_call_result);
             }

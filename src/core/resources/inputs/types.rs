@@ -161,15 +161,15 @@ pub enum Input {
     Mouse(MouseButton),
 }
 
-impl Into<Input> for KeyCode {
-    fn into(self) -> Input {
-        Input::Key(self)
+impl From<KeyCode> for Input {
+    fn from(val: KeyCode) -> Self {
+        Input::Key(val)
     }
 }
 
-impl Into<Input> for MouseButton {
-    fn into(self) -> Input {
-        Input::Mouse(self)
+impl From<MouseButton> for Input {
+    fn from(val: MouseButton) -> Self {
+        Input::Mouse(val)
     }
 }
 

@@ -44,13 +44,13 @@ pub fn app_base_path() -> PathBuilder {
         return PathBuilder { path_buff: path::PathBuf::from(manifest_dir) };
     }
 
-    return match env::current_exe() {
+    match env::current_exe() {
         Ok(path) => PathBuilder { path_buff: path },
         Err(e) => {
             log::error!("Error while creating the app base_path {:?}, will use default.", e);
             PathBuilder { path_buff: Default::default() }
         }
-    };
+    }
 }
 
 /// This will give you the path to the executable (when in build mode) or to the root of the current project.
@@ -60,13 +60,13 @@ pub fn app_base_path_join(path: &str) -> String {
         return PathBuilder { path_buff: path::PathBuf::from(manifest_dir) }.join(path).get();
     }
 
-    return match env::current_exe() {
+    match env::current_exe() {
         Ok(p) => PathBuilder { path_buff: p }.join(path).get(),
         Err(e) => {
             log::error!("Error while creating the app base_path {:?}, will use default.", e);
             PathBuilder { path_buff: Default::default() }.join(path).get()
         }
-    };
+    }
 }
 
 /// Utils to help to build path and get them as String

@@ -49,6 +49,6 @@ impl Tileset {
                 Err(e) => {println!("{:?}", e)}
             }
         }
-        return Err(());
+        Err(())
     }
 }

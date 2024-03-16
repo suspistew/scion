@@ -57,18 +57,18 @@ pub(crate) fn compute_hover(data: &mut GameData) {
             && transform.global_translation.y as f64 <= my
             && (transform.global_translation.y + ui_button.height() as f32) as f64 >= my {
             if !clicked && ui_button.hover().is_some() {
-                hovered_buttons.push((*children.0.get(0).unwrap(), ui_button.clone_hover_unchecked(), children.0.clone()));
+                hovered_buttons.push((*children.0.first().unwrap(), ui_button.clone_hover_unchecked(), children.0.clone()));
             } else if ui_button.clicked().is_some() {
                 if let Some(function) = ui_button.on_click {
                     if click_event {
                         function(resources);
                     }
                 }
-                clicked_buttons.push((*children.0.get(0).unwrap(), ui_button.clone_clicked_unchecked(), children.0.clone()));
+                clicked_buttons.push((*children.0.first().unwrap(), ui_button.clone_clicked_unchecked(), children.0.clone()));
             }
             hover = true;
         } else if ui_button.background().is_some() {
-            not_hovered_buttons.push((*children.0.get(0).unwrap(), ui_button.clone_background_unchecked(), children.0.clone()));
+            not_hovered_buttons.push((*children.0.first().unwrap(), ui_button.clone_background_unchecked(), children.0.clone()));
         }
     }
 
@@ -86,7 +86,7 @@ pub(crate) fn compute_hover(data: &mut GameData) {
 
 fn change_button_material(world: &mut SubWorld, resources: &mut Resources, clicked_buttons: &mut Vec<(Entity, AssetRef<Material>, Vec<Entity>)>) {
     clicked_buttons.drain(0..).for_each(|(_e, asset_ref, children)| {
-        let child = children.get(0).expect("At least one child must exist");
+        let child = children.first().expect("At least one child must exist");
         let button_asset_ref = world.entry_mut::<&AssetRef<Material>>(*child);
 
         if button_asset_ref.is_err() || button_asset_ref.as_ref().expect("").0 != asset_ref.0 {

@@ -1,4 +1,4 @@
-use geo_clipper::Clipper;
+
 use log::LevelFilter;
 
 use scion::config::logger_config::LoggerConfig;

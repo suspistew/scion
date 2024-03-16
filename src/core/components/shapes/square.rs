@@ -80,7 +80,7 @@ impl Renderable2D for Square {
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
         BufferInitDescriptor {
             label: Some("Square Index Buffer"),
-            contents: bytemuck::cast_slice(&INDICES),
+            contents: bytemuck::cast_slice(INDICES),
             usage: wgpu::BufferUsages::INDEX,
         }
     }
@@ -103,6 +103,6 @@ impl Renderable2D for Square {
         Self::compute_pivot_offset(&self.pivot, self.length)
     }
     fn get_pivot(&self) -> Pivot {
-        self.pivot.clone()
+        self.pivot
     }
 }

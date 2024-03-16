@@ -51,10 +51,10 @@ mod tests {
 
         let e = world.push((1, asset_ref.clone()));
 
-        assert_eq!(true, world.entry::<&Material>(e).expect("").get().is_none());
+        assert!(world.entry::<&Material>(e).expect("").get().is_none());
 
         asset_ref_resolver_system::<Material, MaterialAssetResolverFn>(&mut world);
 
-        assert_eq!(true, world.entry::<&Material>(e).expect("").get().is_some());
+        assert!(world.entry::<&Material>(e).expect("").get().is_some());
     }
 }

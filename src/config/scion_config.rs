@@ -35,6 +35,12 @@ pub struct ScionConfigBuilder {
     config: ScionConfig,
 }
 
+impl Default for ScionConfigBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ScionConfigBuilder {
     /// Create a new `ScionConfigBuilder` builder
     pub fn new() -> Self {

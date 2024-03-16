@@ -192,7 +192,7 @@ impl Transform {
 
     /// Computes the global_translation using the parent as origin
     pub(crate) fn compute_global_from_parent(&mut self, parent_translation: &Coordinates) {
-        let mut new_global = parent_translation.clone();
+        let mut new_global = *parent_translation;
         new_global.x += self.local_translation.x;
         new_global.y += self.local_translation.y;
         new_global.z = self.local_translation.z;
@@ -234,6 +234,12 @@ impl Transform {
 
 pub struct TransformBuilder {
     transform: Transform,
+}
+
+impl Default for TransformBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl TransformBuilder {
@@ -301,30 +307,30 @@ mod tests {
     #[test]
     fn modify_transform_should_set_dirty_test() {
         let mut transform = Transform::new(Coordinates::new(5., 3.), 1., 1.);
-        assert_eq!(false, transform.dirty);
+        assert!(!transform.dirty);
 
         transform.append_translation(1., 1.);
-        assert_eq!(true, transform.dirty);
+        assert!(transform.dirty);
 
         transform.dirty = false;
 
         transform.move_down(1.);
-        assert_eq!(true, transform.dirty);
+        assert!(transform.dirty);
 
         transform.dirty = false;
 
         transform.append_x(1.);
-        assert_eq!(true, transform.dirty);
+        assert!(transform.dirty);
 
         transform.dirty = false;
 
         transform.append_y(1.);
-        assert_eq!(true, transform.dirty);
+        assert!(transform.dirty);
 
         transform.dirty = false;
 
         transform.compute_global_from_parent(&Coordinates::new(1., 2.));
-        assert_eq!(true, transform.dirty);
+        assert!(transform.dirty);
     }
 
     #[test]

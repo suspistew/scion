@@ -82,7 +82,7 @@ impl Scene for MainScene {
         }
 
         let direction = if left { Some(Direction::LEFT) } else if right { Some(Direction::RIGHT) } else { None };
-        let direction = if direction.is_some() { direction.expect("") } else { self.direction.clone() };
+        let direction = if direction.is_some() { direction.expect("") } else { self.direction };
         let (world, resources) = data.split();
         if (!self.running || self.direction != direction) && running {
             for (_, (character, material, _transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
@@ -139,12 +139,12 @@ impl Scene for MainScene {
         }
         self.direction = direction;
         if !self.jumping && !collisions.contains(&Direction::BOTTOM){
-            self.vertical_force = self.vertical_force - 1.0;
+            self.vertical_force -= 1.0;
         } else if !self.jumping && collisions.contains(&Direction::BOTTOM){
             self.vertical_force = 0.0;
         }
         if self.jumping {
-            self.vertical_force = self.vertical_force - 1.0;
+            self.vertical_force -= 1.0;
             if self.vertical_force <= 1.5 {
                 self.vertical_force = 0.;
                 self.jumping = false;
@@ -155,7 +155,7 @@ impl Scene for MainScene {
 
 impl MainScene{
     fn compute_collision_directions(&mut self, data: &mut GameData, char_entity: Entity) -> Vec<Direction> {
-        let current_pos = data.entry_mut::<&Transform>(char_entity).expect("").global_translation().clone();
+        let current_pos = *data.entry_mut::<&Transform>(char_entity).expect("").global_translation();
         let current_collisions = data.entry_mut::<&Collider>(char_entity).expect("").collisions();
         let mut res = Vec::new();
         let mut y_bottom = None;
@@ -163,14 +163,12 @@ impl MainScene{
             if col.area().min_y() >= (current_pos.y() + 12.){
                 y_bottom = Some(col.area().min_y());
                 res.push(Direction::BOTTOM);
-            }else{
-                if col.area().max_x() >= current_pos.x() + 8.
-                    && col.area().max_x() < current_pos.x() + 32.
-                    && col.area().min_y() <= (current_pos.y() + 8. + 47.){
-                    res.push(Direction::LEFT);
-                } else if col.area().min_x() <= (current_pos.x() + 47.) && col.area().min_y() <= (current_pos.y() + 8. + 47.){
-                    res.push(Direction::RIGHT);
-                }
+            }else if col.area().max_x() >= current_pos.x() + 8.
+                && col.area().max_x() < current_pos.x() + 32.
+                && col.area().min_y() <= (current_pos.y() + 8. + 47.){
+                res.push(Direction::LEFT);
+            } else if col.area().min_x() <= (current_pos.x() + 47.) && col.area().min_y() <= (current_pos.y() + 8. + 47.){
+                res.push(Direction::RIGHT);
             }
         });
 

@@ -32,7 +32,7 @@ pub(crate) fn compute_collisions_system(data: &mut GameData) {
         let colliders: Vec<(Entity, Transform, Collider)> = {
             let mut res = Vec::new();
             for (e, (t, c)) in data.query::<(&Transform, &Collider)>().iter() {
-                res.push((e, t.clone(), c.clone()));
+                res.push((e, *t, c.clone()));
             }
             res
         };
@@ -43,7 +43,7 @@ pub(crate) fn compute_collisions_system(data: &mut GameData) {
         > = HashMap::default();
 
         colliders.iter().for_each(|(e, t, c)| {
-            colliders_by_mask.entry(c.mask().clone()).or_insert_with(|| Vec::new()).push((*e, t, c))
+            colliders_by_mask.entry(c.mask().clone()).or_default().push((*e, t, c))
         });
 
         let mut cpt = 0;
@@ -60,10 +60,10 @@ pub(crate) fn compute_collisions_system(data: &mut GameData) {
                         })
                         .filter(|(_e, _t, _c, collision_area)| collision_area.is_some())
                         .for_each(|(_e, t, c, collision_area)| {
-                            res.entry(*entity).or_insert_with(|| Vec::new()).push(Collision {
+                            res.entry(*entity).or_default().push(Collision {
                                 mask: c.mask().clone(),
                                 entity: *entity,
-                                coordinates: t.global_translation().clone(),
+                                coordinates: *t.global_translation(),
                                 collision_area: collision_area.expect("Filtered Option is still KO"),
                             });
                         })
@@ -132,7 +132,7 @@ fn handle_global_debug_colliders(game_data: &mut GameData) -> bool {
     let shortcut_event = game_data.inputs().shortcut_pressed_event(&vec![Input::Key(KeyCode::LShift), Input::Key(KeyCode::D)]);
 
     let mut resources = game_data.get_resource_mut::<GlobalStorage>().expect("Missing Global Storage resource");
-    let mut current_val = resources.flags.get("debug_colliders").get_or_insert(&false).clone();
+    let mut current_val = **resources.flags.get("debug_colliders").get_or_insert(&false);
 
     if shortcut_event {
         current_val = !current_val;

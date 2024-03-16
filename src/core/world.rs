@@ -74,12 +74,12 @@ impl GameData {
 
     pub fn get_resource<T: Resource>(&self) -> Option<AtomicRef<T>> {
         let type_id = &ResourceTypeId::of::<T>();
-        self.resources.internal_resources.storage.get(&type_id).map(|x| x.get::<T>())
+        self.resources.internal_resources.storage.get(type_id).map(|x| x.get::<T>())
     }
 
     pub fn get_resource_mut<T: Resource>(&self) -> Option<AtomicRefMut<T>> {
         let type_id = &ResourceTypeId::of::<T>();
-        self.resources.internal_resources.storage.get(&type_id).map(|x| x.get_mut::<T>())
+        self.resources.internal_resources.storage.get(type_id).map(|x| x.get_mut::<T>())
     }
 
     /// retrieves the asset manager from the resources.
@@ -288,12 +288,12 @@ impl Resources {
 
     pub fn get_resource<T: Resource>(&self) -> Option<AtomicRef<T>> {
         let type_id = &ResourceTypeId::of::<T>();
-        self.internal_resources.storage.get(&type_id).map(|x| x.get::<T>())
+        self.internal_resources.storage.get(type_id).map(|x| x.get::<T>())
     }
 
     pub fn get_resource_mut<T: Resource>(&self) -> Option<AtomicRefMut<T>> {
         let type_id = &ResourceTypeId::of::<T>();
-        self.internal_resources.storage.get(&type_id).map(|x| x.get_mut::<T>())
+        self.internal_resources.storage.get(type_id).map(|x| x.get_mut::<T>())
     }
 
     /// retrieves the asset manager from the resources.
