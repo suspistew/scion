@@ -7,7 +7,7 @@ use crate::{
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
 use crate::core::components::maths::Pivot;
-use crate::core::components::Square;
+
 use crate::utils::maths::Vector;
 
 /// Renderable 2D Polygon made of outlines.
@@ -26,7 +26,7 @@ impl Polygon {
     pub fn new(vertices: Vec<Coordinates>) -> Self {
         Polygon::new_with_pivot(vertices, Pivot::TopLeft)
     }
-    pub fn pivot(mut self, pivot: Pivot) -> Self {
+    pub fn pivot(self, pivot: Pivot) -> Self {
         Polygon::new_with_pivot(self.vertices, pivot)
     }
 
@@ -36,7 +36,7 @@ impl Polygon {
             .iter()
             .map(|c| TexturedGlVertex::from((&Coordinates::new(c.x - offset.x, c.y - offset.y), &Coordinates::new(0., 0.))))
             .collect();
-        let last_vertex = vertices.get(0).map(|c| TexturedGlVertex::from((&Coordinates::new(c.x - offset.x, c.y - offset.y), &Coordinates::new(0., 0.)))).unwrap();
+        let last_vertex = vertices.first().map(|c| TexturedGlVertex::from((&Coordinates::new(c.x - offset.x, c.y - offset.y), &Coordinates::new(0., 0.)))).unwrap();
         contents.push(last_vertex);
         let indices = (0..contents.len() as u16).collect();
         Self { vertices, contents, indices, pivot, dirty: true }
@@ -91,7 +91,7 @@ impl Renderable2D for Polygon {
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
         BufferInitDescriptor {
             label: Some("Polygon Index Buffer"),
-            contents: bytemuck::cast_slice(&self.indices.as_slice()),
+            contents: bytemuck::cast_slice(self.indices.as_slice()),
             usage: wgpu::BufferUsages::INDEX,
         }
     }
@@ -116,6 +116,6 @@ impl Renderable2D for Polygon {
         Self::compute_pivot_offset(&self.pivot, &self.vertices)
     }
     fn get_pivot(&self) -> Pivot {
-        self.pivot.clone()
+        self.pivot
     }
 }

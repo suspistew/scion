@@ -31,7 +31,7 @@ impl Square {
     }
 
     /// Sets the pivot point of the square and returns it
-    pub fn pivot(mut self, pivot: Pivot) -> Self {
+    pub fn pivot(self, pivot: Pivot) -> Self {
         Square::new_with_pivot(self.length, self.uvs, pivot)
     }
 
@@ -80,7 +80,7 @@ impl Renderable2D for Square {
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
         BufferInitDescriptor {
             label: Some("Square Index Buffer"),
-            contents: bytemuck::cast_slice(&INDICES),
+            contents: bytemuck::cast_slice(INDICES),
             usage: wgpu::BufferUsages::INDEX,
         }
     }
@@ -103,6 +103,6 @@ impl Renderable2D for Square {
         Self::compute_pivot_offset(&self.pivot, self.length)
     }
     fn get_pivot(&self) -> Pivot {
-        self.pivot.clone()
+        self.pivot
     }
 }

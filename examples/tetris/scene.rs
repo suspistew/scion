@@ -66,7 +66,7 @@ fn add_score_ui(data: &mut GameData) -> Entity {
     let hover_asset = data.assets_mut().register_material(Material::Color(Color::new_rgb(160, 160, 160)));
     let clicked_asset = data.assets_mut().register_material(Material::Color(Color::new_rgb(120, 120, 120)));
 
-    let mut button = UiButton::new(70, 30, font_asset.clone())
+    let button = UiButton::new(70, 30, font_asset.clone())
         .with_font_size(16)
         .with_tab_index(13)
         .with_font_color(Color::new_rgb(0, 0, 0))

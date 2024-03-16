@@ -178,12 +178,10 @@ mod event_tests {
     #[test]
     fn create_topic_test() {
         let mut event = Events::default();
-        assert_eq!(
-            true,
+        assert!(
             event.create_topic("test_topic", TopicConfiguration { limit: 100 }).is_ok()
         );
-        assert_eq!(
-            true,
+        assert!(
             event.create_topic("test_topic", TopicConfiguration { limit: 90 }).is_err()
         );
     }
@@ -191,26 +189,26 @@ mod event_tests {
     #[test]
     fn event_publish_test() {
         let mut event = Events::default();
-        assert_eq!(true, event.publish("test_topic", "Coucou").is_err());
+        assert!(event.publish("test_topic", "Coucou").is_err());
         let _r = event.create_topic("test_topic", TopicConfiguration { limit: 100 });
-        assert_eq!(true, event.publish("test_topic", 1).is_ok());
+        assert!(event.publish("test_topic", 1).is_ok());
 
         let topic = event.topics.get("test_topic").expect("topic must be here");
         assert_eq!(1, topic.messages.len());
-        assert_eq!(&"1".to_string(), topic.messages.get(0).unwrap());
+        assert_eq!(&"1".to_string(), topic.messages.first().unwrap());
     }
 
     #[test]
     fn subscribe_test() {
         let mut event = Events::default();
-        assert_eq!(true, event.subscribe("test_topic", PollConfiguration::default()).is_err());
+        assert!(event.subscribe("test_topic", PollConfiguration::default()).is_err());
 
         let _r = event.create_topic("test_topic", TopicConfiguration { limit: 100 });
         let subscribe_result = event.subscribe("test_topic", PollConfiguration::default());
-        assert_eq!(true, subscribe_result.is_ok());
+        assert!(subscribe_result.is_ok());
         assert_eq!(0, subscribe_result.unwrap());
         let subscribe_result2 = event.subscribe("test_topic", PollConfiguration::default());
-        assert_eq!(true, subscribe_result2.is_ok());
+        assert!(subscribe_result2.is_ok());
         assert_eq!(1, subscribe_result2.unwrap());
     }
 

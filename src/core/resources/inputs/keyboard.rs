@@ -84,7 +84,7 @@ impl Keyboard {
         if self.pressed_keys.contains(key) {
             false
         } else {
-            self.pressed_keys.insert(key.clone());
+            self.pressed_keys.insert(*key);
             true
         }
     }
@@ -92,7 +92,7 @@ impl Keyboard {
     /// Set the given key to released status if it present in the registered pressed key. Return true if it was updated
     pub(crate) fn release(&mut self, key: &KeyCode) -> bool {
         if self.pressed_keys.contains(key) {
-            self.pressed_keys.remove(&key);
+            self.pressed_keys.remove(key);
             true
         } else {
             false

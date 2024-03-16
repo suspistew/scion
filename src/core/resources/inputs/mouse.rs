@@ -41,11 +41,9 @@ impl Mouse {
 
     pub(crate) fn add_click_event(&mut self, event: MouseEvent) {
         if event.state == InputState::Pressed {
-            self.buttons_pressed.insert(event.button.clone());
-        } else {
-            if self.buttons_pressed.contains(&event.button) {
-                self.buttons_pressed.remove(&event.button);
-            }
+            self.buttons_pressed.insert(event.button);
+        } else if self.buttons_pressed.contains(&event.button) {
+            self.buttons_pressed.remove(&event.button);
         }
         self.click_events.push(event);
     }

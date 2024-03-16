@@ -13,7 +13,7 @@ use crate::core::package::Package;
 use crate::core::resources::time::Time;
 use crate::core::scene::{Scene, SceneAction, SceneMachine};
 use crate::core::scheduler::Scheduler;
-use crate::core::systems::collider_systems::collider_cleaner_system;
+
 use crate::core::systems::InternalPackage;
 use crate::core::world::GameData;
 use crate::{
@@ -203,7 +203,7 @@ impl ScionBuilder {
 
     /// Add a normal game layer to the pile. Every layer added before in the pile will be called
     pub fn with_scene<T: Scene + Default + 'static>(mut self) -> Self {
-        self.scene = Some(Box::new(T::default()));
+        self.scene = Some(Box::<T>::default());
         self
     }
 

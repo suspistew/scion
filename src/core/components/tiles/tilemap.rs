@@ -1,16 +1,16 @@
 use hecs::Entity;
 use std::{collections::HashMap, ops::Range};
-use std::io::BufRead;
-use std::path::Path;
-use base64::Engine;
-use base64::prelude::BASE64_STANDARD;
-use log::debug;
+
+
+
+
+
 
 use serde::{Deserialize, Serialize};
 use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
 use crate::core::resources::asset_manager::AssetManager;
-use crate::core::world::{GameData, Resources, SubWorld, World};
+use crate::core::world::{SubWorld, World};
 use crate::{
     core::{
         components::{
@@ -132,7 +132,7 @@ impl Tilemap {
 
                     let entity = world.push((
                         Tile { position: position.clone(), tilemap: self_entity },
-                        Parent(self_entity.clone()),
+                        Parent(self_entity),
                     ));
 
                     if let Some(tile_nb) = tile_infos.tile_nb {
@@ -201,7 +201,7 @@ impl Tilemap {
             .entry_mut::<&mut Tilemap>(entity)
             .unwrap()
             .tile_entities
-            .get(&tile_position)
+            .get(tile_position)
             .as_ref()
             .map(|e| **e);
         if let Some(tile) = tile {
@@ -225,7 +225,7 @@ impl Tilemap {
                     .as_ref()
                     .unwrap()
                     .tile_entities
-                    .get(&tile_position)
+                    .get(tile_position)
                     .as_ref()
                     .map(|e| **e),
                 tilemap.as_ref().unwrap().tileset_ref.clone(),
@@ -241,7 +241,7 @@ impl Tilemap {
 
         if let Some(tileset) = asset_manager.retrieve_tileset(&tileset_ref) {
             if let Some(sprite) = Tilemap::retrieve_sprite_tile(world, entity, tile_position) {
-                let val = tileset.pathing.iter().filter(|(_k, v)| v.contains(&sprite)).next();
+                let val = tileset.pathing.iter().find(|(_k, v)| v.contains(&sprite));
                 if let Some(entry) = val {
                     return Some(entry.0.to_string());
                 }
@@ -252,7 +252,7 @@ impl Tilemap {
 
     /// Retrieves the mutable tile event associated with this position in the tilemap
     pub fn retrieve_event(&mut self, tile_position: &Position) -> Option<&mut TileEvent> {
-        return self.events.get_mut(&tile_position);
+        return self.events.get_mut(tile_position);
     }
 
     fn create_tilemap(

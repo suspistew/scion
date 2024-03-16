@@ -14,7 +14,7 @@ impl Logger {
     /// In every case, will be called at `Scion` app init, and this will try to
     /// apply a logging config. If one already exists, it won't replace it.
     pub fn init_logging(config: Option<LoggerConfig>) {
-        let config = config.unwrap_or(LoggerConfig::default());
+        let config = config.unwrap_or_default();
         let color_config = ColoredLevelConfig {
             error: Color::Red,
             warn: Color::Yellow,

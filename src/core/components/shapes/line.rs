@@ -1,5 +1,5 @@
 use std::ops::Range;
-use log::warn;
+
 
 use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
@@ -71,7 +71,7 @@ impl Renderable2D for Line {
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
         BufferInitDescriptor {
             label: Some("Line Index Buffer"),
-            contents: bytemuck::cast_slice(&INDICES),
+            contents: bytemuck::cast_slice(INDICES),
             usage: wgpu::BufferUsages::INDEX,
         }
     }
@@ -94,6 +94,6 @@ impl Renderable2D for Line {
         Self::compute_pivot_offset(&self.pivot, &self.vertices)
     }
     fn get_pivot(&self) -> Pivot {
-        self.pivot.clone()
+        self.pivot
     }
 }

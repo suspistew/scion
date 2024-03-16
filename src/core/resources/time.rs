@@ -206,26 +206,26 @@ mod tests {
     fn add_timer_test() {
         let mut timers = Timers::default();
         let timer = timers.add_timer("test_timer", TimerType::Manual, 1.0);
-        assert_eq!(true, timer.is_ok());
+        assert!(timer.is_ok());
         let timer = timers.add_timer("test_timer", TimerType::Manual, 1.0);
-        assert_eq!(false, timer.is_ok());
+        assert!(timer.is_err());
 
         // Test manual timer
         let timer = timers.get_timer("test_timer");
-        assert_eq!(true, timer.is_ok());
+        assert!(timer.is_ok());
         let timer = timer.expect("impossible");
-        assert_eq!(false, timer.add_delta_duration(0.5));
-        assert_eq!(true, timer.add_delta_duration(0.5));
-        assert_eq!(true, timer.ended());
+        assert!(!timer.add_delta_duration(0.5));
+        assert!(timer.add_delta_duration(0.5));
+        assert!(timer.ended());
 
         // Test cyclic timer
         let timer = timers.add_timer("test_timer2", TimerType::Cyclic, 1.0);
-        assert_eq!(true, timer.is_ok());
+        assert!(timer.is_ok());
         let timer = timer.unwrap();
-        assert_eq!(false, timer.add_delta_duration(0.5));
-        assert_eq!(true, timer.add_delta_duration(1.));
+        assert!(!timer.add_delta_duration(0.5));
+        assert!(timer.add_delta_duration(1.));
         assert_eq!(1, timer.cycle());
         assert_eq!(0.5, timer.elapsed());
-        assert_eq!(false, timer.ended());
+        assert!(!timer.ended());
     }
 }

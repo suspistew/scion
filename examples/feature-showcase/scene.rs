@@ -1,6 +1,6 @@
 use scion::core::components::tiles::atlas::importer::load_tilemap;
 use scion::core::resources::asset_manager::AssetType;
-use scion::core::resources::time::TimerType;
+
 use scion::core::scene::Scene;
 use scion::core::world::{GameData, World};
 use scion::utils::file::app_base_path_join;

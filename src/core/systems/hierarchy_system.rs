@@ -1,9 +1,9 @@
 
 use std::collections::{HashMap, HashSet};
-use std::process::Child;
 
 
-use log::{info, trace};
+
+
 
 use crate::core::components::maths::hierarchy::{Children, Parent};
 use crate::core::world::{GameData, World};
@@ -67,18 +67,18 @@ mod tests {
         let child = world.push((Parent(parent),));
 
         // First we test that the parent has no Children component
-        assert_eq!(true, world.entry::<&Children>(parent).unwrap().get().is_none());
+        assert!(world.entry::<&Children>(parent).unwrap().get().is_none());
 
         // Then we execute the system and test that we have the good result
         children_manager_system(&mut world);
 
-        assert_eq!(true, world.entry::<&Children>(parent).unwrap().get().is_some());
+        assert!(world.entry::<&Children>(parent).unwrap().get().is_some());
 
         // Finally we delete the parent entity and check that after a schedule, the child entity is also deleted
         let _r = world.remove(parent);
         children_manager_system(&mut world);
 
-        assert_eq!(true, world.entry::<&Parent>(child).is_err());
+        assert!(world.entry::<&Parent>(child).is_err());
     }
 
     #[test]
@@ -92,8 +92,7 @@ mod tests {
         children_manager_system(&mut world);
 
         // We check that we have the child
-        assert_eq!(
-            true,
+        assert!(
             world.entry::<&Children>(parent).unwrap().get().unwrap().0.contains(&child)
         );
         let _r = world.remove(child);
@@ -102,6 +101,6 @@ mod tests {
         children_manager_system(&mut world);
 
         let res = world.entry::<&Children>(parent).expect("").get().is_some();
-        assert_eq!(false, res);
+        assert!(!res);
     }
 }

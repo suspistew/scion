@@ -5,6 +5,7 @@
   "tile_width": 16,
   "tile_height": 16,
   "name": "nbt",
+  "tiles": {},
   "pathing": {
     "WALKABLE": [
       4,

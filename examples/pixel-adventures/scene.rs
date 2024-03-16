@@ -1,17 +1,17 @@
 use std::path::Path;
 use std::str::from_utf8;
-use std::time::{Duration, SystemTime};
+use std::time::{Duration};
 use std::vec;
 
 use hecs::Entity;
-use log::info;
+
 
 use scion::core::components::animations::{Animation, AnimationModifier, Animations};
 use scion::core::components::material::Material;
 use scion::core::components::maths::camera::Camera;
 use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
 use scion::core::components::maths::hierarchy::Parent;
-use scion::core::components::maths::Pivot;
+
 use scion::core::components::maths::transform::{Transform, TransformBuilder};
 use scion::core::components::tiles::sprite::Sprite;
 use scion::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
@@ -25,11 +25,10 @@ use scion::utils::maths::{Dimensions, Position, Vector};
 use crate::character::{Character, get_animations_character};
 
 #[derive(PartialEq, Default, Copy, Clone)]
-enum Direction {
+pub enum Direction {
     LEFT,
     #[default]
     RIGHT,
-    TOP,
     BOTTOM,
 }
 
@@ -83,10 +82,10 @@ impl Scene for MainScene {
         }
 
         let direction = if left { Some(Direction::LEFT) } else if right { Some(Direction::RIGHT) } else { None };
-        let direction = if direction.is_some() { direction.expect("") } else { self.direction.clone() };
+        let direction = if direction.is_some() { direction.expect("") } else { self.direction };
         let (world, resources) = data.split();
         if (!self.running || self.direction != direction) && running {
-            for (_, (character, material, transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
+            for (_, (character, material, _transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
                 if direction == Direction::LEFT {
                     *material = Material::Tileset(resources.assets_mut().retrieve_tileset(&character.running_left_asset_ref).expect("").clone());
                     animations.stop_all_animation(true);
@@ -100,7 +99,7 @@ impl Scene for MainScene {
             self.running = true;
             self.idle = false;
         } else if !running && (!self.idle || self.direction != direction) {
-            for (_, (character, material, transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
+            for (_, (character, material, _transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
                 if direction == Direction::LEFT {
                     *material = Material::Tileset(resources.assets_mut().retrieve_tileset(&character.idle_left_asset_ref).expect("").clone());
                     animations.stop_all_animation(true);
@@ -115,14 +114,14 @@ impl Scene for MainScene {
             self.idle = true;
         }
         if right {
-            for (_, (character, material, transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
+            for (_, (_character, _material, transform, _animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
                 if !collisions.contains(&Direction::RIGHT) {
                     transform.append_x(4.5);
                 }
             }
         }
         if left {
-            for (_, (character, material, transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
+            for (_, (_character, _material, transform, _animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
                 if !collisions.contains(&Direction::LEFT) {
                     transform.append_x(-4.5);
                 }
@@ -140,12 +139,12 @@ impl Scene for MainScene {
         }
         self.direction = direction;
         if !self.jumping && !collisions.contains(&Direction::BOTTOM){
-            self.vertical_force = self.vertical_force - 1.0;
+            self.vertical_force -= 1.0;
         } else if !self.jumping && collisions.contains(&Direction::BOTTOM){
             self.vertical_force = 0.0;
         }
         if self.jumping {
-            self.vertical_force = self.vertical_force - 1.0;
+            self.vertical_force -= 1.0;
             if self.vertical_force <= 1.5 {
                 self.vertical_force = 0.;
                 self.jumping = false;
@@ -156,7 +155,7 @@ impl Scene for MainScene {
 
 impl MainScene{
     fn compute_collision_directions(&mut self, data: &mut GameData, char_entity: Entity) -> Vec<Direction> {
-        let current_pos = data.entry_mut::<&Transform>(char_entity).expect("").global_translation().clone();
+        let current_pos = *data.entry_mut::<&Transform>(char_entity).expect("").global_translation();
         let current_collisions = data.entry_mut::<&Collider>(char_entity).expect("").collisions();
         let mut res = Vec::new();
         let mut y_bottom = None;
@@ -164,14 +163,12 @@ impl MainScene{
             if col.area().min_y() >= (current_pos.y() + 12.){
                 y_bottom = Some(col.area().min_y());
                 res.push(Direction::BOTTOM);
-            }else{
-                if col.area().max_x() >= current_pos.x() + 8.
-                    && col.area().max_x() < current_pos.x() + 32.
-                    && col.area().min_y() <= (current_pos.y() + 8. + 47.){
-                    res.push(Direction::LEFT);
-                } else if col.area().min_x() <= (current_pos.x() + 47.) && col.area().min_y() <= (current_pos.y() + 8. + 47.){
-                    res.push(Direction::RIGHT);
-                }
+            }else if col.area().max_x() >= current_pos.x() + 8.
+                && col.area().max_x() < current_pos.x() + 32.
+                && col.area().min_y() <= (current_pos.y() + 8. + 47.){
+                res.push(Direction::LEFT);
+            } else if col.area().min_x() <= (current_pos.x() + 47.) && col.area().min_y() <= (current_pos.y() + 8. + 47.){
+                res.push(Direction::RIGHT);
             }
         });
 
@@ -192,7 +189,7 @@ fn add_background(data: &mut GameData) {
         tileset_ref,
     );
 
-    Tilemap::create(tilemap_infos, data, |p| {
+    Tilemap::create(tilemap_infos, data, |_p| {
         TileInfos::new(Some(0), Some(Animation::looping(Duration::from_millis(2560), vec![AnimationModifier::sprite(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], 1)])))
     });
 }

@@ -120,8 +120,8 @@ pub fn initialize_bloc(
     );
 
     if is_next_bloc {
-        return (tuple.0, tuple.1, tuple.2, is_next_bloc);
+        (tuple.0, tuple.1, tuple.2, is_next_bloc)
     } else {
-        return (tuple.0, tuple.1, tuple.2, is_next_bloc);
-    };
+        (tuple.0, tuple.1, tuple.2, is_next_bloc)
+    }
 }

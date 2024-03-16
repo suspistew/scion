@@ -9,7 +9,7 @@ use crate::{
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
 use crate::core::components::maths::Pivot;
-use crate::core::components::shapes::rectangle::Rectangle;
+
 use crate::utils::maths::Vector;
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
@@ -77,7 +77,7 @@ impl Sprite {
                 let b = Coordinates::new(a.x, a.y + tileset.tile_width as f32);
                 let c = Coordinates::new(a.x + tileset.tile_width as f32, a.y + tileset.tile_width as f32);
                 let d = Coordinates::new(a.x + tileset.tile_width as f32, a.y);
-                let uvs_ref = self.uv_refs(&tileset);
+                let uvs_ref = self.uv_refs(tileset);
                 return [
                     TexturedGlVertex::from((&a, &uvs_ref[0])),
                     TexturedGlVertex::from((&b, &uvs_ref[1])),
@@ -86,7 +86,7 @@ impl Sprite {
                 ];
             }
         }
-        self.contents.as_ref().expect("A computed content is missing in Sprite component").clone()
+        *self.contents.as_ref().expect("A computed content is missing in Sprite component")
     }
 
     pub(crate) fn indices() -> Vec<u16> {
@@ -114,7 +114,7 @@ impl Renderable2D for Sprite {
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
         BufferInitDescriptor {
             label: Some("Sprite Index Buffer"),
-            contents: bytemuck::cast_slice(&INDICES),
+            contents: bytemuck::cast_slice(INDICES),
             usage: wgpu::BufferUsages::INDEX,
         }
     }
@@ -136,13 +136,13 @@ impl Renderable2D for Sprite {
     }
 
     fn get_pivot_offset(&self, material: Option<&Material>) -> Vector {
-        if (material.is_none()) {
+        if material.is_none() {
             Vector::default()
         } else if let Material::Tileset(tileset) = material.unwrap() {
             Self::compute_pivot_offset(&self.pivot, tileset.tile_width)
         } else { Vector::default() }
     }
     fn get_pivot(&self) -> Pivot {
-        self.pivot.clone()
+        self.pivot
     }
 }

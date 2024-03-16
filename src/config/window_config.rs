@@ -90,6 +90,12 @@ pub struct WindowConfigBuilder {
     config: WindowConfig,
 }
 
+impl Default for WindowConfigBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl WindowConfigBuilder {
     /// Create a new `WindowConfigBuilder` builder
     pub fn new() -> Self {

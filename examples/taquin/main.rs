@@ -173,8 +173,8 @@ fn compute_mixed_cases() -> HashMap<usize, Option<usize>> {
         let a = rand.gen_range(0..cases.len());
         let b = rand.gen_range(0..cases.len());
 
-        let tmp_a = cases.get(&a).unwrap().clone();
-        let tmp_b = cases.get(&b).unwrap().clone();
+        let tmp_a = *cases.get(&a).unwrap();
+        let tmp_b = *cases.get(&b).unwrap();
 
         cases.insert(a, tmp_b);
         cases.insert(b, tmp_a);

@@ -17,6 +17,6 @@ impl Padding {
     }
 
     pub fn left_or_zero(&self) -> f32 {
-        self.top.unwrap_or(0.)
+        self.left.unwrap_or(0.)
     }
 }

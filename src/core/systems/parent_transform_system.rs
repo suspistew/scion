@@ -24,7 +24,7 @@ pub(crate) fn dirty_child_system(data: &mut GameData) {
     let mut parents_transform = HashMap::new();
     for (_, parent) in parent_to_check.iter() {
         if let Some(parent_transform) = data.entry::<&Transform>(*parent).unwrap().get() {
-            parents_transform.insert(*parent, parent_transform.clone());
+            parents_transform.insert(*parent, *parent_transform);
         }
     }
 
@@ -43,14 +43,14 @@ pub(crate) fn dirty_child_system(data: &mut GameData) {
                             child_transform
                                 .compute_global_from_parent(parent_transform.global_translation());
                             child_transform.compute_global_angle_from_parent(parent_transform.global_angle);
-                            parents_transform.insert(child, child_transform.clone());
+                            parents_transform.insert(child, *child_transform);
                         } else {
                             // Else we need to check the parent first, in the next iteration
                             parent_to_check.push((child, parent));
                         }
                     } else {
                         child_transform.dirty_child = false;
-                        parents_transform.insert(child, child_transform.clone());
+                        parents_transform.insert(child, *child_transform);
                     }
                 }
                 Err(_) => panic!("Error while retrieving child transform during internal system"),
@@ -80,7 +80,7 @@ pub(crate) fn dirty_transform_system(data: &mut GameData) {
         {
             if let Some(children) = children {
                 if parent_transform.dirty {
-                    transform_entities.push((parent_transform.clone(), children.0.clone()));
+                    transform_entities.push((*parent_transform, children.0.clone()));
                 }
             }
             parent_transform.dirty = false;
@@ -107,7 +107,7 @@ mod tests {
         let child_of_child = world.push((child_of_child_transform, Parent(child)));
 
         for (_, t) in world.query::<&Transform>().iter() {
-            assert_eq!(false, t.dirty);
+            assert!(!t.dirty);
         }
 
         children_manager_system(&mut world);

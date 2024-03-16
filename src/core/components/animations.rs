@@ -51,7 +51,7 @@ impl Animations {
     /// return whether or not an animation with the given name is running
     pub fn animation_running(&mut self, animation_name: &str) -> bool {
         self.animations.contains_key(animation_name)
-            && vec![AnimationStatus::Running, AnimationStatus::Looping, AnimationStatus::Stopping]
+            && [AnimationStatus::Running, AnimationStatus::Looping, AnimationStatus::Stopping]
                 .contains(
                     &self.animations.get(animation_name).expect("Animation must be present").status,
                 )
@@ -367,11 +367,9 @@ fn compute_animation_keyframe_modifier(modifier: &mut AnimationModifier) {
     modifier.single_keyframe_modifier = match modifier.modifier_type {
         AnimationModifierType::TransformModifier { vector, scale, rotation } => {
             Some(ComputedKeyframeModifier::TransformModifier {
-                vector: vector.map_or(None, |vector| {
-                    Some(Vector::new(vector.x() / keyframe_nb, vector.y() / keyframe_nb))
-                }),
-                scale: scale.map_or(None, |scale| Some(scale / keyframe_nb)),
-                rotation: rotation.map_or(None, |rotation| Some(rotation / keyframe_nb)),
+                vector: vector.map(|vector| Vector::new(vector.x() / keyframe_nb, vector.y() / keyframe_nb)),
+                scale: scale.map(|scale| scale / keyframe_nb),
+                rotation: rotation.map(|rotation| rotation / keyframe_nb),
             })
         }
         AnimationModifierType::Text { .. } => Some(ComputedKeyframeModifier::Text { cursor: 0 }),
@@ -397,7 +395,7 @@ mod tests {
             )],
         );
 
-        let anim_modifier = animation.modifiers.iter().next().unwrap();
+        let anim_modifier = animation.modifiers.first().unwrap();
         assert_eq!(500, anim_modifier.single_keyframe_duration.unwrap().as_millis());
         if let ComputedKeyframeModifier::TransformModifier { vector, scale, rotation } =
             anim_modifier.single_keyframe_modifier.as_ref().unwrap()
@@ -423,7 +421,7 @@ mod tests {
             },
         );
         let a = Animations::new(h);
-        assert_eq!(true, a.any_animation_running());
+        assert!(a.any_animation_running());
 
         let mut h = HashMap::new();
         h.insert(
@@ -435,6 +433,6 @@ mod tests {
             },
         );
         let a = Animations::new(h);
-        assert_eq!(false, a.any_animation_running());
+        assert!(!a.any_animation_running());
     }
 }

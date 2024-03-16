@@ -71,13 +71,13 @@ impl Renderable2D for Triangle {
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
         BufferInitDescriptor {
             label: Some("Triangle Index Buffer"),
-            contents: bytemuck::cast_slice(&INDICES),
+            contents: bytemuck::cast_slice(INDICES),
             usage: wgpu::BufferUsages::INDEX,
         }
     }
 
     fn range(&self) -> Range<u32> {
-        0..3 as u32
+        0..3_u32
     }
 
     fn topology() -> PrimitiveTopology {
@@ -94,6 +94,6 @@ impl Renderable2D for Triangle {
         Self::compute_pivot_offset(&self.pivot, &self.vertices)
     }
     fn get_pivot(&self) -> Pivot {
-        self.pivot.clone()
+        self.pivot
     }
 }

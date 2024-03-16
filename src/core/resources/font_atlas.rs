@@ -45,7 +45,7 @@ impl TrueTypeData {
     }
     pub(crate) fn compute_vertical_offset(&self, current_pos_y: f32) -> f32 {
         if current_pos_y > self.min_y {
-            return current_pos_y - self.min_y as f32
+            return current_pos_y - self.min_y
         }
         0.
     }

@@ -131,7 +131,7 @@ impl Renderable2D for Rectangle {
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor {
         BufferInitDescriptor {
             label: Some("Rectangle Index Buffer"),
-            contents: bytemuck::cast_slice(&INDICES),
+            contents: bytemuck::cast_slice(INDICES),
             usage: wgpu::BufferUsages::INDEX,
         }
     }
@@ -156,6 +156,6 @@ impl Renderable2D for Rectangle {
         Self::compute_pivot_offset(&self.pivot, self.width, self.height)
     }
     fn get_pivot(&self) -> Pivot {
-        self.pivot.clone()
+        self.pivot
     }
 }

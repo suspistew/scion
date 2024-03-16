@@ -27,7 +27,7 @@ impl Audio {
             self.sounds_cursor += 1;
             return Ok(sound_id);
         }
-        return Err(Error::ImpossibleToLoadSound);
+        Err(Error::ImpossibleToLoadSound)
     }
 }
 

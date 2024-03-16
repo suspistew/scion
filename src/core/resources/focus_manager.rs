@@ -10,17 +10,13 @@ pub struct FocusManager{
 
 impl FocusManager{
     pub(crate) fn current_focus_index(&self) -> Option<usize>{
-        if self.current_focus_index.is_none(){
-            return None;
-        }
-        return Some(self.current_focus_index.unwrap())
+        self.current_focus_index?;
+        Some(self.current_focus_index.unwrap())
     }
 
     pub(crate) fn current_focus_entity(&self) -> Option<Entity>{
-        if self.current_focus_entity.is_none(){
-            return None;
-        }
-        return Some(self.current_focus_entity.unwrap())
+        self.current_focus_entity?;
+        Some(self.current_focus_entity.unwrap())
     }
 
     pub(crate) fn change_focus(&mut self, entity: Entity, rank: usize){

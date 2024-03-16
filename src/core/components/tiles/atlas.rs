@@ -1,21 +1,21 @@
-use base64::Engine;
-use serde::{Deserialize, Serialize};
+
+
 
 pub mod importer {
-    use std::collections::HashMap;
+    
     use std::path::Path;
     use std::time::Duration;
     use base64::Engine;
 
     use base64::prelude::BASE64_STANDARD;
     use hecs::Entity;
-    use image::imageops::tile;
+    
     use log::debug;
     use crate::core::components::animations::{Animation, AnimationModifier};
 
     use crate::core::components::material::Material;
     use crate::core::components::maths::transform::TransformBuilder;
-    use crate::core::components::tiles::atlas::data::{TileConfig, TilemapAtlas, TilesetAtlas};
+    use crate::core::components::tiles::atlas::data::{TilemapAtlas, TilesetAtlas};
     use crate::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
     use crate::core::components::tiles::tileset::Tileset;
     use crate::core::resources::asset_manager::{AssetRef, AssetType};
@@ -24,7 +24,7 @@ pub mod importer {
 
     /// Import a tilemap from a .scion format located at `path`, into a TilemapAtlas
     pub fn import_tilemap(path: &str) -> TilemapAtlas {
-        match crate::utils::file::read_file(&Path::new(path)) {
+        match crate::utils::file::read_file(Path::new(path)) {
             Ok(file) => {
                 let mut tilemap: TilemapAtlas = serde_json::from_slice(file.as_slice()).expect("");
                 tilemap.layers.iter_mut().for_each(|l| {
@@ -33,7 +33,7 @@ pub mod importer {
                     l.tiles_encoded = None;
                 });
                 debug!("Tilemap at path {} has been loaded", path);
-                return tilemap;
+                tilemap
             }
             Err(e) => panic!("{:?}", e)
         }
@@ -41,13 +41,13 @@ pub mod importer {
 
     /// Import a tileset from a .scion format located at `path`, into a TilesetAtlas
     pub fn import_tileset(path: &str) -> TilesetAtlas {
-        match crate::utils::file::read_file(&Path::new(path)) {
+        match crate::utils::file::read_file(Path::new(path)) {
             Ok(file) => {
                 let tileset: TilesetAtlas = serde_json::from_slice(file.as_slice()).expect("");
                 debug!("Tileset at path {} has been loaded", path);
-                return tileset;
+                tileset
             }
-            Err(e) => panic!(e)
+            Err(e) => std::panic::panic_any(e)
         }
     }
 
@@ -70,7 +70,7 @@ pub mod importer {
             load_tileset(resources, &t.name)
         }).collect();
 
-        let tileset_ref = tileset_refs.get(0).unwrap();
+        let tileset_ref = tileset_refs.first().unwrap();
         let asset_manager = resources.assets();
         let opt_tileset = asset_manager.retrieve_tileset(tileset_ref);
         let tileset = opt_tileset.unwrap();
@@ -95,7 +95,7 @@ pub mod importer {
                         if let Some(vec_anim) = &config.animation {
                             let time: usize = vec_anim.iter().map(|a| a.duration).sum();
                             let frames: Vec<usize> = vec_anim.iter().map(|a| a.tile_id).collect();
-                            let end_tile = *frames.get(frames.len() - 1).unwrap();
+                            let end_tile = *frames.last().unwrap();
                             debug!("Duration of animation : {:?}", time);
                             Some(Animation::looping(Duration::from_millis(time as u64), vec![AnimationModifier::sprite(frames, end_tile)]))
                         } else {
@@ -139,7 +139,7 @@ pub mod data {
     use crate::utils::maths::Position;
 
     #[derive(Serialize, Deserialize)]
-    pub(crate) struct TilesetAtlas {
+    pub struct TilesetAtlas {
         pub(crate) name: String,
         pub(crate) total_tiles: usize,
         pub(crate) width: usize,
@@ -151,7 +151,7 @@ pub mod data {
     }
 
     impl TilesetAtlas {
-        pub fn into_tileset(mut self, texture_path: String) -> Tileset {
+        pub fn into_tileset(self, texture_path: String) -> Tileset {
             Tileset {
                 name: self.name,
                 width: self.width,
@@ -159,7 +159,7 @@ pub mod data {
                 tile_width: self.tile_width,
                 tile_height: self.tile_height,
                 texture: texture_path,
-                pathing: self.pathing.unwrap_or_else(|| HashMap::default()),
+                pathing: self.pathing.unwrap_or_default(),
                 tiles: self.tiles,
             }
         }
@@ -241,7 +241,7 @@ pub mod data {
 
     impl TilemapAtlas {
         pub(crate) fn tile_at(&self, position: &Position) -> Option<usize> {
-            if (position.x() > self.width || position.y() > self.height || position.z() > self.layers.len()) {
+            if position.x() > self.width || position.y() > self.height || position.z() > self.layers.len() {
                 panic!("Position of requested tile is not coherent with tilemap informations");
             }
             let tile = *self.layers.get(position.z()).unwrap().tiles.get(position.y()).unwrap().get(position.x()).unwrap();

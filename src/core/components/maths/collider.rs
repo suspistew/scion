@@ -3,8 +3,8 @@ use geo_types::{Coord, LineString};
 use crate::core::components::maths::{coordinates::Coordinates, Pivot, transform::Transform};
 use crate::utils::maths::{centroid_polygon, rotate_point_around_pivot, Vector};
 use hecs::Entity;
-use log::info;
-use crate::core::components::shapes::polygon::Polygon;
+
+
 
 /// `ColliderMask` will serve as a 'mask' to allow filter while collisions happen
 #[derive(PartialEq, Clone, Eq, Hash, Debug)]
@@ -122,7 +122,7 @@ impl Collider {
 
     pub(crate) fn get_pivot(&self) -> Pivot {
         if self.local_pivot.is_some() {
-            self.local_pivot.unwrap().clone()
+            self.local_pivot.unwrap()
         } else if self.parent_pivot.is_some() {
             self.parent_pivot.unwrap()
         } else {
@@ -192,8 +192,8 @@ impl Collider {
         let target_polygon = target_collider.collider_polygon(target_transform);
         let result = self_polygon.intersection(&target_polygon, 1.0);
 
-        if result.0.len() > 0 {
-            let collision = result.0.get(0).unwrap();
+        if !result.0.is_empty() {
+            let collision = result.0.first().unwrap();
             let coordinates: Vec<Coordinates> = collision.exterior().0.iter().map(|c| Coordinates::new(c.x, c.y)).collect();
             Some(CollisionArea{
                 coordinates
@@ -278,8 +278,8 @@ mod tests {
         );
         let land = Collider::new(ColliderMask::Landscape, vec![], ColliderType::Square(5));
 
-        assert_eq!(false, ship.can_collide_with(&land));
-        assert_eq!(true, ship.can_collide_with(&bullet));
+        assert!(!ship.can_collide_with(&land));
+        assert!(ship.can_collide_with(&bullet));
     }
 
     #[test]
@@ -293,10 +293,10 @@ mod tests {
         let ship_transform_in2 = Transform::from_xy(8.99999, 8.99999);
         let ship_transform_out = Transform::from_xy(50., 50.);
 
-        assert_eq!(true, ship.collides_with(&ship_transform_in, &bullet, &bullet_transform).is_some());
-        assert_eq!(true, ship.collides_with(&ship_transform_in2, &bullet, &bullet_transform).is_some());
-        assert_eq!(true, ship.collides_with(&ship_transform_in, &bullet, &bullet_transform2).is_some());
-        assert_eq!(false, bullet.collides_with(&ship_transform_out, &bullet, &bullet_transform).is_some());
+        assert!(ship.collides_with(&ship_transform_in, &bullet, &bullet_transform).is_some());
+        assert!(ship.collides_with(&ship_transform_in2, &bullet, &bullet_transform).is_some());
+        assert!(ship.collides_with(&ship_transform_in, &bullet, &bullet_transform2).is_some());
+        assert!(bullet.collides_with(&ship_transform_out, &bullet, &bullet_transform).is_none());
     }
 
     #[test]
@@ -318,7 +318,7 @@ mod tests {
         let bullet_transform = Transform::from_xy(5., 5.);
         let ship_transform = Transform::from_xy(5., 5.);
 
-        assert_eq!(false, bullet.collides_with(&bullet_transform, &ship, &ship_transform).is_some());
+        assert!(bullet.collides_with(&bullet_transform, &ship, &ship_transform).is_none());
     }
 
     #[test]
@@ -340,6 +340,6 @@ mod tests {
         let bullet_transform = Transform::from_xy(5., 5.);
         let ship_transform = Transform::from_xy(5., 5.);
 
-        assert_eq!(true, bullet.collides_with(&bullet_transform, &ship, &ship_transform).is_some());
+        assert!(bullet.collides_with(&bullet_transform, &ship, &ship_transform).is_some());
     }
 }

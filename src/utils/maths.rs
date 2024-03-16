@@ -1,4 +1,4 @@
-use std::f32::consts::PI;
+
 use serde::{Deserialize, Serialize};
 use crate::core::components::maths::coordinates::Coordinates;
 
@@ -96,16 +96,16 @@ pub fn centroid_polygon(vertices: &Vec<Coordinates>) -> Coordinates {
         x += (current_vertice.x + next_vertice.x) * current_area;
         y += (current_vertice.y + next_vertice.y) * current_area;
     }
-    signed_area = signed_area * 0.5;
-    x = x / (6. * signed_area);
-    y = y / (6. * signed_area);
+    signed_area *= 0.5;
+    x /= 6. * signed_area;
+    y /= 6. * signed_area;
     Coordinates::new(x, y)
 }
 
 // https://www.omnicalculator.com/math/centroid#what-is-the-formula-for-the-centroid
 pub fn centroid_points(vertices: &Vec<Coordinates>) -> Coordinates {
     let sum = vertices.iter().fold(Coordinates::default(),
-                                   |mut acc, current|
+                                   |acc, current|
                                        Coordinates::new(acc.x + current.x, current.y + acc.y));
     Coordinates::new(sum.x / vertices.len() as f32, sum.y / vertices.len() as f32)
 }

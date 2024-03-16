@@ -49,11 +49,11 @@ mod tests {
 
         let e = world.push((UiImage::new(1., 1.),));
 
-        assert_eq!(true, world.entry::<&UiComponent>(e).expect("").get().is_none());
+        assert!(world.entry::<&UiComponent>(e).expect("").get().is_none());
 
         missing_ui_component_system::<UiImage>(&mut world);
 
-        assert_eq!(true, world.entry::<&UiComponent>(e).expect("").get().is_some());
+        assert!(world.entry::<&UiComponent>(e).expect("").get().is_some());
     }
 
     #[test]
@@ -64,10 +64,10 @@ mod tests {
 
         let e = world.push((UiInput::new(1,2,asset_ref),));
 
-        assert_eq!(true, world.entry::<&UiFocusable>(e).expect("").get().is_none());
+        assert!(world.entry::<&UiFocusable>(e).expect("").get().is_none());
 
         missing_focus_component_system::<UiInput>(&mut world);
 
-        assert_eq!(true, world.entry::<&UiFocusable>(e).expect("").get().is_some());
+        assert!(world.entry::<&UiFocusable>(e).expect("").get().is_some());
     }
 }

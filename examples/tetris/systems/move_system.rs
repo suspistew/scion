@@ -43,7 +43,7 @@ pub fn move_piece_system(data: &mut GameData) {
 
             for (x, y) in piece_values.iter() {
                 for (xx, yy) in static_values.iter() {
-                    if y == yy && *x == (xx - movement) as i32 {
+                    if y == yy && *x == (xx - movement) {
                         res = false;
                         break;
                     }

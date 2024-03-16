@@ -38,7 +38,7 @@ pub(crate) struct Texture {
 
 impl Texture {
     pub fn from_png(file_path: &Path) -> Texture {
-        if let Ok(bytes) = read_file(&file_path) {
+        if let Ok(bytes) = read_file(file_path) {
             let converted_image = image::load_from_memory_with_format(&bytes, ImageFormat::Png);
             if let Ok(image) = converted_image {
                 return Texture::create_texture_from_dynamic_image(image);
@@ -59,7 +59,7 @@ impl Texture {
         let bytes = include_bytes!("missing_texture.png");
         let image = image::load_from_memory_with_format(bytes, ImageFormat::Png)
             .expect("The fallback image has not been found !");
-        return Texture::create_texture_from_dynamic_image(image);
+        Texture::create_texture_from_dynamic_image(image)
     }
 
     fn create_texture_from_dynamic_image(dynamic_image: DynamicImage) -> Texture {

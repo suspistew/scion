@@ -18,7 +18,7 @@ pub struct Color {
 impl Color {
     /// Creates a new color using RGBA values
     pub fn new(r: u8, g: u8, b: u8, a: f32) -> Self {
-        assert!(a <= 1. && a >= 0., "Alpha value must be between 0.0 and 1.0");
+        assert!((0. ..=1.).contains(&a), "Alpha value must be between 0.0 and 1.0");
         Self { r, g, b, a }
     }
 
@@ -37,13 +37,13 @@ impl Color {
 
     pub fn new_hex(hex_code:&str) -> Self {
         let hex:Vec<char> = hex_code.chars().collect();
-        let red:u8 = Color::get_hex_value(hex[1]) * 16 + Color::get_hex_value(hex[2]) * 1;
-        let green:u8 = Color::get_hex_value(hex[3]) * 16 + Color::get_hex_value(hex[4]) * 1;
-        let blue:u8 = Color::get_hex_value(hex[5]) * 16 + Color::get_hex_value(hex[6]) * 1;
+        let red:u8 = Color::get_hex_value(hex[1]) * 16 + Color::get_hex_value(hex[2]);
+        let green:u8 = Color::get_hex_value(hex[3]) * 16 + Color::get_hex_value(hex[4]);
+        let blue:u8 = Color::get_hex_value(hex[5]) * 16 + Color::get_hex_value(hex[6]);
         let mut alpha:f32 = 1.0;
         if hex_code.len() > 7 // alpha value also exists in hex code
         {
-            let alpha255: u8 = Color::get_hex_value(hex[7]) * 16 + Color::get_hex_value(hex[8]) * 1;
+            let alpha255: u8 = Color::get_hex_value(hex[7]) * 16 + Color::get_hex_value(hex[8]);
             alpha = alpha255 as f32 / 255.0;
         }
         Color::new(red, green, blue, alpha)
@@ -52,7 +52,7 @@ impl Color {
    fn get_hex_value(mut ch: char) -> u8 {
         ch = ch.to_ascii_lowercase();
         if ch == 'a' {
-            return 10;
+            10
         }
         else if ch == 'b' {
             return 11;
@@ -96,13 +96,13 @@ impl Color {
     }
 }
 
-impl Into<GlColor> for &Color {
-    fn into(self) -> GlColor {
+impl From<&Color> for GlColor {
+    fn from(val: &Color) -> Self {
         GlColor {
-            r: self.r as f32 / 255.,
-            g: self.g as f32 / 255.,
-            b: self.b as f32 / 255.,
-            a: self.a,
+            r: val.r as f32 / 255.,
+            g: val.g as f32 / 255.,
+            b: val.b as f32 / 255.,
+            a: val.a,
         }
     }
 }

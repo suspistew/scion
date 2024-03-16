@@ -28,7 +28,7 @@ pub(crate) fn register_keyboard_inputs_on_ui_input(data: &mut GameData) {
     let current_focused = resources.focus_manager().current_focus_entity();
     if let Some(focused_entity) = current_focused {
         if let Ok(input) = world.entry_mut::<&mut UiInput>(focused_entity) {
-            if input.text().len() > 0 && resources.inputs().input_pressed_event(&Input::Key(KeyCode::BackSpace)){
+            if !input.text().is_empty() && resources.inputs().input_pressed_event(&Input::Key(KeyCode::BackSpace)){
                 input.set_text(input.text()[..input.text().len()-1].to_string());
                 return;
             }
@@ -59,7 +59,7 @@ pub(crate) fn synchronize_input_and_text(data: &mut GameData) {
     let mut dirty_input = Vec::new();
     for (_, (input, children)) in data.query_mut::<(&mut UiInput, &Children)>() {
         if input.dirty {
-            dirty_input.push((*children.0.get(0).unwrap(), input.text().to_string()));
+            dirty_input.push((*children.0.first().unwrap(), input.text().to_string()));
             input.dirty = false;
         }
     }

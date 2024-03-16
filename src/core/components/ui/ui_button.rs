@@ -81,7 +81,7 @@ impl UiButton {
         &self.text
     }
     pub fn padding(&self) -> Padding {
-        self.padding.clone()
+        self.padding
     }
     pub fn font_ref(&self) -> AssetRef<Font> {
         self.font_ref.clone()

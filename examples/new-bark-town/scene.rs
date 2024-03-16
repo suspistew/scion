@@ -79,7 +79,7 @@ impl Scene for MainScene {
             (
                 format!(
                     "examples/new-bark-town/assets/scenes/{}.json",
-                    global_resource.level.to_string()
+                    global_resource.level
                 ),
                 global_resource.start_x,
                 global_resource.start_y,

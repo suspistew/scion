@@ -211,7 +211,7 @@ impl Scion2D {
                 for (e, (tile, sprite)) in data.query::<(&Tile, &Sprite)>().iter() {
                     if tile.tilemap == entity {
                         let res = sprite.compute_content(Some(material));
-                        to_modify.push((e, res.clone()));
+                        to_modify.push((e, res));
                         let mut vec = res.to_vec();
                         vec.iter_mut().for_each(|gl_vertex| {
                             gl_vertex.position.append_position(
@@ -262,17 +262,17 @@ impl Scion2D {
         _queue: &mut Queue,
     ) {
         for (entity, (component, _, m)) in data.query::<(&mut T, &Transform, Option<&Material>)>().iter() {
-            if !self.vertex_buffers.contains_key(&entity) {
+            self.vertex_buffers.entry(entity).or_insert_with(|| {
                 let vertex_buffer =
                     device.create_buffer_init(&component.vertex_buffer_descriptor(m));
-                self.vertex_buffers.insert(entity, vertex_buffer);
-            }
+                vertex_buffer
+            });
 
-            if !self.index_buffers.contains_key(&entity) {
+            self.index_buffers.entry(entity).or_insert_with(|| {
                 let index_buffer =
                     device.create_buffer_init(&component.indexes_buffer_descriptor());
-                self.index_buffers.insert(entity, index_buffer);
-            }
+                index_buffer
+            });
         }
     }
 
@@ -354,7 +354,7 @@ impl Scion2D {
             .iter()
         {
             let path = match material {
-                Material::Color(color) => Some(get_path_from_color(&color)),
+                Material::Color(color) => Some(get_path_from_color(color)),
                 Material::Texture(p) => Some(p.clone()),
                 Material::Tileset(tileset) => Some(tileset.texture.clone()),
             };
@@ -414,7 +414,7 @@ impl Scion2D {
         {
             let path = if material.is_some() {
                 match material.unwrap() {
-                    Material::Color(color) => Some(get_path_from_color(&color)),
+                    Material::Color(color) => Some(get_path_from_color(color)),
                     Material::Texture(p) => Some(p.clone()),
                     _ => None
                 }
@@ -434,15 +434,15 @@ impl Scion2D {
     }
 
     fn update_transforms(&mut self, data: &mut GameData, device: &&Device, queue: &mut Queue) {
-        self.update_transforms_for_type::<Triangle>(data, &device, queue);
-        self.update_transforms_for_type::<Square>(data, &device, queue);
-        self.update_transforms_for_type::<Rectangle>(data, &device, queue);
-        self.update_transforms_for_type::<Sprite>(data, &device, queue);
-        self.update_transforms_for_type::<Line>(data, &device, queue);
-        self.update_transforms_for_type::<Polygon>(data, &device, queue);
-        self.update_transforms_for_type::<UiImage>(data, &device, queue);
-        self.update_transforms_for_type::<UiTextImage>(data, &device, queue);
-        self.update_transforms_for_type::<Tilemap>(data, &device, queue);
+        self.update_transforms_for_type::<Triangle>(data, device, queue);
+        self.update_transforms_for_type::<Square>(data, device, queue);
+        self.update_transforms_for_type::<Rectangle>(data, device, queue);
+        self.update_transforms_for_type::<Sprite>(data, device, queue);
+        self.update_transforms_for_type::<Line>(data, device, queue);
+        self.update_transforms_for_type::<Polygon>(data, device, queue);
+        self.update_transforms_for_type::<UiImage>(data, device, queue);
+        self.update_transforms_for_type::<UiTextImage>(data, device, queue);
+        self.update_transforms_for_type::<Tilemap>(data, device, queue);
     }
 
     fn update_transforms_for_type<T: Component + Renderable2D>(
@@ -457,7 +457,7 @@ impl Scion2D {
 
             for (_, (cam, tra)) in data.query::<(&Camera, &Transform)>().iter() {
                 c = cam.clone();
-                t = tra.clone();
+                t = *tra;
             }
             (c, t)
         };
@@ -467,9 +467,9 @@ impl Scion2D {
         for (entity, (transform, optional_ui_component, renderable, optional_material)) in
             data.query::<(&Transform, Option<&UiComponent>, &T, Option<&Material>)>().iter()
         {
-            if !self.transform_uniform_bind_groups.contains_key(&entity) {
+            if let std::collections::hash_map::Entry::Vacant(e) = self.transform_uniform_bind_groups.entry(entity) {
                 let (uniform, uniform_buffer, group) = create_transform_uniform_bind_group(
-                    &device,
+                    device,
                     transform,
                     camera,
                     optional_ui_component.is_some(),
@@ -477,7 +477,7 @@ impl Scion2D {
                     renderable.get_pivot_offset(optional_material)
                 );
                 queue.write_buffer(&uniform_buffer, 0, bytemuck::cast_slice(&[uniform]));
-                self.transform_uniform_bind_groups.insert(entity, (uniform, uniform_buffer, group));
+                e.insert((uniform, uniform_buffer, group));
             } else {
                 let (uniform, uniform_buffer, _) = self
                     .transform_uniform_bind_groups
@@ -536,7 +536,7 @@ impl Scion2D {
                         None
                     };
 
-                    if self.texture_should_be_reloaded(&texture_path, &new_timestamp) {
+                    if self.texture_should_be_reloaded(texture_path, &new_timestamp) {
                         if self.diffuse_bind_groups.contains_key(texture_path.as_str()) {
                             self.diffuse_bind_groups
                                 .get(texture_path.as_str())
@@ -568,9 +568,9 @@ impl Scion2D {
                     }
                 }
                 Material::Color(color) => {
-                    let path = get_path_from_color(&color);
+                    let path = get_path_from_color(color);
                     if !self.diffuse_bind_groups.contains_key(path.as_str()) {
-                        let loaded_texture = Texture::from_color(&color);
+                        let loaded_texture = Texture::from_color(color);
                         self.diffuse_bind_groups.insert(
                             path.clone(),
                             load_texture_to_queue(
@@ -626,8 +626,8 @@ fn load_texture_to_queue(
     texture_bind_group_layout: &BindGroupLayout,
 ) -> (BindGroup, wgpu::Texture) {
     let texture_size = wgpu::Extent3d {
-        width: texture.width as u32,
-        height: texture.height as u32,
+        width: texture.width,
+        height: texture.height,
         depth_or_array_layers: 1,
     };
 
@@ -649,11 +649,11 @@ fn load_texture_to_queue(
             origin: wgpu::Origin3d::ZERO,
             aspect: wgpu::TextureAspect::All,
         },
-        &*texture.bytes,
+        &texture.bytes,
         wgpu::ImageDataLayout {
             offset: 0,
             bytes_per_row: Some(4 * &texture.width),
-            rows_per_image: Some(1 * &texture.height),
+            rows_per_image: Some(texture.height),
         },
         texture_size,
     );
@@ -669,7 +669,7 @@ fn load_texture_to_queue(
     });
 
     let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        layout: &texture_bind_group_layout,
+        layout: texture_bind_group_layout,
         entries: &[
             wgpu::BindGroupEntry {
                 binding: 0,
