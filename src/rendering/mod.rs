@@ -9,7 +9,7 @@ use wgpu::{
 use crate::core::world::GameData;
 use crate::{config::scion_config::ScionConfig, core::components::material::Material};
 use crate::core::components::maths::Pivot;
-use crate::core::resources::inputs::types::KeyCode::P;
+
 use crate::utils::maths::Vector;
 
 pub(crate) mod gl_representations;

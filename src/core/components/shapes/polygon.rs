@@ -7,7 +7,7 @@ use crate::{
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
 use crate::core::components::maths::Pivot;
-use crate::core::components::Square;
+
 use crate::utils::maths::Vector;
 
 /// Renderable 2D Polygon made of outlines.
@@ -26,7 +26,7 @@ impl Polygon {
     pub fn new(vertices: Vec<Coordinates>) -> Self {
         Polygon::new_with_pivot(vertices, Pivot::TopLeft)
     }
-    pub fn pivot(mut self, pivot: Pivot) -> Self {
+    pub fn pivot(self, pivot: Pivot) -> Self {
         Polygon::new_with_pivot(self.vertices, pivot)
     }
 

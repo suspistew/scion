@@ -16,7 +16,7 @@ use crate::core::world::{GameData, Resources, SubWorld, World};
 /// This system is responsible of handling components needed to represent buttons
 /// It will detect and create needed components
 pub(crate) fn set_childs_on_buttons(data: &mut GameData) {
-    let (mut world, resources) = data.split();
+    let (world, resources) = data.split();
 
     let mut to_add_entities = Vec::new();
     for (e, (ui_button, transform)) in world.query_mut::<(&UiButton, &Transform)>().without::<&Children>() {
@@ -85,9 +85,9 @@ pub(crate) fn compute_hover(data: &mut GameData) {
 }
 
 fn change_button_material(world: &mut SubWorld, resources: &mut Resources, clicked_buttons: &mut Vec<(Entity, AssetRef<Material>, Vec<Entity>)>) {
-    clicked_buttons.drain(0..).for_each(|(e, asset_ref, children)| {
+    clicked_buttons.drain(0..).for_each(|(_e, asset_ref, children)| {
         let child = children.get(0).expect("At least one child must exist");
-        let button_asset_ref = world.entry_mut::<(&AssetRef<Material>)>(*child);
+        let button_asset_ref = world.entry_mut::<&AssetRef<Material>>(*child);
 
         if button_asset_ref.is_err() || button_asset_ref.as_ref().expect("").0 != asset_ref.0 {
             let material = resources.assets().get_material_for_ref(&asset_ref);

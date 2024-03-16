@@ -1,4 +1,4 @@
-use log::info;
+
 use crate::{core::components::maths::coordinates::Coordinates, utils::maths::Vector};
 
 /// represents the bounds for a Transoform with min and max values

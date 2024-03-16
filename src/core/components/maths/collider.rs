@@ -3,8 +3,8 @@ use geo_types::{Coord, LineString};
 use crate::core::components::maths::{coordinates::Coordinates, Pivot, transform::Transform};
 use crate::utils::maths::{centroid_polygon, rotate_point_around_pivot, Vector};
 use hecs::Entity;
-use log::info;
-use crate::core::components::shapes::polygon::Polygon;
+
+
 
 /// `ColliderMask` will serve as a 'mask' to allow filter while collisions happen
 #[derive(PartialEq, Clone, Eq, Hash, Debug)]

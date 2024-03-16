@@ -31,7 +31,7 @@ impl Square {
     }
 
     /// Sets the pivot point of the square and returns it
-    pub fn pivot(mut self, pivot: Pivot) -> Self {
+    pub fn pivot(self, pivot: Pivot) -> Self {
         Square::new_with_pivot(self.length, self.uvs, pivot)
     }
 

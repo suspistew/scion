@@ -1,5 +1,5 @@
 use std::{collections::HashMap, marker::PhantomData};
-use log::{debug, info};
+use log::{debug};
 
 use crate::core::components::{material::Material, tiles::tileset::Tileset};
 use crate::core::components::ui::font::Font;

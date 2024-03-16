@@ -13,7 +13,7 @@ use crate::core::package::Package;
 use crate::core::resources::time::Time;
 use crate::core::scene::{Scene, SceneAction, SceneMachine};
 use crate::core::scheduler::Scheduler;
-use crate::core::systems::collider_systems::collider_cleaner_system;
+
 use crate::core::systems::InternalPackage;
 use crate::core::world::GameData;
 use crate::{

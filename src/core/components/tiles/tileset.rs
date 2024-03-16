@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 use crate::core::components::tiles::atlas::data::{TileConfig, TilesetAtlas};
-use crate::core::world::Resources;
+
 use crate::utils::file::read_file;
 
 #[derive(Clone, Debug)]
@@ -16,6 +16,7 @@ pub struct Tileset {
     /// width of a tile
     pub(crate) tile_width: usize,
     /// height of a tile
+    #[allow(dead_code)]
     pub(crate) tile_height: usize,
     /// Texture path of this Tileset
     pub(crate) texture: String,

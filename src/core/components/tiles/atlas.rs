@@ -1,21 +1,21 @@
-use base64::Engine;
-use serde::{Deserialize, Serialize};
+
+
 
 pub mod importer {
-    use std::collections::HashMap;
+    
     use std::path::Path;
     use std::time::Duration;
     use base64::Engine;
 
     use base64::prelude::BASE64_STANDARD;
     use hecs::Entity;
-    use image::imageops::tile;
+    
     use log::debug;
     use crate::core::components::animations::{Animation, AnimationModifier};
 
     use crate::core::components::material::Material;
     use crate::core::components::maths::transform::TransformBuilder;
-    use crate::core::components::tiles::atlas::data::{TileConfig, TilemapAtlas, TilesetAtlas};
+    use crate::core::components::tiles::atlas::data::{TilemapAtlas, TilesetAtlas};
     use crate::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
     use crate::core::components::tiles::tileset::Tileset;
     use crate::core::resources::asset_manager::{AssetRef, AssetType};
@@ -47,7 +47,7 @@ pub mod importer {
                 debug!("Tileset at path {} has been loaded", path);
                 return tileset;
             }
-            Err(e) => panic!(e)
+            Err(e) => std::panic::panic_any(e)
         }
     }
 
@@ -139,7 +139,7 @@ pub mod data {
     use crate::utils::maths::Position;
 
     #[derive(Serialize, Deserialize)]
-    pub(crate) struct TilesetAtlas {
+    pub struct TilesetAtlas {
         pub(crate) name: String,
         pub(crate) total_tiles: usize,
         pub(crate) width: usize,
@@ -151,7 +151,7 @@ pub mod data {
     }
 
     impl TilesetAtlas {
-        pub fn into_tileset(mut self, texture_path: String) -> Tileset {
+        pub fn into_tileset(self, texture_path: String) -> Tileset {
             Tileset {
                 name: self.name,
                 width: self.width,
@@ -241,7 +241,7 @@ pub mod data {
 
     impl TilemapAtlas {
         pub(crate) fn tile_at(&self, position: &Position) -> Option<usize> {
-            if (position.x() > self.width || position.y() > self.height || position.z() > self.layers.len()) {
+            if position.x() > self.width || position.y() > self.height || position.z() > self.layers.len() {
                 panic!("Position of requested tile is not coherent with tilemap informations");
             }
             let tile = *self.layers.get(position.z()).unwrap().tiles.get(position.y()).unwrap().get(position.x()).unwrap();

@@ -9,7 +9,7 @@ use crate::{
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
 use crate::core::components::maths::Pivot;
-use crate::core::components::shapes::rectangle::Rectangle;
+
 use crate::utils::maths::Vector;
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
@@ -136,7 +136,7 @@ impl Renderable2D for Sprite {
     }
 
     fn get_pivot_offset(&self, material: Option<&Material>) -> Vector {
-        if (material.is_none()) {
+        if material.is_none() {
             Vector::default()
         } else if let Material::Tileset(tileset) = material.unwrap() {
             Self::compute_pivot_offset(&self.pivot, tileset.tile_width)

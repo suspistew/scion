@@ -1,17 +1,17 @@
 use std::path::Path;
 use std::str::from_utf8;
-use std::time::{Duration, SystemTime};
+use std::time::{Duration};
 use std::vec;
 
 use hecs::Entity;
-use log::info;
+
 
 use scion::core::components::animations::{Animation, AnimationModifier, Animations};
 use scion::core::components::material::Material;
 use scion::core::components::maths::camera::Camera;
 use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
 use scion::core::components::maths::hierarchy::Parent;
-use scion::core::components::maths::Pivot;
+
 use scion::core::components::maths::transform::{Transform, TransformBuilder};
 use scion::core::components::tiles::sprite::Sprite;
 use scion::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
@@ -25,11 +25,10 @@ use scion::utils::maths::{Dimensions, Position, Vector};
 use crate::character::{Character, get_animations_character};
 
 #[derive(PartialEq, Default, Copy, Clone)]
-enum Direction {
+pub enum Direction {
     LEFT,
     #[default]
     RIGHT,
-    TOP,
     BOTTOM,
 }
 
@@ -86,7 +85,7 @@ impl Scene for MainScene {
         let direction = if direction.is_some() { direction.expect("") } else { self.direction.clone() };
         let (world, resources) = data.split();
         if (!self.running || self.direction != direction) && running {
-            for (_, (character, material, transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
+            for (_, (character, material, _transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
                 if direction == Direction::LEFT {
                     *material = Material::Tileset(resources.assets_mut().retrieve_tileset(&character.running_left_asset_ref).expect("").clone());
                     animations.stop_all_animation(true);
@@ -100,7 +99,7 @@ impl Scene for MainScene {
             self.running = true;
             self.idle = false;
         } else if !running && (!self.idle || self.direction != direction) {
-            for (_, (character, material, transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
+            for (_, (character, material, _transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
                 if direction == Direction::LEFT {
                     *material = Material::Tileset(resources.assets_mut().retrieve_tileset(&character.idle_left_asset_ref).expect("").clone());
                     animations.stop_all_animation(true);
@@ -115,14 +114,14 @@ impl Scene for MainScene {
             self.idle = true;
         }
         if right {
-            for (_, (character, material, transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
+            for (_, (_character, _material, transform, _animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
                 if !collisions.contains(&Direction::RIGHT) {
                     transform.append_x(4.5);
                 }
             }
         }
         if left {
-            for (_, (character, material, transform, animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
+            for (_, (_character, _material, transform, _animations)) in world.query_mut::<(&Character, &mut Material, &mut Transform, &mut Animations)>() {
                 if !collisions.contains(&Direction::LEFT) {
                     transform.append_x(-4.5);
                 }
@@ -192,7 +191,7 @@ fn add_background(data: &mut GameData) {
         tileset_ref,
     );
 
-    Tilemap::create(tilemap_infos, data, |p| {
+    Tilemap::create(tilemap_infos, data, |_p| {
         TileInfos::new(Some(0), Some(Animation::looping(Duration::from_millis(2560), vec![AnimationModifier::sprite(vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], 1)])))
     });
 }

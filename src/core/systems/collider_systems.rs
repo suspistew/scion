@@ -1,23 +1,22 @@
 use std::collections::{HashMap, HashSet};
 use hecs::{Component, Entity};
-use log::info;
+
 
 use crate::core::components::{color::Color, material::Material, maths::{
-    collider::{Collider, ColliderDebug, ColliderMask, ColliderType, Collision},
-    coordinates::Coordinates,
+    collider::{Collider, ColliderDebug, ColliderMask, Collision},
     hierarchy::Parent,
     transform::Transform,
-}, shapes::polygon::Polygon, Square, Triangle};
-use crate::core::components::maths::{collider, Pivot};
-use crate::core::components::shapes::line::Line;
-use crate::core::components::shapes::rectangle::Rectangle;
-use crate::core::components::tiles::sprite::Sprite;
-use crate::core::components::ui::UiComponent;
+}, shapes::polygon::Polygon};
+
+
+
+
+
 use crate::core::resources::global_storage::GlobalStorage;
-use crate::core::resources::inputs::types::{Input, KeyCode, Shortcut};
+use crate::core::resources::inputs::types::{Input, KeyCode};
 use crate::core::world::{GameData, World};
 use crate::rendering::Renderable2D;
-use crate::utils::maths::Vector;
+
 
 pub(crate) fn collider_cleaner_system(data: &mut GameData) {
     for (_, c) in data.query_mut::<&mut Collider>() {
@@ -59,7 +58,7 @@ pub(crate) fn compute_collisions_system(data: &mut GameData) {
                             cpt += 1;
                             (_e, t, c, collider.collides_with(transform, c, t))
                         })
-                        .filter(|(_e, t, c, collision_area)| collision_area.is_some())
+                        .filter(|(_e, _t, _c, collision_area)| collision_area.is_some())
                         .for_each(|(_e, t, c, collision_area)| {
                             res.entry(*entity).or_insert_with(|| Vec::new()).push(Collision {
                                 mask: c.mask().clone(),
@@ -100,7 +99,7 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
                 ColliderMask::Item => Color::new_rgb(0, 255, 255),
             };
             let offset = collider.offset();
-            let mut polygon_collider =
+            let polygon_collider =
                 Polygon::new(collider.collider_coordinates(0.,0.)).pivot(collider.get_pivot());
             debug_lines_to_add.push((
                 Parent(entity),
