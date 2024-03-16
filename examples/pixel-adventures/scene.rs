@@ -184,7 +184,7 @@ impl MainScene{
 }
 
 fn add_background(data: &mut GameData) {
-    let tileset = Tileset::new(app_base_path().join("examples/pixel-adventures/assets/background.png").get(), 32, 1, 64);
+    let tileset = Tileset::new("background".to_string(), app_base_path().join("examples/pixel-adventures/assets/background.png").get(), 32, 1, 64, 64);
     let tileset_ref = data.assets_mut().register_tileset(tileset);
     let tilemap_infos = TilemapInfo::new(
         Dimensions::new(12, 6, 1),
@@ -203,7 +203,7 @@ fn add_structures(data: &mut GameData) {
     let csv = from_utf8(file.as_slice()).expect("no");
     let tiles: Vec<usize> = csv.split(',').map(|v| v.parse::<usize>().expect("")).collect();
 
-    let tileset = Tileset::new(app_base_path().join("examples/pixel-adventures/assets/Terrain/Terrain.png").get(), 22, 11, 16);
+    let tileset = Tileset::new("terrain".to_string(), app_base_path().join("examples/pixel-adventures/assets/Terrain/Terrain.png").get(), 22, 11, 16, 16);
     let tileset_ref = data.assets_mut().register_tileset(tileset);
     let tilemap_infos = TilemapInfo::new(
         Dimensions::new(48, 24, 1),
@@ -229,7 +229,7 @@ fn compute_tile_nb(pos: &Position, tiles: &Vec<usize>) -> Option<usize> {
 
 fn add_cherries(data: &mut GameData) {
     let tileset =
-        Tileset::new(app_base_path().join("examples/pixel-adventures/assets/Items/Fruits/Cherries.png").get(), 17, 1, 32);
+        Tileset::new("cherries".to_string(), app_base_path().join("examples/pixel-adventures/assets/Items/Fruits/Cherries.png").get(), 17, 1, 32, 32);
     let tileset_ref = data.assets_mut().register_tileset(tileset);
 
     let cherries_pos = vec![(484., 432.), (548., 432.), (612., 432.)];
@@ -251,7 +251,7 @@ fn add_cherries(data: &mut GameData) {
 
 fn add_bananas(data: &mut GameData) {
     let tileset =
-        Tileset::new(app_base_path().join("examples/pixel-adventures/assets/Items/Fruits/Bananas.png").get(), 17, 1, 32);
+        Tileset::new("Bananas".to_string(), app_base_path().join("examples/pixel-adventures/assets/Items/Fruits/Bananas.png").get(), 17, 1, 32, 32);
     let tileset_ref = data.assets_mut().register_tileset(tileset);
 
     let cherries_pos = vec![(245., 202.), (470., 202.), (695., 202.)];
@@ -273,23 +273,23 @@ fn add_bananas(data: &mut GameData) {
 
 fn add_character(data: &mut GameData) -> Entity {
     let tileset_idle_right =
-        Tileset::new(app_base_path().join("examples/pixel-adventures/assets/Main Characters/Ninja Frog/Idle.png").get(), 11, 1, 32);
+        Tileset::new("Idle".to_string(), app_base_path().join("examples/pixel-adventures/assets/Main Characters/Ninja Frog/Idle.png").get(), 11, 1, 32, 32);
     let tileset_ref_idle_right = data.assets_mut().register_tileset(tileset_idle_right);
 
     let tileset_idle_left =
-        Tileset::new(app_base_path().join("examples/pixel-adventures/assets/Main Characters/Ninja Frog/Idle2.png").get(), 11, 1, 32);
+        Tileset::new("Idle2".to_string(), app_base_path().join("examples/pixel-adventures/assets/Main Characters/Ninja Frog/Idle2.png").get(), 11, 1, 32, 32);
     let tileset_ref_idle_left = data.assets_mut().register_tileset(tileset_idle_left);
 
     let tileset_run_right =
-        Tileset::new(app_base_path().join("examples/pixel-adventures/assets/Main Characters/Ninja Frog/Run.png").get(), 12, 1, 32);
+        Tileset::new("Run".to_string(), app_base_path().join("examples/pixel-adventures/assets/Main Characters/Ninja Frog/Run.png").get(), 12, 1, 32, 32);
     let tileset_ref_run_right = data.assets_mut().register_tileset(tileset_run_right);
 
     let tileset_run_left =
-        Tileset::new(app_base_path().join("examples/pixel-adventures/assets/Main Characters/Ninja Frog/Run2.png").get(), 12, 1, 32);
+        Tileset::new("Run2".to_string(), app_base_path().join("examples/pixel-adventures/assets/Main Characters/Ninja Frog/Run2.png").get(), 12, 1, 32, 32);
     let tileset_ref_run_left = data.assets_mut().register_tileset(tileset_run_left);
 
     let tileset_jump =
-        Tileset::new(app_base_path().join("examples/pixel-adventures/assets/Main Characters/Ninja Frog/Jump.png").get(), 1, 1, 32);
+        Tileset::new("Jump".to_string(), app_base_path().join("examples/pixel-adventures/assets/Main Characters/Ninja Frog/Jump.png").get(), 1, 1, 32,32);
     let tileset_ref_jump = data.assets_mut().register_tileset(tileset_jump);
 
     data.push((

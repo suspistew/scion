@@ -1,11 +1,16 @@
 use hecs::Entity;
 use std::{collections::HashMap, ops::Range};
+use std::io::BufRead;
+use std::path::Path;
+use base64::Engine;
+use base64::prelude::BASE64_STANDARD;
+use log::debug;
 
 use serde::{Deserialize, Serialize};
 use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
 use crate::core::resources::asset_manager::AssetManager;
-use crate::core::world::{SubWorld, World};
+use crate::core::world::{GameData, Resources, SubWorld, World};
 use crate::{
     core::{
         components::{
@@ -19,7 +24,6 @@ use crate::{
     rendering::Renderable2D,
     utils::maths::{Dimensions, Position},
 };
-
 #[derive(Debug)]
 pub struct Pathing {
     pathing_type: String,
@@ -127,7 +131,7 @@ impl Tilemap {
                     let tile_infos = tile_resolver(&position);
 
                     let entity = world.push((
-                        Tile { position: position.clone(), tilemap: self_entity.clone() },
+                        Tile { position: position.clone(), tilemap: self_entity },
                         Parent(self_entity.clone()),
                     ));
 
@@ -223,8 +227,7 @@ impl Tilemap {
                     .tile_entities
                     .get(&tile_position)
                     .as_ref()
-                    .map(|e| **e)
-                    .clone(),
+                    .map(|e| **e),
                 tilemap.as_ref().unwrap().tileset_ref.clone(),
             )
         };
@@ -275,7 +278,7 @@ impl Renderable2D for Tilemap {
     }
 
     fn topology() -> PrimitiveTopology {
-        wgpu::PrimitiveTopology::TriangleList
+        PrimitiveTopology::TriangleList
     }
 
     fn dirty(&self) -> bool {

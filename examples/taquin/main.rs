@@ -123,9 +123,11 @@ struct MainScene;
 impl Scene for MainScene {
     fn on_start(&mut self, data: &mut GameData) {
         let tileset_ref = data.assets_mut().register_tileset(Tileset::new(
+            "taquin_texture".to_string(),
             app_base_path().join("examples/taquin/assets/taquin.png").get(),
             4,
             4,
+            192,
             192,
         ));
 

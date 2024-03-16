@@ -22,7 +22,7 @@ impl Material {
     /// Returns the tile_size in case of a Tileset Material.
     pub(crate) fn tile_size(material: &Material) -> Option<usize> {
         if let Material::Tileset(tileset) = material {
-            Some(tileset.tile_size)
+            Some(tileset.tile_width) // FIXME
         } else {
             None
         }

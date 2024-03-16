@@ -55,9 +55,11 @@ pub struct BombermanInfos {
 impl Scene for MainScene {
     fn on_start(&mut self, data: &mut GameData) {
         let asset_ref = data.assets_mut().register_tileset(Tileset::new(
+            "sokoban_tilesheet".to_string(),
             app_base_path().join("examples/bomberman/assets/sokoban_tilesheet.png").get(),
             13,
             9,
+            64,
             64,
         ));
 

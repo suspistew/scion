@@ -34,6 +34,7 @@ serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.114"
 bytemuck = { version = "1.14", features = ["derive"] }
 image = { version = "0.24", default-features = false, features = ["png"] }
+base64 = "0.22.0"
 
 # logging
 log = { version = "0.4.21", features = ["serde"] }

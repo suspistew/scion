@@ -1,22 +1,27 @@
 use geo_clipper::Clipper;
+use log::LevelFilter;
 
+use scion::config::logger_config::LoggerConfig;
 use scion::config::scion_config::{ScionConfig, ScionConfigBuilder};
 use scion::config::window_config::WindowConfigBuilder;
 use scion::core::components::color::Color;
 use scion::Scion;
-
-use crate::scene::ShowCaseScene;
+use crate::scene::DemoScene;
 
 mod scene;
 
 fn main() {
     Scion::app_with_config(create_config())
-        .with_scene::<ShowCaseScene>()
+        .with_scene::<DemoScene>()
         .run();
 }
 
+
 fn create_config() -> ScionConfig {
     ScionConfigBuilder::new()
+        .with_logger_config(LoggerConfig{
+            scion_level_filter: LevelFilter::Debug,
+            level_filter: LevelFilter::Debug })
         .with_app_name("Showcase - Scion".to_string())
         .with_window_config(
             WindowConfigBuilder::new()
