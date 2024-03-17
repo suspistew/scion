@@ -118,9 +118,11 @@ impl AssetManager {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, Copy, PartialEq, Hash)]
 pub struct AssetRef<T: Send + Sync>(pub(crate) usize, pub(crate) PhantomData<T>);
 
+impl Copy for AssetRef<Material>{}
+impl Copy for AssetRef<Font>{}
 
 #[derive(Clone, Eq, PartialEq, Hash)]
 pub enum AssetType {

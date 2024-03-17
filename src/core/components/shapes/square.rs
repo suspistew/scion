@@ -55,6 +55,7 @@ impl Square {
         match pivot {
             Pivot::TopLeft => Vector::new(0., 0.),
             Pivot::Center => Vector::new(length / 2., length / 2.),
+            Pivot::Custom(x,y) => Vector::new(*x, *y)
         }
     }
 }

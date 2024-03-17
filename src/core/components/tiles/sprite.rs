@@ -48,10 +48,11 @@ impl Sprite {
         self.tile_number
     }
 
-    fn compute_pivot_offset(pivot: &Pivot, length: usize) -> Vector {
+    fn compute_pivot_offset(pivot: &Pivot, width: usize, height: usize) -> Vector {
         match pivot {
             Pivot::TopLeft => Vector::new(0., 0.),
-            Pivot::Center => Vector::new(length as f32 / 2., length as f32 / 2.),
+            Pivot::Center => Vector::new(width as f32 / 2., height as f32 / 2.),
+            Pivot::Custom(x,y) => Vector::new(*x, *y)
         }
     }
 
@@ -72,10 +73,10 @@ impl Sprite {
     pub(crate) fn compute_content(&self, material: Option<&Material>) -> [TexturedGlVertex; 4] {
         if (self.dirty || self.contents.is_none()) && material.is_some() {
             if let Material::Tileset(tileset) = material.unwrap() {
-                let offset = Self::compute_pivot_offset(&self.pivot, tileset.tile_width);
+                let offset = Self::compute_pivot_offset(&self.pivot, tileset.tile_width, tileset.tile_height);
                 let a = Coordinates::new(0. - offset.x, 0. - offset.y);
-                let b = Coordinates::new(a.x, a.y + tileset.tile_width as f32);
-                let c = Coordinates::new(a.x + tileset.tile_width as f32, a.y + tileset.tile_width as f32);
+                let b = Coordinates::new(a.x, a.y + tileset.tile_height as f32);
+                let c = Coordinates::new(a.x + tileset.tile_width as f32, a.y + tileset.tile_height as f32);
                 let d = Coordinates::new(a.x + tileset.tile_width as f32, a.y);
                 let uvs_ref = self.uv_refs(tileset);
                 return [
@@ -139,7 +140,7 @@ impl Renderable2D for Sprite {
         if material.is_none() {
             Vector::default()
         } else if let Material::Tileset(tileset) = material.unwrap() {
-            Self::compute_pivot_offset(&self.pivot, tileset.tile_width)
+            Self::compute_pivot_offset(&self.pivot, tileset.tile_width, tileset.tile_height)
         } else { Vector::default() }
     }
     fn get_pivot(&self) -> Pivot {

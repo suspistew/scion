@@ -25,14 +25,24 @@ pub(crate) enum SceneAction {
 #[derive(Default)]
 pub(crate) struct SceneMachine {
     pub(crate) current_scene: Option<Box<dyn Scene>>,
+    pub(crate) current_scene_started: bool
 }
 
 impl SceneMachine {
     pub(crate) fn apply_scene_action(&mut self, action: SceneAction, data: &mut GameData) {
         if let Some(scene) = self.current_scene.as_mut() {
             match action {
-                SceneAction::Update => scene.on_update(data),
-                SceneAction::Start => scene.on_start(data),
+                SceneAction::Update => {
+                    if !self.current_scene_started{
+                        scene.on_start(data);
+                        self.current_scene_started = true;
+                    }
+                    scene.on_update(data);
+                },
+                SceneAction::Start => {
+                    scene.on_start(data);
+                    self.current_scene_started = true;
+                },
                 SceneAction::EndFrame => {}
                 SceneAction::LateUpdate => scene.late_update(data),
             };
@@ -42,12 +52,12 @@ impl SceneMachine {
             SceneAction::EndFrame => {
                 let action = data.scene_controller().action();
                 match action {
-                    Some(SceneTrans::Switch(mut new_scene)) => {
+                    Some(SceneTrans::Switch(new_scene)) => {
                         if let Some(mut scene) = self.current_scene.take() {
                             scene.on_stop(data);
                         }
-                        new_scene.on_start(data);
                         self.current_scene = Some(new_scene);
+                        self.current_scene_started = false;
                     }
                     _ => {}
                 }
@@ -58,7 +68,7 @@ impl SceneMachine {
 }
 
 pub(crate) enum SceneTrans {
-    Switch(Box<dyn Scene>),
+    Switch(Box<dyn Scene>)
 }
 
 /// `SceneController` is the Resource used to control the game scenes.
@@ -106,7 +116,7 @@ mod tests {
         world.insert_resource(SceneController::default());
 
         let scene = Box::new(A);
-        let mut machine = SceneMachine { current_scene: Some(scene) };
+        let mut machine = SceneMachine { current_scene: Some(scene), current_scene_started: false };
 
         world.scene_controller().switch::<B>();
         machine.apply_scene_action(SceneAction::EndFrame, &mut world);

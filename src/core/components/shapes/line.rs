@@ -39,6 +39,7 @@ impl Line {
                 (vertices[1].x - vertices[0].x).abs() / 2.,
                 (vertices[1].y - vertices[0].y).abs() / 2.,
             ),
+            Pivot::Custom(x,y) => Vector::new(*x, *y)
         }
     }
 

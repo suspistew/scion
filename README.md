@@ -65,6 +65,8 @@ cargo run --example bomberman --release
 
 ## Showcase
 
-| <img src="./examples/taquin/taquin_2.gif" alt="Taquin" style="width:300px; border: 2px solid black;"/> | <img src="./examples/tetris/tetris.gif" alt="Tetris" style="width:300px" />  | <img src="./examples/pixel-adventures/pixel-adventures.gif" alt="Pixel-adventures" style="width:300px" /> |
-|--------------------------------------------------------------------------------------------------------| ------------- |-----------------------------------------------------------------------------------------------------------|
-| <img src="./examples/bomberman/bomberman.gif" alt="Bomberman" style="width:300px" />                   | <img src="./examples/jezzball/jezzball.gif" alt="Jezzball" style="width:300px" /> | <img src="./examples/new-bark-town/new-bark-town.gif" alt="New bark town" style="width:300px" />          |
+| <img src="./examples/taquin/taquin_2.gif" alt="Taquin" style="width:300px; border: 2px solid black;"/>  | <img src="./examples/tetris/tetris.gif" alt="Tetris" style="width:300px" />  | <img src="./examples/pixel-adventures/pixel-adventures.gif" alt="Pixel-adventures" style="width:300px" /> |
+|---------------------------------------------------------------------------------------------------------| ------------- |-----------------------------------------------------------------------------------------------------------|
+| <img src="./examples/bomberman/bomberman.gif" alt="Bomberman" style="width:300px" />                    | <img src="./examples/jezzball/jezzball.gif" alt="Jezzball" style="width:300px" /> | <img src="./examples/new-bark-town/new-bark-town.gif" alt="New bark town" style="width:300px" />          |
+| <img src="./examples/starlight-1961/starlight.gif" alt="Starlight" style="width:300px" />               |  | |
+

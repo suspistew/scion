@@ -119,6 +119,10 @@ impl Transform {
         self.dirty = true;
     }
 
+    pub fn global_angle(&self) -> f32 {
+        self.global_angle
+    }
+
     /// Get the transform's coordinates
     pub fn translation(&self) -> &Coordinates {
         &self.local_translation

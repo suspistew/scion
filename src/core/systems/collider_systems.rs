@@ -94,7 +94,7 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
                 ColliderMask::Character => Color::new_rgb(255, 0, 0),
                 ColliderMask::Bullet => Color::new_rgb(255, 0, 0),
                 ColliderMask::Death => Color::new_rgb(255, 0, 0),
-                ColliderMask::Landscape => Color::new_rgb(0, 255, 0),
+                ColliderMask::Landscape => Color::new_rgb(255, 255, 0),
                 ColliderMask::Custom(_) => Color::new_rgb(0, 0, 255),
                 ColliderMask::Item => Color::new_rgb(0, 255, 255),
             };

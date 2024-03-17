@@ -79,6 +79,7 @@ impl Renderable2D for UiImage {
     }
 
     fn set_dirty(&mut self, _is_dirty: bool) {}
+
 }
 
 impl RenderableUi for UiImage {

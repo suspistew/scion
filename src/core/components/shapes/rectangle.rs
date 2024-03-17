@@ -40,6 +40,7 @@ impl Rectangle {
         match pivot {
             Pivot::TopLeft => Vector::new(0., 0.),
             Pivot::Center => Vector::new(width / 2., height / 2.),
+            Pivot::Custom(x,y) => Vector::new(*x, *y)
         }
     }
 

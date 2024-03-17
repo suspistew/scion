@@ -25,9 +25,9 @@ mod systems;
 fn main() {
     Scion::app_with_config(app_config())
         .with_scene::<MainScene>()
-        .with_pausable_system(piece_update_system, |gs| gs.get("pause"))
-        .with_pausable_system(move_piece_system, |gs| gs.get("pause"))
-        .with_pausable_system(piece_rotation_system, |gs| gs.get("pause"))
+        .with_pausable_system(piece_update_system, |gs| gs.get_bool("pause"))
+        .with_pausable_system(move_piece_system, |gs| gs.get_bool("pause"))
+        .with_pausable_system(piece_rotation_system, |gs| gs.get_bool("pause"))
         .with_system(score_system)
         .run();
 }

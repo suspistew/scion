@@ -85,7 +85,7 @@ impl Package for InternalPackage {
         data.insert_resource(GlobalStorage::default());
     }
 
-    fn load(self, builder: ScionBuilder) -> ScionBuilder {
+    fn load(&self, builder: ScionBuilder) -> ScionBuilder {
         builder
             .with_system(collider_cleaner_system)
             .with_system(default_camera_system)
