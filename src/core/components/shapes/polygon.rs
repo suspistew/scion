@@ -1,13 +1,12 @@
 use std::ops::Range;
 
-use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
+use wgpu::{PrimitiveTopology, util::BufferInitDescriptor};
 
 use crate::{
     core::components::{material::Material, maths::coordinates::Coordinates},
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
 use crate::core::components::maths::Pivot;
-
 use crate::utils::maths::Vector;
 
 /// Renderable 2D Polygon made of outlines.
@@ -74,7 +73,8 @@ impl Polygon {
             Pivot::Center => {
                 let centroid = crate::utils::maths::centroid_polygon(vertices);
                 Vector::new(centroid.x, centroid.y)
-            }
+            },
+            Pivot::Custom(x,y) => Vector::new(*x, *y)
         }
     }
 }
@@ -97,7 +97,7 @@ impl Renderable2D for Polygon {
     }
 
     fn range(&self) -> Range<u32> {
-        0..(self.indices.len() + 1) as u32
+        0..(self.indices.len()) as u32
     }
 
     fn topology() -> PrimitiveTopology {

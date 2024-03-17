@@ -1,0 +1,35 @@
+{
+  "app_name": "Starlight 1961 - Scion",
+  "logger_config": {
+    "scion_level_filter": "INFO",
+    "level_filter": "INFO"
+  },
+  "window_config": {
+    "fullscreen": false,
+    "dimensions": [
+      704,
+      576
+    ],
+    "min_dimensions": [
+      704,
+      576
+    ],
+    "max_dimensions": [
+      704,
+      576
+    ],
+    "visibility": true,
+    "icon": null,
+    "always_on_top": false,
+    "decorations": true,
+    "maximized": false,
+    "resizable": false,
+    "transparent": false,
+    "default_background_color": {
+      "r": 18,
+      "g": 33,
+      "b": 31,
+      "a": 1.0
+    }
+  }
+}

@@ -43,6 +43,7 @@ pub(crate) struct Scion2D {
     first_tick_passed: bool
 }
 
+#[derive(Debug)]
 struct RenderingInfos {
     layer: usize,
     range: Range<u32>,
@@ -728,12 +729,7 @@ fn get_default_color_attachment<'a>(
                     .expect("Window config is missing")
                     .default_background_color
                 {
-                    wgpu::Color {
-                        r: (color.red() as f32 / 255.) as f64,
-                        g: (color.green() as f32 / 255.) as f64,
-                        b: (color.blue() as f32 / 255.) as f64,
-                        a: color.alpha() as f64,
-                    }
+                    to_linear_rgb(color)
                 } else {
                     wgpu::Color { r: 1., g: 0., b: 0., a: 1.0 }
                 },
@@ -741,6 +737,26 @@ fn get_default_color_attachment<'a>(
             store: StoreOp::Store,
         },
     })
+}
+
+pub fn to_linear_rgb(color: &Color) -> wgpu::Color {
+    let (r, g, b) = ((color.red() as f32 / 255.) as f64,
+                     (color.green() as f32 / 255.) as f64,
+                     (color.blue() as f32 / 255.) as f64);
+
+    let f = |x: f64| {
+        if x > 0.04045 {
+            ((x + 0.055) / 1.055).powf(2.4)
+        } else {
+            x / 12.92
+        }
+    };
+    wgpu::Color {
+        r: f(r),
+        g: f(g),
+        b: f(b),
+        a: color.alpha() as f64,
+    }
 }
 
 fn get_path_from_color(color: &Color) -> String {

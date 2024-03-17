@@ -208,7 +208,7 @@ impl ScionBuilder {
         self
     }
 
-    /// Add a normal game layer to the pile. Every layer added before in the pile will be called
+    /// Set the scene to the given one. Only one scene can be executed at a time
     pub fn with_scene<T: Scene + Default + 'static>(mut self) -> Self {
         self.scene = Some(Box::<T>::default());
         self
@@ -244,7 +244,7 @@ impl ScionBuilder {
             config: self.config,
             game_data: self.world,
             scheduler: self.scheduler,
-            layer_machine: SceneMachine { current_scene: self.scene },
+            layer_machine: SceneMachine { current_scene: self.scene, current_scene_started: false },
             window: Some(window),
             renderer: Some(renderer_state),
         };

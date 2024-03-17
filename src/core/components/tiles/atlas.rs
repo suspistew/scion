@@ -10,7 +10,7 @@ pub mod importer {
     use base64::prelude::BASE64_STANDARD;
     use hecs::Entity;
     
-    use log::debug;
+    use log::{debug, error};
     use crate::core::components::animations::{Animation, AnimationModifier};
 
     use crate::core::components::material::Material;
@@ -47,7 +47,10 @@ pub mod importer {
                 debug!("Tileset at path {} has been loaded", path);
                 tileset
             }
-            Err(e) => std::panic::panic_any(e)
+            Err(e) => {
+                error!("{:?}", e);
+                std::panic::panic_any(e)
+            }
         }
     }
 
@@ -163,12 +166,23 @@ pub mod data {
                 tiles: self.tiles,
             }
         }
+
+        pub fn tile_config_for(&self, tile_id: usize) -> &TileConfig{
+            self.tiles.get(&tile_id).as_ref().unwrap()
+        }
+
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct TileConfig {
         pub(crate) animation: Option<Vec<TileAnimationFrame>>,
         pub(crate) objects: Vec<TileObject>,
+    }
+
+    impl TileConfig{
+        pub fn objects(&self) -> &Vec<TileObject>{
+            &self.objects
+        }
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -186,14 +200,42 @@ pub mod data {
         rectangle: Option<TileRectangle>,
     }
 
+    impl TileObject{
+        pub fn get_class(&self) -> &TileObjectClass{
+            &self.class
+        }
+        pub fn get_position(&self) -> &Coordinates{
+            &self.position
+        }
+        pub fn is_rect(&self) -> bool{
+            self.rectangle.is_some()
+        }
+        pub fn get_rect(&self) -> &TileRectangle{
+            self.rectangle.as_ref().unwrap()
+        }
+        pub fn get_polygon(&self) -> &Vec<Coordinates>{
+            self.polygon.as_ref().unwrap()
+        }
+    }
+
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct TileRectangle {
         width: f32,
         height: f32,
     }
 
+    impl TileRectangle {
+        pub fn width(&self) -> f32{
+            self.width
+        }
 
-    #[derive(Debug, Clone, Serialize, Deserialize)]
+        pub fn height(&self) -> f32{
+            self.height
+        }
+    }
+
+
+    #[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
     #[serde(tag = "tag", content = "content")]
     pub enum TileObjectClass {
         Collider,
@@ -220,6 +262,12 @@ pub mod data {
         pub(crate) layers: Vec<TilemapLayer>,
         pub(crate) objects: Vec<TileObject>,
         pub(crate) tilesets: Vec<TiledTilemapTileset>,
+    }
+
+    impl TilemapAtlas{
+        pub fn get_objects(&self) -> &Vec<TileObject>{
+            &self.objects
+        }
     }
 
     #[derive(Debug, Serialize, Deserialize)]

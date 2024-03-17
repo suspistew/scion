@@ -51,7 +51,8 @@ pub enum KeyCode {
     LShift,
     RShift,
     Apostrophe,
-    BackSpace
+    BackSpace,
+    Enter
 }
 
 impl KeyCode{
@@ -124,11 +125,38 @@ impl From<&Key> for KeyCode {
             Key::Character("X") => KeyCode::X,
             Key::Character("Y") => KeyCode::Y,
             Key::Character("Z") => KeyCode::Z,
+            Key::Character("a") => KeyCode::A,
+            Key::Character("b") => KeyCode::B,
+            Key::Character("c") => KeyCode::C,
+            Key::Character("d") => KeyCode::D,
+            Key::Character("e") => KeyCode::E,
+            Key::Character("f") => KeyCode::F,
+            Key::Character("g") => KeyCode::G,
+            Key::Character("h") => KeyCode::H,
+            Key::Character("i") => KeyCode::I,
+            Key::Character("j") => KeyCode::J,
+            Key::Character("k") => KeyCode::K,
+            Key::Character("l") => KeyCode::L,
+            Key::Character("m") => KeyCode::M,
+            Key::Character("n") => KeyCode::N,
+            Key::Character("o") => KeyCode::O,
+            Key::Character("p") => KeyCode::P,
+            Key::Character("q") => KeyCode::Q,
+            Key::Character("r") => KeyCode::R,
+            Key::Character("s") => KeyCode::S,
+            Key::Character("t") => KeyCode::T,
+            Key::Character("u") => KeyCode::U,
+            Key::Character("v") => KeyCode::V,
+            Key::Character("w") => KeyCode::W,
+            Key::Character("x") => KeyCode::X,
+            Key::Character("y") => KeyCode::Y,
+            Key::Character("z") => KeyCode::Z,
             Key::Character("\'") => KeyCode::Apostrophe,
             Key::Named(NamedKey::Space) => KeyCode::Space,
             Key::Named(NamedKey::Shift) => KeyCode::LShift,
             Key::Named(NamedKey::Tab) => KeyCode::Tab,
             Key::Named(NamedKey::Backspace) => KeyCode::BackSpace,
+            Key::Named(NamedKey::Enter) => KeyCode::Enter,
             _ => KeyCode::Any,
         }
     }

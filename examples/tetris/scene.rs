@@ -47,10 +47,10 @@ impl Scene for MainScene {
 
     fn on_update(&mut self, data: &mut GameData) {
         let pause_click = data.inputs().input_pressed_event(&Input::Key(KeyCode::P));
-        let current_pause_state = data.game_state().get("pause");
+        let current_pause_state = data.game_state().get_bool("pause");
 
         if pause_click {
-            data.game_state_mut().set("pause", !current_pause_state);
+            data.game_state_mut().set_bool("pause", !current_pause_state);
         }
     }
 }

@@ -12,6 +12,7 @@ pub enum Pivot {
     TopLeft,
     /// Pivot is on the center of the shape
     Center,
+    Custom(f32, f32)
 }
 
 

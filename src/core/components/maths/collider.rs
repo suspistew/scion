@@ -137,6 +137,7 @@ impl Collider {
         let pivot_point = match self.get_pivot() {
             Pivot::TopLeft => { Coordinates::new(base_x, base_y) }
             Pivot::Center => { centroid_polygon(&vec) }
+            Pivot::Custom(x,y) => {Coordinates::new(base_x + x,base_y + y)}
         };
 
         let coords: Vec<Coord<f32>> = vec.iter().map(|c| rotate_point_around_pivot(c, &pivot_point, transform.global_angle))

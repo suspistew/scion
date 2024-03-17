@@ -3,7 +3,7 @@ use rodio::{OutputStream, Sink, Source};
 use std::collections::HashMap;
 use std::io::BufReader;
 use std::sync::mpsc::Receiver;
-use log::debug;
+use log::{debug};
 
 pub(crate) struct AudioController {
     receiver: Receiver<AudioEvent>,
@@ -44,5 +44,8 @@ pub(crate) fn audio_thread(controller: AudioController) {
                 }
             }
         }
+        sinks.retain(|&_k, sink| {
+            !sink.empty()
+        });
     }
 }
