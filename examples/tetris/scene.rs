@@ -15,6 +15,7 @@ use scion::core::components::material::Material;
 use scion::core::components::maths::padding::Padding;
 use scion::core::components::ui::ui_button::UiButton;
 use scion::core::components::ui::ui_input::UiInput;
+use scion::core::resources::inputs::types::{Input, KeyCode};
 
 use crate::{asset_path, resources::TetrisResource};
 
@@ -42,6 +43,15 @@ impl Scene for MainScene {
             32,
         )));
         data.insert_resource(tetris);
+    }
+
+    fn on_update(&mut self, data: &mut GameData) {
+        let pause_click = data.inputs().input_pressed_event(&Input::Key(KeyCode::P));
+        let current_pause_state = data.game_state().get("pause");
+
+        if pause_click {
+            data.game_state_mut().set("pause", !current_pause_state);
+        }
     }
 }
 

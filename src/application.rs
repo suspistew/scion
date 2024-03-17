@@ -21,6 +21,7 @@ use crate::{
     core::event_handler::update_input_events,
     rendering::{renderer_state::RendererState, RendererType},
 };
+use crate::core::state::GameState;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
 pub struct Scion {
@@ -192,6 +193,12 @@ impl ScionBuilder {
     /// Specify a system to add to the scheduler.
     pub fn with_system(mut self, system: fn(&mut GameData)) -> Self {
         self.scheduler.add_system(system);
+        self
+    }
+
+    /// Specify a system to add to the scheduler with a conditional pausing flag function.
+    pub fn with_pausable_system(mut self, system: fn(&mut GameData), pause_condition: fn(&GameState) -> bool) -> Self {
+        self.scheduler.add_pausable_system(system, pause_condition);
         self
     }
 
