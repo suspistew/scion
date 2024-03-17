@@ -1,16 +1,29 @@
 use crate::core::world::GameData;
 use std::collections::LinkedList;
+use crate::core::state::GameState;
 
 #[derive(Default)]
 pub(crate) struct Scheduler {
-    systems: LinkedList<fn(&mut GameData)>,
+    systems: LinkedList<(Option<fn(&GameState) -> bool>, fn(&mut GameData))>,
 }
 
 impl Scheduler {
     pub(crate) fn add_system(&mut self, system: fn(&mut GameData)) {
-        self.systems.push_back(system);
+        self.systems.push_back((None, system));
     }
+
+    pub(crate) fn add_pausable_system(&mut self,
+                                      system: fn(&mut GameData),
+                                      pause_condition: fn(&GameState) -> bool) {
+        self.systems.push_back((Some(pause_condition), system));
+    }
+
     pub(crate) fn execute(&mut self, data: &mut GameData) {
-        self.systems.iter().for_each(|s| s(data))
+        let systems_to_execute : LinkedList<&(Option<fn(&GameState) -> bool>, fn(&mut GameData))> = {
+          let game_state = data.get_resource::<GameState>().expect("Missing game state resource");
+            self.systems.iter().filter(|s| s.0.is_none() || !s.0.unwrap()(&game_state)).collect()
+        };
+
+        systems_to_execute.iter().for_each(|s| s.1(data))
     }
 }

@@ -20,6 +20,7 @@ use hecs::{
 };
 use crate::core::resources::focus_manager::FocusManager;
 use crate::core::resources::font_atlas::FontAtlas;
+use crate::core::state::GameState;
 
 pub trait World {
     fn entities(&self) -> HashSet<Entity>;
@@ -80,6 +81,18 @@ impl GameData {
     pub fn get_resource_mut<T: Resource>(&self) -> Option<AtomicRefMut<T>> {
         let type_id = &ResourceTypeId::of::<T>();
         self.resources.internal_resources.storage.get(type_id).map(|x| x.get_mut::<T>())
+    }
+
+    /// retrieves the game_state from the resources.
+    pub fn game_state(&self) -> AtomicRef<GameState> {
+        self.get_resource::<GameState>()
+            .expect("The engine is missing the mandatory game state resource")
+    }
+
+    /// retrieves the game_state mutable from the resources.
+    pub fn game_state_mut(&self) -> AtomicRefMut<GameState> {
+        self.get_resource_mut::<GameState>()
+            .expect("The engine is missing the mandatory game state resource")
     }
 
     /// retrieves the asset manager from the resources.
@@ -294,6 +307,18 @@ impl Resources {
     pub fn get_resource_mut<T: Resource>(&self) -> Option<AtomicRefMut<T>> {
         let type_id = &ResourceTypeId::of::<T>();
         self.internal_resources.storage.get(type_id).map(|x| x.get_mut::<T>())
+    }
+
+    /// retrieves the asset manager from the resources.
+    pub fn game_state(&self) -> AtomicRef<GameState> {
+        self.get_resource::<GameState>()
+            .expect("The engine is missing the mandatory game state resource")
+    }
+
+    /// retrieves the asset manager from the resources.
+    pub fn game_state_mut(&self) -> AtomicRefMut<GameState> {
+        self.get_resource_mut::<GameState>()
+            .expect("The engine is missing the mandatory game state resource")
     }
 
     /// retrieves the asset manager from the resources.
