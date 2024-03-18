@@ -7,7 +7,10 @@
 // Convenience reexport
 // Convenience uses
 pub use application::{Scion, ScionBuilder};
+
 pub use ultraviolet;
+pub use hecs::Entity;
+pub use log;
 
 // internal export
 mod application;
