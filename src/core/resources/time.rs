@@ -175,7 +175,7 @@ mod timer {
                 self.timers.remove(name);
                 Ok(())
             } else {
-                Err(Error::TimerAlreadyExists)
+                Err(Error::TimerDoesNotExist)
             }
         }
 
