@@ -10,6 +10,7 @@ pub use application::{Scion, ScionBuilder};
 
 pub use ultraviolet;
 pub use hecs::Entity;
+pub use winit::window::CursorIcon;
 pub use log;
 
 // internal export

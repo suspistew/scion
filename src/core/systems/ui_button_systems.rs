@@ -45,11 +45,12 @@ pub(crate) fn compute_hover(data: &mut GameData) {
     let clicked = resources.inputs().input_pressed(&Input::Mouse(MouseButton::Left));
     let click_event = resources.inputs().input_pressed_event(&Input::Mouse(MouseButton::Left));
     let mut hover = false;
+    let mut reset_hover = false;
     let mut hovered_buttons = Vec::new();
     let mut clicked_buttons = Vec::new();
     let mut not_hovered_buttons = Vec::new();
     for (_, (ui_button, transform, children))
-    in world.query_mut::<(&UiButton, &Transform, &mut Children)>()
+    in world.query_mut::<(&mut UiButton, &Transform, &mut Children)>()
         .without::<&Hide>()
         .without::<&HidePropagated>() {
         if transform.global_translation.x as f64 <= mx
@@ -57,6 +58,7 @@ pub(crate) fn compute_hover(data: &mut GameData) {
             && transform.global_translation.y as f64 <= my
             && (transform.global_translation.y + ui_button.height() as f32) as f64 >= my {
             if !clicked && ui_button.hover().is_some() {
+                ui_button.hovered = true;
                 hovered_buttons.push((*children.0.first().unwrap(), ui_button.clone_hover_unchecked(), children.0.clone()));
             } else if ui_button.clicked().is_some() {
                 if let Some(function) = ui_button.on_click {
@@ -67,8 +69,14 @@ pub(crate) fn compute_hover(data: &mut GameData) {
                 clicked_buttons.push((*children.0.first().unwrap(), ui_button.clone_clicked_unchecked(), children.0.clone()));
             }
             hover = true;
-        } else if ui_button.background().is_some() {
-            not_hovered_buttons.push((*children.0.first().unwrap(), ui_button.clone_background_unchecked(), children.0.clone()));
+        } else {
+            if ui_button.background().is_some() {
+                not_hovered_buttons.push((*children.0.first().unwrap(), ui_button.clone_background_unchecked(), children.0.clone()));
+            }
+            if ui_button.hovered {
+                ui_button.hovered = false;
+                reset_hover = true;
+            }
         }
     }
 
@@ -79,7 +87,7 @@ pub(crate) fn compute_hover(data: &mut GameData) {
 
     if hover {
         resources.window().set_cursor(CursorIcon::Pointer);
-    } else {
+    } else if reset_hover {
         resources.window().set_cursor(CursorIcon::Default);
     }
 }

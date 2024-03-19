@@ -104,7 +104,7 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
             debug_lines_to_add.push((
                 Parent(entity),
                 ColliderDebug,
-                Transform::from_xyz(offset.x(), offset.y(), 99),
+                Transform::from_xyz(offset.x(), offset.y(), 30),
                 polygon_collider,
                 Material::Color(color),
             ));

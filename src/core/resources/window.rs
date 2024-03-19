@@ -1,10 +1,20 @@
 use winit::window::CursorIcon;
 
-#[derive(Default, Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct FutureSettings{
     new_cursor: Option<CursorIcon>,
     dimensions: Option<(u32, u32)>
 }
+
+impl Default for FutureSettings{
+    fn default() -> Self {
+        Self{
+            new_cursor: None,
+            dimensions: None,
+        }
+    }
+}
+
 /// [`Window`] is a Resource dedicated to have an access control over the current window.
 /// Its size is immediately updated when the window resize event happens.
 /// new_cursor is set at the end of the current frame.
@@ -34,8 +44,12 @@ impl Window {
         self.future_settings.dimensions = Some((width, height));
     }
 
+    pub fn set_dpi(&mut self, dpi: f64) {
+        self.dpi = dpi;
+    }
+
     pub(crate) fn reset_future_settings(&mut self) {
-        self.future_settings = Default::default();
+        self.future_settings = FutureSettings::default();
     }
 
     pub fn dimensions(&self) -> (u32, u32) {

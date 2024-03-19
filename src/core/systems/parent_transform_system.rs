@@ -99,9 +99,9 @@ mod tests {
     fn dirty_parent_transform_test() {
         let mut world = GameData::default();
 
-        let parent_transform = Transform::from_xy(1., 1.);
-        let child_transform = Transform::from_xy(1., 1.);
-        let child_of_child_transform = Transform::from_xy(1., 1.);
+        let parent_transform = Transform::from_xyz(1., 1., 1);
+        let child_transform = Transform::from_xyz(1., 1., 1);
+        let child_of_child_transform = Transform::from_xyz(1., 1., 1);
         let parent = world.push((parent_transform,));
         let child = world.push((child_transform, Parent(parent)));
         let child_of_child = world.push((child_of_child_transform, Parent(child)));
@@ -133,6 +133,25 @@ mod tests {
                 .x()
         );
 
+        assert_eq!(
+            1,
+            world.entry::<&Transform>(parent).unwrap().get().unwrap().global_translation.z()
+        );
+        assert_eq!(
+            2,
+            world.entry::<&Transform>(child).unwrap().get().unwrap().global_translation.z()
+        );
+        assert_eq!(
+            3,
+            world
+                .entry::<&Transform>(child_of_child)
+                .unwrap()
+                .get()
+                .unwrap()
+                .global_translation
+                .z()
+        );
+
         {
             let t = world.entry_mut::<&mut Transform>(parent).unwrap();
             t.append_translation(5.0, 1.0);
@@ -160,5 +179,34 @@ mod tests {
                 .global_translation
                 .x()
         );
+
+        {
+            let t = world.entry_mut::<&mut Transform>(parent).unwrap();
+            t.set_z(5);
+        }
+
+        children_manager_system(&mut world);
+        dirty_child_system(&mut world);
+        dirty_transform_system(&mut world);
+
+        assert_eq!(
+            5,
+            world.entry::<&Transform>(parent).unwrap().get().unwrap().global_translation.z()
+        );
+        assert_eq!(
+            6,
+            world.entry::<&Transform>(child).unwrap().get().unwrap().global_translation.z()
+        );
+        assert_eq!(
+            7,
+            world
+                .entry::<&Transform>(child_of_child)
+                .unwrap()
+                .get()
+                .unwrap()
+                .global_translation
+                .z()
+        );
+
     }
 }

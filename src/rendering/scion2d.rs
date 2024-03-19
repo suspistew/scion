@@ -360,7 +360,7 @@ impl Scion2D {
                 Material::Tileset(tileset) => Some(tileset.texture.clone()),
             };
             render_infos.push(RenderingInfos {
-                layer: transform.translation().z(),
+                layer: transform.global_translation().z(),
                 range: component.range(),
                 entity,
                 texture_path: path,

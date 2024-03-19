@@ -138,15 +138,27 @@ impl Transform {
         self.scale = scale
     }
 
-    /// Change the z value in the coordinates.
+    /// Change the z value in the local translation coordinates.
     pub fn set_z(&mut self, z: usize) {
-        self.local_translation.z = z
+        let z_diff = self.global_translation.z - self.local_translation.z;
+        self.local_translation.z = z;
+        self.global_translation.z = z + z_diff;
+        self.dirty = true;
     }
 
-    /// Change the y value in the coordinates.
+    /// Change the x value in the local translation coordinates.
+    pub fn set_x(&mut self, x: f32) {
+        let x_diff = self.global_translation.x - self.local_translation.x;
+        self.local_translation.x = x;
+        self.global_translation.x = x + x_diff;
+        self.dirty = true;
+    }
+
+    /// Change the y value  in the local translation coordinates.
     pub fn set_y(&mut self, y: f32) {
+        let y_diff = self.global_translation.y - self.local_translation.y;
         self.local_translation.y = y;
-        self.global_translation.y = y;
+        self.global_translation.y = y + y_diff;
         self.dirty = true;
     }
 
@@ -196,10 +208,10 @@ impl Transform {
 
     /// Computes the global_translation using the parent as origin
     pub(crate) fn compute_global_from_parent(&mut self, parent_translation: &Coordinates) {
-        let mut new_global = *parent_translation;
+        let mut new_global = Coordinates::new_with_z(parent_translation.x, parent_translation.y, parent_translation.z);
         new_global.x += self.local_translation.x;
         new_global.y += self.local_translation.y;
-        new_global.z = self.local_translation.z;
+        new_global.z += self.local_translation.z;
         self.global_translation = new_global;
         self.dirty = true;
         self.handle_bounds();
@@ -271,6 +283,7 @@ impl TransformBuilder {
 
     pub fn with_z(mut self, z: usize) -> Self {
         self.transform.local_translation.z = z;
+        self.transform.global_translation.z = z;
         self
     }
 

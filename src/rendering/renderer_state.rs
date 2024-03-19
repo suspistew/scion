@@ -1,8 +1,8 @@
 use wgpu::{CompositeAlphaMode, InstanceDescriptor, Surface, SurfaceConfiguration, TextureFormat};
 use winit::{event::WindowEvent, window::Window};
 
-use crate::core::world::GameData;
 use crate::{config::scion_config::ScionConfig, rendering::ScionRenderer};
+use crate::core::world::GameData;
 
 pub(crate) struct RendererState {
     surface: Surface<'static>,
@@ -69,9 +69,9 @@ impl RendererState {
         Self { surface, device, queue, config, scion_renderer }
     }
 
-    pub(crate) fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>, scale_factor: f64) {
-        self.config.width = new_size.width * scale_factor as u32;
-        self.config.height = new_size.height * scale_factor as u32;
+    pub(crate) fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>, _scale_factor: f64) {
+        self.config.width = new_size.width;
+        self.config.height = new_size.height;
         self.surface.configure(&self.device, &self.config);
     }
 

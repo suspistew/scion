@@ -21,6 +21,7 @@ pub struct UiButton {
     tab_index: usize,
     padding: Padding,
     pub(crate) on_click: Option<fn(&mut Resources)>,
+    pub(crate) hovered: bool,
     pub(crate) dirty: bool,
 }
 
@@ -39,6 +40,7 @@ impl UiButton {
             tab_index: 0,
             padding: Padding::default(),
             on_click: None,
+            hovered: false,
             dirty: true
         }
     }

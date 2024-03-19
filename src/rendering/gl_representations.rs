@@ -180,8 +180,8 @@ impl From<UniformData<'_>> for GlUniform {
         let mut model_trans = model_trans.into_homogeneous_matrix();
         let mut camera_view = ultraviolet::projection::lh_ydown::orthographic_wgpu_dx(
             uniform_data.camera.0.left,
-            uniform_data.camera.0.right * uniform_data.camera.0.dpi as f32,
-            uniform_data.camera.0.bottom * uniform_data.camera.0.dpi as f32,
+            uniform_data.camera.0.right,
+            uniform_data.camera.0.bottom ,
             uniform_data.camera.0.top,
             uniform_data.camera.0.near,
             uniform_data.camera.0.far,
