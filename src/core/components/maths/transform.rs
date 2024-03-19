@@ -138,15 +138,20 @@ impl Transform {
         self.scale = scale
     }
 
-    /// Change the z value in the coordinates.
+    /// Change the z value in the local translation coordinates.
     pub fn set_z(&mut self, z: usize) {
         self.local_translation.z = z
     }
 
-    /// Change the y value in the coordinates.
+    /// Change the x value in the local translation coordinates.
+    pub fn set_x(&mut self, x: f32) {
+        self.local_translation.x = x;
+        self.dirty = true;
+    }
+
+    /// Change the y value  in the local translation coordinates.
     pub fn set_y(&mut self, y: f32) {
         self.local_translation.y = y;
-        self.global_translation.y = y;
         self.dirty = true;
     }
 

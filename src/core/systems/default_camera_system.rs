@@ -1,4 +1,5 @@
-use log::debug;
+use log::{debug};
+
 use crate::core::components::maths::{
     camera::{Camera, DefaultCamera},
     transform::Transform,

@@ -89,6 +89,9 @@ impl Scion {
                             self.game_data
                                 .window()
                                 .set_dimensions(physical_size.width, physical_size.height);
+                            self.game_data
+                                .window()
+                                .set_dpi(self.window.as_ref().expect("Missing window").scale_factor());
                             self.renderer.as_mut().unwrap().resize(
                                 *physical_size,
                                 self.window.as_ref().expect("Missing window").scale_factor(),
@@ -160,7 +163,8 @@ impl Scion {
             }
             if let Some(dimensions) = window.new_dimensions() {
                 let w = self.window.as_mut().expect("A window is mandatory to run this game !");
-                let _r = w.request_inner_size(Size::Physical(PhysicalSize::new(dimensions.0 * window.dpi() as u32, dimensions.1 * window.dpi() as u32)));
+                let _r = w.request_inner_size(Size::Physical(PhysicalSize::new(dimensions.0 * window.dpi() as u32,
+                                                                               dimensions.1 * window.dpi() as u32)));
             }
             window.reset_future_settings()
         }
