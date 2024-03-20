@@ -140,6 +140,13 @@ impl Scion {
     }
 
     fn next_frame(&mut self) {
+        info!("dpi {:?}", self
+                                .window
+                                .as_mut()
+                                .unwrap()
+                                .current_monitor()
+                                .expect("Missing the monitor")
+                                .scale_factor());
         let frame_duration = self
             .game_data
             .get_resource_mut::<Time>()
