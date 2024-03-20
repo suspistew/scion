@@ -14,7 +14,9 @@ pub(crate) struct RendererState {
 
 impl RendererState {
     pub(crate) async fn new(window: &Window, mut scion_renderer: Box<dyn ScionRenderer>) -> Self {
-        let _size = window.inner_size();
+        let mut size = window.inner_size();
+        size.width = size.width.max(1);
+        size.height = size.height.max(1);
 
         let instance = wgpu::Instance::default();
 
@@ -24,40 +26,36 @@ impl RendererState {
             (size, surface)
         };
 
-        let adapter =
-            wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface))
-                .await
-                .expect("No suitable GPU adapters found on the system!");
+        let adapter = instance
+            .request_adapter(&wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::default(),
+                force_fallback_adapter: false,
+                compatible_surface: Some(&surface),
+            })
+            .await
+            .expect("Failed to find an appropriate adapter");
 
-        let needed_limits =
-            wgpu::Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits());
-        let trace_dir = std::env::var("WGPU_TRACE");
+
+        // Create the logical device and command queue
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
                     required_features: wgpu::Features::empty(),
-                    required_limits: needed_limits,
+                    // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
+                    required_limits: wgpu::Limits::downlevel_webgl2_defaults()
+                        .using_resolution(adapter.limits()),
                 },
-                trace_dir.ok().as_ref().map(std::path::Path::new),
+                None,
             )
             .await
-            .expect("Unable to find a suitable GPU adapter!");
+            .expect("Failed to create device");
 
-        let w = window.inner_size();
+        let mut config = surface
+            .get_default_config(&adapter, size.width, size.height)
+            .unwrap();
 
-        let config = SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_capabilities(&adapter).formats[0],
-            width: w.width * window.scale_factor() as u32,
-            height: w.height * window.scale_factor() as u32,
-            present_mode: wgpu::PresentMode::Fifo,
-            desired_maximum_frame_latency: 2,
-            alpha_mode: CompositeAlphaMode::Auto,
-            view_formats: vec![TextureFormat::Bgra8UnormSrgb],
-        };
         surface.configure(&device, &config);
-
         scion_renderer.start(&device, &config);
 
         Self { surface, device, queue, config, scion_renderer }
