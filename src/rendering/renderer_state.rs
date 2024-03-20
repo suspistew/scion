@@ -62,9 +62,9 @@ impl RendererState {
     }
 
     pub(crate) fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>, _scale_factor: f64) {
-        self.config.width = new_size.width;
-        self.config.height = new_size.height;
-        self.surface.configure(&self.device, &self.config);
+        //self.config.width = new_size.width;
+        //self.config.height = new_size.height;
+        //self.surface.configure(&self.device, &self.config);
     }
 
     pub(crate) fn _input(&mut self, _event: &WindowEvent) -> bool {
