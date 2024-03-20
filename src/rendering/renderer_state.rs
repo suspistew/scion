@@ -16,13 +16,7 @@ impl RendererState {
     pub(crate) async fn new(window: &Window, mut scion_renderer: Box<dyn ScionRenderer>) -> Self {
         let _size = window.inner_size();
 
-        let backend = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
-        let instance = wgpu::Instance::new(InstanceDescriptor {
-            backends: backend,
-            dx12_shader_compiler: wgpu::Dx12Compiler::Fxc,
-            flags: wgpu::InstanceFlags::default(),
-            gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
-        });
+        let instance = wgpu::Instance::default();
 
         let (_size, surface) = unsafe {
             let size = window.inner_size();
