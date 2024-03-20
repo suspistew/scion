@@ -147,6 +147,11 @@ impl Scion {
                                 .current_monitor()
                                 .expect("Missing the monitor")
                                 .scale_factor());
+        info!("size {:?}", self
+                                .window
+                                .as_mut()
+                                .unwrap()
+                                .inner_size());
         let frame_duration = self
             .game_data
             .get_resource_mut::<Time>()
