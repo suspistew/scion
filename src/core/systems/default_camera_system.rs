@@ -17,10 +17,10 @@ pub(crate) fn default_camera_system(data: &mut GameData) {
         debug!("Adding default camera to the entity {:?}", e);
         let window = resources.window();
         let mut camera = Camera::new(
-            window.width() as f32,
-            window.height() as f32,
+            768. as f32,
+           768. as f32,
         );
-        camera.dpi = window.dpi();
+        camera.dpi = 1.0;
         let _r = subworld.add_components(e, (camera,));
         let _r = subworld.add_components(e, (Transform::default(),));
     }
