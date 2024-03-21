@@ -20,7 +20,7 @@ impl RendererState {
         let width = size.width.max(1);
         let height = size.height.max(1);
 
-        info!("width height {}/{}", width, height);
+        info!("width height {}/{} / {}", width, height, window.scale_factor());
 
         let backends = Backends::all();
         let dx12_shader_compiler = wgpu::util::dx12_shader_compiler_from_env().unwrap_or_default();
