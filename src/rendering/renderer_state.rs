@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use log::info;
 use wgpu::{Backends, CompositeAlphaMode, InstanceDescriptor, Surface, SurfaceConfiguration, TextureFormat};
 use winit::{event::WindowEvent, window::Window};
 
@@ -19,6 +20,8 @@ impl RendererState {
         let width = size.width.max(1);
         let height = size.height.max(1);
 
+        info!("width height {}/{}", width, height);
+
         let backends = Backends::all();
         let dx12_shader_compiler = wgpu::util::dx12_shader_compiler_from_env().unwrap_or_default();
         let gles_minor_version = wgpu::util::gles_minor_version_from_env().unwrap_or_default();
@@ -31,9 +34,11 @@ impl RendererState {
         });
 
         let surface = instance.create_surface(window).expect("Surface creation failed");
-        let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface))
-            .await
-            .expect("No suitable GPU adapters found on the system!");
+        let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions{
+            power_preference: wgpu::PowerPreference::default(),
+            force_fallback_adapter: false,
+            compatible_surface: Some(&surface),
+        }).await.expect("Failed to find an appropriate adapter");
 
         // Create the logical device and command queue
         let (device, queue) = adapter
