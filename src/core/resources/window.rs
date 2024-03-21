@@ -1,3 +1,4 @@
+use log::info;
 use winit::window::CursorIcon;
 
 #[derive(Debug, Copy, Clone)]
@@ -28,10 +29,12 @@ pub struct Window {
 
 impl Window {
     pub(crate) fn new(screen_size: (u32, u32), dpi: f64) -> Self {
+        info!(" {:?} {:?}", screen_size, dpi);
         Self { width: screen_size.0, height: screen_size.1, future_settings: Default::default(), dpi }
     }
 
     pub(crate) fn set_dimensions(&mut self, width: u32, height: u32) {
+        info!(" {:?} {:?}", width, height);
         self.width = width;
         self.height = height;
     }
