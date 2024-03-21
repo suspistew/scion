@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use wgpu::{CompositeAlphaMode, InstanceDescriptor, Surface, SurfaceConfiguration, TextureFormat};
 use winit::{event::WindowEvent, window::Window};
 
@@ -13,57 +14,47 @@ pub(crate) struct RendererState {
 }
 
 impl RendererState {
-    pub(crate) async fn new(window: &Window, mut scion_renderer: Box<dyn ScionRenderer>) -> Self {
-        let _size = window.inner_size();
+    pub(crate) async fn new(window: Arc<Window>, mut scion_renderer: Box<dyn ScionRenderer>) -> Self {
+        let mut size = window.inner_size();
+        let width = size.width.max(1);
+        let height = size.height.max(1);
 
-        let backend = wgpu::util::backend_bits_from_env().unwrap_or_else(wgpu::Backends::all);
-        let instance = wgpu::Instance::new(InstanceDescriptor {
-            backends: backend,
-            dx12_shader_compiler: wgpu::Dx12Compiler::Fxc,
-            flags: wgpu::InstanceFlags::default(),
-            gles_minor_version: wgpu::Gles3MinorVersion::Automatic,
+        let backends = wgpu::util::backend_bits_from_env().unwrap_or_default();
+        let dx12_shader_compiler = wgpu::util::dx12_shader_compiler_from_env().unwrap_or_default();
+        let gles_minor_version = wgpu::util::gles_minor_version_from_env().unwrap_or_default();
+
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends,
+            flags: wgpu::InstanceFlags::from_build_config().with_env(),
+            dx12_shader_compiler,
+            gles_minor_version,
         });
 
-        let (_size, surface) = unsafe {
-            let size = window.inner_size();
-            let surface = instance.create_surface_unsafe(wgpu::SurfaceTargetUnsafe::from_window(&window).expect("Missed usage surface creation")).expect("Surface unsupported by adapter");
-            (size, surface)
-        };
+        let surface = instance.create_surface(window).expect("Surface creation failed");
+        let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface))
+            .await
+            .expect("No suitable GPU adapters found on the system!");
 
-        let adapter =
-            wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface))
-                .await
-                .expect("No suitable GPU adapters found on the system!");
-
-        let needed_limits =
-            wgpu::Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits());
-        let trace_dir = std::env::var("WGPU_TRACE");
+        // Create the logical device and command queue
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
                     required_features: wgpu::Features::empty(),
-                    required_limits: needed_limits,
+                    // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
+                    required_limits: wgpu::Limits::downlevel_webgl2_defaults()
+                        .using_resolution(adapter.limits()),
                 },
-                trace_dir.ok().as_ref().map(std::path::Path::new),
+                None,
             )
             .await
-            .expect("Unable to find a suitable GPU adapter!");
+            .expect("Failed to create device");
 
-        let w = window.inner_size();
+        let mut config = surface
+            .get_default_config(&adapter, width, height)
+            .unwrap();
 
-        let config = SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_capabilities(&adapter).formats[0],
-            width: w.width * window.scale_factor() as u32,
-            height: w.height * window.scale_factor() as u32,
-            present_mode: wgpu::PresentMode::Fifo,
-            desired_maximum_frame_latency: 2,
-            alpha_mode: CompositeAlphaMode::Auto,
-            view_formats: vec![TextureFormat::Bgra8UnormSrgb],
-        };
         surface.configure(&device, &config);
-
         scion_renderer.start(&device, &config);
 
         Self { surface, device, queue, config, scion_renderer }

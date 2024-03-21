@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::sync::Arc;
 
 use log::info;
 use winit::{
@@ -7,6 +8,7 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 use winit::dpi::{PhysicalSize, Size};
+use winit::event::StartCause;
 
 
 use crate::core::package::Package;
@@ -30,7 +32,7 @@ pub struct Scion {
     game_data: GameData,
     scheduler: Scheduler,
     layer_machine: SceneMachine,
-    window: Option<Window>,
+    window: Option<Arc<Window>>,
     renderer: Option<RendererState>,
 }
 
@@ -228,21 +230,20 @@ impl ScionBuilder {
     pub fn run(mut self) {
         let event_loop = EventLoop::new().expect("Event loop could not be created");
         event_loop.set_control_flow(ControlFlow::Poll);
-
         let window_builder: WindowBuilder = self
             .config
             .window_config
             .clone()
             .expect("The window configuration has not been found")
             .into(&self.config);
-        let window = window_builder
+        let window = Arc::new(window_builder
             .build(&event_loop)
-            .expect("An error occured while building the main game window");
+            .expect("An error occured while building the main game window"));
 
         self.add_late_internal_systems_to_schedule();
 
         let renderer = self.renderer.into_boxed_renderer();
-        let renderer_state = futures::executor::block_on(RendererState::new(&window, renderer));
+        let renderer_state = futures::executor::block_on(RendererState::new(window.clone(), renderer));
 
         let mut scion = Scion {
             config: self.config,
