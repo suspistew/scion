@@ -1,4 +1,4 @@
-use log::{debug};
+use log::{debug, info};
 
 use crate::core::components::maths::{
     camera::{Camera, DefaultCamera},
@@ -18,9 +18,10 @@ pub(crate) fn default_camera_system(data: &mut GameData) {
         let window = resources.window();
         let mut camera = Camera::new(
             window.width() as f32,
-           window.height() as f32,
+            window.height() as f32,
         );
         camera.dpi = window.dpi();
+        info!("width height {}/{} / {}", window.width(), window.height(), window.dpi());
         let _r = subworld.add_components(e, (camera,));
         let _r = subworld.add_components(e, (Transform::default(),));
     }
