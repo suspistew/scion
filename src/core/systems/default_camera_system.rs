@@ -31,6 +31,6 @@ pub(crate) fn camera_dpi_system(data: &mut GameData) {
     let (subworld, resources) = data.split();
     let window = resources.window();
     for (_, camera) in subworld.query_mut::<&mut Camera>() {
-        camera.dpi = window.dpi();
+        //camera.dpi = window.dpi();
     }
 }

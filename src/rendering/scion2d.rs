@@ -215,11 +215,9 @@ impl Scion2D {
                         to_modify.push((e, res));
                         let mut vec = res.to_vec();
                         vec.iter_mut().for_each(|gl_vertex| {
-                            gl_vertex.position.append_position(
-                                tile_size as f32 * tile.position.x() as f32,
-                                tile_size as f32 * tile.position.y() as f32,
-                                tile.position.z() as f32 / 100.,
-                            )
+                            gl_vertex.position[0] = gl_vertex.position[0] + tile_size as f32 * tile.position.x() as f32;
+                            gl_vertex.position[1] = gl_vertex.position[1] + tile_size as f32 * tile.position.y() as f32;
+                            gl_vertex.position[2] = gl_vertex.position[2] + tile.position.z() as f32 / 100.
                         });
                         vertexes.append(&mut vec);
                         let sprite_indexes = Sprite::indices();
@@ -314,7 +312,7 @@ impl Scion2D {
 
         while let Some(rendering_infos) = infos.pop() {
             render_pass.set_bind_group(
-                1,
+                0,
                 &self.transform_uniform_bind_groups.get(&rendering_infos.entity).unwrap().2,
                 &[],
             );
@@ -331,7 +329,7 @@ impl Scion2D {
             );
             if let Some(path) = rendering_infos.texture_path {
                 render_pass.set_bind_group(
-                    0,
+                    1,
                     &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
                     &[],
                 );

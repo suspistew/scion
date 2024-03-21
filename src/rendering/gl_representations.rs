@@ -61,7 +61,7 @@ impl From<Vec4> for GlVec4 {
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub(crate) struct ColoredGlVertex {
-    pub position: GlVec3,
+    pub position: [f32;3],
     pub color: GlColor,
 }
 
@@ -89,8 +89,8 @@ impl ColoredGlVertex {
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub(crate) struct TexturedGlVertex {
-    pub position: GlVec3,
-    pub tex_translation: GlVec2,
+    pub position: [f32;3],
+    pub tex_translation: [f32;2],
 }
 
 impl TexturedGlVertex {
@@ -118,8 +118,8 @@ impl TexturedGlVertex {
 impl From<(&Coordinates, &Coordinates)> for TexturedGlVertex {
     fn from(positions: (&Coordinates, &Coordinates)) -> Self {
         TexturedGlVertex {
-            position: GlVec3 { x: positions.0.x(), y: positions.0.y(), z: 0.0 },
-            tex_translation: GlVec2 { x: positions.1.x(), y: positions.1.y() },
+            position: [positions.0.x(), positions.0.y(), 0.0 ],
+            tex_translation: [positions.1.x(), positions.1.y],
         }
     }
 }
@@ -139,7 +139,6 @@ impl GlUniform {
 }
 
 pub(crate) fn create_glmat4(t: &mut Mat4) -> [[f32; 4]; 4] {
-    
     [
         create_glmat(&t.cols[0]),
         create_glmat(&t.cols[1]),

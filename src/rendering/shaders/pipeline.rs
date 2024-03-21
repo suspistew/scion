@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use wgpu::{
     BindGroupLayout, BlendComponent, BlendFactor, BlendOperation, Device, RenderPipeline,
     SurfaceConfiguration,
@@ -12,12 +13,15 @@ pub fn pipeline(
     transform_bind_group_layout: &BindGroupLayout,
     topology: wgpu::PrimitiveTopology,
 ) -> RenderPipeline {
-    let vs_module = device.create_shader_module(wgpu::include_spirv!("./shader.vert.spv"));
-    let fs_module = device.create_shader_module(wgpu::include_spirv!("./shader.frag.spv"));
+
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: None,
+        source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("./main_shader.wgsl"))),
+    });
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Basic square pipeline layout"),
-        bind_group_layouts: &[texture_bind_group_layout, transform_bind_group_layout],
+        bind_group_layouts: &[transform_bind_group_layout, texture_bind_group_layout],
         push_constant_ranges: &[],
     });
 
@@ -25,13 +29,13 @@ pub fn pipeline(
         label: Some("Scion's render pipeline"),
         layout: Some(&render_pipeline_layout),
         vertex: wgpu::VertexState {
-            module: &vs_module,
-            entry_point: "main",
+            module: &shader,
+            entry_point: "vs_main",
             buffers: &[TexturedGlVertex::desc()],
         },
         fragment: Some(wgpu::FragmentState {
-            module: &fs_module,
-            entry_point: "main",
+            module: &shader,
+            entry_point: "fs_main",
             targets: &[Some(wgpu::ColorTargetState {
                 format: surface_config.format,
                 write_mask: wgpu::ColorWrites::ALL,
