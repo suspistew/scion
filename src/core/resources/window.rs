@@ -57,11 +57,11 @@ impl Window {
     }
 
     pub fn width(&self) -> u32 {
-        self.width / self.dpi as u32
+        (self.width as f64 / self.dpi) as u32
     }
 
     pub fn height(&self) -> u32 {
-        self.height / self.dpi as u32
+        (self.height as f64 / self.dpi) as u32
     }
 
     pub fn dpi(&self) -> f64 {
