@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use wgpu::{CompositeAlphaMode, InstanceDescriptor, Surface, SurfaceConfiguration, TextureFormat};
 use winit::{event::WindowEvent, window::Window};
 
@@ -13,28 +14,26 @@ pub(crate) struct RendererState {
 }
 
 impl RendererState {
-    pub(crate) async fn new(window: &Window, mut scion_renderer: Box<dyn ScionRenderer>) -> Self {
+    pub(crate) async fn new(window: Arc<Window>, mut scion_renderer: Box<dyn ScionRenderer>) -> Self {
         let mut size = window.inner_size();
-        size.width = size.width.max(1);
-        size.height = size.height.max(1);
+        let width = size.width.max(1);
+        let height = size.height.max(1);
 
-        let instance = wgpu::Instance::default();
+        let backends = wgpu::util::backend_bits_from_env().unwrap_or_default();
+        let dx12_shader_compiler = wgpu::util::dx12_shader_compiler_from_env().unwrap_or_default();
+        let gles_minor_version = wgpu::util::gles_minor_version_from_env().unwrap_or_default();
 
-        let (_size, surface) = unsafe {
-            let size = window.inner_size();
-            let surface = instance.create_surface_unsafe(wgpu::SurfaceTargetUnsafe::from_window(&window).expect("Missed usage surface creation")).expect("Surface unsupported by adapter");
-            (size, surface)
-        };
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends,
+            flags: wgpu::InstanceFlags::from_build_config().with_env(),
+            dx12_shader_compiler,
+            gles_minor_version,
+        });
 
-        let adapter = instance
-            .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::default(),
-                force_fallback_adapter: false,
-                compatible_surface: Some(&surface),
-            })
+        let surface = instance.create_surface(window).expect("Surface creation failed");
+        let adapter = wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface))
             .await
-            .expect("Failed to find an appropriate adapter");
-
+            .expect("No suitable GPU adapters found on the system!");
 
         // Create the logical device and command queue
         let (device, queue) = adapter
@@ -52,7 +51,7 @@ impl RendererState {
             .expect("Failed to create device");
 
         let mut config = surface
-            .get_default_config(&adapter, size.width, size.height)
+            .get_default_config(&adapter, width, height)
             .unwrap();
 
         surface.configure(&device, &config);
@@ -62,9 +61,9 @@ impl RendererState {
     }
 
     pub(crate) fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>, _scale_factor: f64) {
-        //self.config.width = new_size.width;
-        //self.config.height = new_size.height;
-        //self.surface.configure(&self.device, &self.config);
+        self.config.width = new_size.width;
+        self.config.height = new_size.height;
+        self.surface.configure(&self.device, &self.config);
     }
 
     pub(crate) fn _input(&mut self, _event: &WindowEvent) -> bool {

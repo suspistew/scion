@@ -20,7 +20,7 @@ pub(crate) fn default_camera_system(data: &mut GameData) {
             window.width() as f32,
            window.height() as f32,
         );
-        camera.dpi = 1.0;
+        camera.dpi = window.dpi();
         let _r = subworld.add_components(e, (camera,));
         let _r = subworld.add_components(e, (Transform::default(),));
     }
@@ -31,6 +31,6 @@ pub(crate) fn camera_dpi_system(data: &mut GameData) {
     let (subworld, resources) = data.split();
     let window = resources.window();
     for (_, camera) in subworld.query_mut::<&mut Camera>() {
-        //camera.dpi = window.dpi();
+        camera.dpi = window.dpi();
     }
 }
