@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use wgpu::{CompositeAlphaMode, InstanceDescriptor, Surface, SurfaceConfiguration, TextureFormat};
+use wgpu::{Backends, CompositeAlphaMode, InstanceDescriptor, Surface, SurfaceConfiguration, TextureFormat};
 use winit::{event::WindowEvent, window::Window};
 
 use crate::{config::scion_config::ScionConfig, rendering::ScionRenderer};
@@ -19,7 +19,7 @@ impl RendererState {
         let width = size.width.max(1);
         let height = size.height.max(1);
 
-        let backends = wgpu::util::backend_bits_from_env().unwrap_or_default();
+        let backends = Backends::all();
         let dx12_shader_compiler = wgpu::util::dx12_shader_compiler_from_env().unwrap_or_default();
         let gles_minor_version = wgpu::util::gles_minor_version_from_env().unwrap_or_default();
 
