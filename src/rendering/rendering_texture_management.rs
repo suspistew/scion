@@ -63,12 +63,12 @@ pub(crate) fn load_texture_array_to_queue(
             counter+=1;
         });
     let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-        address_mode_u: wgpu::AddressMode::ClampToBorder,
-        address_mode_v: wgpu::AddressMode::ClampToBorder,
+        address_mode_u: wgpu::AddressMode::ClampToEdge,
+        address_mode_v: wgpu::AddressMode::ClampToEdge,
         address_mode_w: wgpu::AddressMode::ClampToBorder,
         mag_filter: wgpu::FilterMode::Nearest,
-        min_filter: wgpu::FilterMode::Nearest,
-        mipmap_filter: wgpu::FilterMode::Nearest,
+        min_filter: wgpu::FilterMode::Linear,
+        mipmap_filter: wgpu::FilterMode::Linear,
         ..Default::default()
     });
     let diffuse_bind_group = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {

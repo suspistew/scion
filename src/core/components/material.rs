@@ -104,8 +104,6 @@ impl TextureArray {
         for x in 0..nb_lines {
             for y in 0..nb_columns {
                 let sub_image = dynamic_image.sub_image(y * split_width, x * split_height, split_width, split_height);
-                let str= format!("examples/starlight-1961/test/{}-{}.png", x,y);
-                    sub_image.to_image().save(Path::new(&app_base_path_join(&str))).expect("failed");
                 array.push(sub_image.to_image().into_raw());
             }
         }

@@ -12,10 +12,9 @@ use scion::core::components::tiles::sprite::Sprite;
 use scion::core::components::tiles::tileset::Tileset;
 use scion::core::world::{GameData, World};
 use scion::utils::file::app_base_path_join;
-use crate::level_scene::GLOBAL_SCALE_MODIFIER;
 
 // Adding entity
-pub fn add_ship(data: &mut GameData, atlas: &TilemapAtlas) -> Entity {
+pub fn add_ship(data: &mut GameData, atlas: &TilemapAtlas, global_scale_modifier: f32) -> Entity {
     let ship_start = get_ship_start_pos(&atlas);
     let ship_ref = data.assets_mut().register_tileset(Tileset::new("ship".to_string(),
                                                                    app_base_path_join("examples/starlight-1961/assets/space_ship.png"),
@@ -32,7 +31,7 @@ pub fn add_ship(data: &mut GameData, atlas: &TilemapAtlas) -> Entity {
     animations.insert("booster".to_string(), Animation::looping(Duration::from_millis(500), vec![AnimationModifier::sprite(vec![1,2,3,2], 0)]));
 
     data.push((
-        Transform::from_xy(ship_start.x() * GLOBAL_SCALE_MODIFIER -100., ship_start.y() * GLOBAL_SCALE_MODIFIER - 32.),
+        Transform::from_xy(ship_start.x() * global_scale_modifier - 16., ship_start.y() * global_scale_modifier - 32.),
         Sprite::new(0).pivot(Pivot::Custom(16., 16.)),
         Collider::new(ColliderMask::Character, vec![ColliderMask::Landscape], ColliderType::Polygon(collider_coords)),
         ship_ref,

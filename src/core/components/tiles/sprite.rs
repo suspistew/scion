@@ -1,4 +1,5 @@
 use std::ops::Range;
+use log::info;
 
 use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
@@ -9,6 +10,7 @@ use crate::{
     rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
 use crate::core::components::maths::Pivot;
+use crate::rendering::gl_representations::TexturedGlVertexWithLayer;
 
 use crate::utils::maths::Vector;
 
@@ -20,30 +22,27 @@ pub struct Sprite {
     /// Desired tile to render for this material.
     tile_number: usize,
     /// Current computed content for vertex
-    contents: Option<[TexturedGlVertex; 4]>,
+    contents: Option<[TexturedGlVertexWithLayer; 4]>,
     /// Flag to keep track of changed tile number
     dirty: bool,
     /// Pivot point of the sprite, default topleft
     pivot: Pivot,
-    /// Save of layers
-    layers: Vec<usize>,
 }
 
 impl Sprite {
     /// Creates a new sprite that will use the `tile_number` from the tileset associated in the same
     /// entity
     pub fn new(tile_number: usize) -> Self {
-        Self { tile_number, contents: None, dirty: false, pivot: Pivot::TopLeft, layers: vec![tile_number] }
+        Self { tile_number, contents: None, dirty: false, pivot: Pivot::TopLeft}
     }
 
     pub fn pivot(self, pivot: Pivot) -> Self {
-        Self { tile_number: self.tile_number, contents: None, dirty: false, pivot, layers: self.layers }
+        Self { tile_number: self.tile_number, contents: None, dirty: false, pivot}
     }
 
     /// Modify the current sprite tile number
     pub fn set_tile_nb(&mut self, new_tile_nb: usize) {
         self.tile_number = new_tile_nb;
-        self.layers = vec![new_tile_nb; self.layers.len()];
         self.dirty = true;
     }
 
@@ -59,18 +58,15 @@ impl Sprite {
         }
     }
 
-    fn uv_refs(&self, tileset: &Tileset) -> [Coordinates; 4] {
-
-        let decalage = 0.00000;
-
-        let a = Coordinates::new(0. + decalage, 0. + decalage);
-        let b = Coordinates::new(0. + decalage, 1. - decalage);
-        let c = Coordinates::new(1. - decalage, 1. - decalage);
-        let d = Coordinates::new(1. - decalage, 0. + decalage);
+    fn uv_refs(&self) -> [Coordinates; 4] {
+        let a = Coordinates::new(0., 0.);
+        let b = Coordinates::new(0., 1.);
+        let c = Coordinates::new(1., 1.);
+        let d = Coordinates::new(1., 0.);
         [a, b, c, d]
     }
 
-    pub(crate) fn compute_content(&self, material: Option<&Material>) -> [TexturedGlVertex; 4] {
+    pub(crate) fn compute_content(&self, material: Option<&Material>) -> [TexturedGlVertexWithLayer; 4] {
         if (self.dirty || self.contents.is_none()) && material.is_some() {
             if let Material::Tileset(tileset) = material.unwrap() {
                 let offset = Self::compute_pivot_offset(&self.pivot, tileset.tile_width, tileset.tile_height);
@@ -78,34 +74,24 @@ impl Sprite {
                 let b = Coordinates::new(a.x, a.y + tileset.tile_height as f32);
                 let c = Coordinates::new(a.x + tileset.tile_width as f32, a.y + tileset.tile_height as f32);
                 let d = Coordinates::new(a.x + tileset.tile_width as f32, a.y);
-                let uvs_ref = self.uv_refs(tileset);
+                let uvs_ref = self.uv_refs();
                 return [
-                    TexturedGlVertex::from((&a, &uvs_ref[0])),
-                    TexturedGlVertex::from((&b, &uvs_ref[1])),
-                    TexturedGlVertex::from((&c, &uvs_ref[2])),
-                    TexturedGlVertex::from((&d, &uvs_ref[3])),
+                    TexturedGlVertexWithLayer::from((&a, &uvs_ref[0], self.tile_number)),
+                    TexturedGlVertexWithLayer::from((&b, &uvs_ref[1], self.tile_number)),
+                    TexturedGlVertexWithLayer::from((&c, &uvs_ref[2], self.tile_number)),
+                    TexturedGlVertexWithLayer::from((&d, &uvs_ref[3], self.tile_number)),
                 ];
             }
         }
         *self.contents.as_ref().expect("A computed content is missing in Sprite component")
     }
 
-    pub(crate) fn compute_layers(&self, material: Option<&Material>) -> Vec<usize> {
-        let len = if let Some(Material::Tileset(t)) = material {
-            t.tile_height * t.tile_width
-        } else { 1 };
-        vec![self.tile_number; 2]
-    }
-
     pub(crate) fn indices() -> Vec<u16> {
         INDICES.to_vec()
     }
 
-    pub(crate) fn set_content(&mut self, content: [TexturedGlVertex; 4]) {
+    pub(crate) fn set_content(&mut self, content: [TexturedGlVertexWithLayer; 4]) {
         self.contents = Some(content);
-    }
-    pub(crate) fn set_layers(&mut self, layers: Vec<usize>) {
-        self.layers = layers;
     }
 }
 
@@ -129,16 +115,6 @@ impl Renderable2D for Sprite {
             usage: wgpu::BufferUsages::INDEX,
         }
     }
-
-    fn layers_buffer_descriptor(&mut self, material: Option<&Material>) -> Option<BufferInitDescriptor> {
-        self.layers = self.compute_layers(material);
-        Some(BufferInitDescriptor {
-            label: Some("Sprite Layer Buffer"),
-            contents: bytemuck::cast_slice(&self.layers),
-            usage: wgpu::BufferUsages::UNIFORM,
-        })
-    }
-
 
     fn range(&self) -> Range<u32> {
         0..INDICES.len() as u32
@@ -165,9 +141,5 @@ impl Renderable2D for Sprite {
     }
     fn get_pivot(&self) -> Pivot {
         self.pivot
-    }
-
-    fn texture_array_layer(&self) -> Option<u32> {
-        Some(self.tile_number as u32)
     }
 }

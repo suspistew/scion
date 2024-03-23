@@ -4,7 +4,7 @@ use wgpu::{
     SurfaceConfiguration,
 };
 
-use crate::rendering::gl_representations::TexturedGlVertex;
+use crate::rendering::gl_representations::{TexturedGlVertex, TexturedGlVertexWithLayer};
 
 pub fn pipeline(
     device: &Device,
@@ -89,7 +89,7 @@ pub fn pipeline_sprite(
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Basic sprite pipeline layout"),
-        bind_group_layouts: &[transform_bind_group_layout, texture_bind_group_layout, layer_bind_group_layout],
+        bind_group_layouts: &[transform_bind_group_layout, texture_bind_group_layout],
         push_constant_ranges: &[],
     });
 
@@ -99,7 +99,7 @@ pub fn pipeline_sprite(
         vertex: wgpu::VertexState {
             module: &shader,
             entry_point: "vs_main",
-            buffers: &[TexturedGlVertex::desc()],
+            buffers: &[TexturedGlVertexWithLayer::desc()],
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,

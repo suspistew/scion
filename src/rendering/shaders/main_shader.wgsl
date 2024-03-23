@@ -14,7 +14,6 @@ var<uniform> r_data: Uniforms;
 
 @vertex
 fn vs_main(
-    @builtin(vertex_index) vertex_index: u32,
     @location(0) a_position : vec3<f32>,
     @location(1) a_tex_translation : vec2<f32>,
 ) ->  VertexOutput{

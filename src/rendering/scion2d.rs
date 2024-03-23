@@ -6,7 +6,7 @@ use log::info;
 use wgpu::{util::DeviceExt, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView, SamplerBindingType, TextureFormat, StoreOp};
 
 use crate::core::world::{GameData, World};
-use crate::rendering::gl_representations::TexturedGlVertex;
+use crate::rendering::gl_representations::{TexturedGlVertex, TexturedGlVertexWithLayer};
 use crate::{
     config::scion_config::ScionConfig,
     core::components::{
@@ -46,7 +46,6 @@ pub(crate) struct Scion2D {
     layer_bind_group_layout: Option<BindGroupLayout>,
     transform_bind_group_layout: Option<BindGroupLayout>,
     diffuse_bind_groups: HashMap<String, (BindGroup, wgpu::Texture)>,
-    layer_bind_groups: HashMap<Entity, BindGroup>,
     transform_uniform_bind_groups: HashMap<Entity, (GlUniform, Buffer, BindGroup)>,
     assets_timestamps: HashMap<String, SystemTime>,
     first_tick_passed: bool,
@@ -234,41 +233,18 @@ impl Scion2D {
                 self.index_buffers.insert(entity, index_buffer);
             }
 
-            if !self.index_buffers.contains_key(&entity) || component.dirty() {
-                if let Some(layer_buffer) = component.layers_buffer_descriptor(Some(material)) {
-                    let buffer = device.create_buffer_init(&layer_buffer);
-                    let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-                        layout: self.layer_bind_group_layout.as_ref().unwrap(),
-                        entries: &[
-                            wgpu::BindGroupEntry {
-                                binding: 0,
-                                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                                    buffer: &buffer,
-                                    offset: 0,
-                                    size: Some(NonZeroU64::new(4).unwrap()),
-                                }),
-                            },
-                        ],
-                        label: Some("diffuse_bind_group"),
-                    });
-                    self.layer_buffers.insert(entity, buffer);
-                    self.layer_bind_groups.insert(entity, bind_group);
-                }
-            }
-
             component.set_dirty(false);
         }
     }
 
     fn upsert_tilemaps_buffers(&mut self, data: &mut GameData, device: &&Device) {
-        let mut to_modify: Vec<(Entity, [TexturedGlVertex; 4], Vec<usize>)> = Vec::new();
+        let mut to_modify: Vec<(Entity, [TexturedGlVertexWithLayer; 4])> = Vec::new();
 
         for (entity, (_, material, _)) in
         data.query::<(&mut Tilemap, &Material, &Transform)>().iter()
         {
             let tile_size = Material::tile_size(material).expect("");
             let mut vertexes = Vec::new();
-            let mut layers = Vec::new();
             let mut position = 0;
             let mut indexes = Vec::new();
             let any_tile_modified = !self.vertex_buffers.contains_key(&entity)
@@ -283,9 +259,7 @@ impl Scion2D {
                 for (e, (tile, sprite)) in data.query::<(&Tile, &Sprite)>().iter() {
                     if tile.tilemap == entity {
                         let current_vertex = sprite.compute_content(Some(material));
-                        let current_layers = sprite.compute_layers(Some(material));
-                        let mut vec_layers = current_layers.to_vec();
-                        to_modify.push((e, current_vertex, current_layers));
+                        to_modify.push((e, current_vertex));
                         let mut vec = current_vertex.to_vec();
                         vec.iter_mut().for_each(|gl_vertex| {
                             gl_vertex.position[0] = gl_vertex.position[0] + tile_size as f32 * tile.position.x() as f32;
@@ -293,7 +267,6 @@ impl Scion2D {
                             gl_vertex.position[2] = gl_vertex.position[2] + tile.position.z() as f32 / 100.
                         });
                         vertexes.append(&mut vec);
-                        layers.append(&mut vec_layers);
                         let sprite_indexes = Sprite::indices();
                         let mut sprite_indexes: Vec<u16> = sprite_indexes
                             .iter()
@@ -303,7 +276,6 @@ impl Scion2D {
                         position += 1;
                     }
                 }
-
                 let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                     label: Some("TileMap Vertex Buffer"),
                     contents: bytemuck::cast_slice(vertexes.as_slice()),
@@ -318,37 +290,13 @@ impl Scion2D {
                     usage: wgpu::BufferUsages::INDEX,
                 });
                 self.index_buffers.insert(entity, index_buffer);
-
-                let layer_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("TileMap Layer Buffer"),
-                    contents: bytemuck::cast_slice(layers.as_slice()),
-                    usage: wgpu::BufferUsages::UNIFORM,
-                });
-
-                let layer_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-                    layout: self.layer_bind_group_layout.as_ref().unwrap(),
-                    entries: &[
-                        wgpu::BindGroupEntry {
-                            binding: 0,
-                            resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
-                                buffer: &layer_buffer,
-                                offset: 0,
-                                size: None,
-                            }),
-                        },
-                    ],
-                    label: Some("diffuse_bind_group"),
-                });
-                self.layer_bind_groups.insert(entity, layer_bind_group);
-                self.layer_buffers.insert(entity, layer_buffer);
             }
         }
 
-        for (e, vertexes, layers) in to_modify.drain(0..) {
+        for (e, vertexes) in to_modify.drain(0..) {
             let mut sprite = data.entry_mut::<&mut Sprite>(e).expect("");
             sprite.set_dirty(false);
             sprite.set_content(vertexes);
-            sprite.set_layers(layers);
         }
     }
 
@@ -443,14 +391,6 @@ impl Scion2D {
                 render_pass.set_bind_group(
                     1,
                     &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
-                    &[],
-                );
-            }
-
-            if let Some(layer_bind_group) = self.layer_bind_groups.get(&rendering_infos.entity) {
-                render_pass.set_bind_group(
-                    2,
-                    layer_bind_group,
                     &[],
                 );
             }

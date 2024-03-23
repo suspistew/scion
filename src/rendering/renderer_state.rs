@@ -65,7 +65,6 @@ impl RendererState {
     }
 
     pub(crate) fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>, _scale_factor: f64) {
-        info!("{} {} {}",new_size.width, new_size.height, _scale_factor );
         self.config.width = new_size.width;
         self.config.height = new_size.height;
         self.surface.configure(&self.device, &self.config);

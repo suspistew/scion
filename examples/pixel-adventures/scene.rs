@@ -4,6 +4,7 @@ use std::time::{Duration};
 use std::vec;
 
 use hecs::Entity;
+use log::info;
 
 
 use scion::core::components::animations::{Animation, AnimationModifier, Animations};
@@ -77,7 +78,7 @@ impl Scene for MainScene {
             self.vertical_force = 15.;
         };
 
-        if !data.inputs().input_pressed(&Input::Key(KeyCode::Up)){
+        if !data.inputs().input_pressed(&Input::Key(KeyCode::Up)) {
             self.jumping_released = true;
         }
 
@@ -90,7 +91,7 @@ impl Scene for MainScene {
                     *material = Material::Tileset(resources.assets_mut().retrieve_tileset(&character.running_left_asset_ref).expect("").clone());
                     animations.stop_all_animation(true);
                     animations.loop_animation("run left");
-                } else {
+                } else if direction == Direction::RIGHT {
                     *material = Material::Tileset(resources.assets_mut().retrieve_tileset(&character.running_right_asset_ref).expect("").clone());
                     animations.stop_all_animation(true);
                     animations.loop_animation("run right");
@@ -104,7 +105,7 @@ impl Scene for MainScene {
                     *material = Material::Tileset(resources.assets_mut().retrieve_tileset(&character.idle_left_asset_ref).expect("").clone());
                     animations.stop_all_animation(true);
                     animations.loop_animation("idle left");
-                } else {
+                } else if direction == Direction::RIGHT {
                     *material = Material::Tileset(resources.assets_mut().retrieve_tileset(&character.idle_right_asset_ref).expect("").clone());
                     animations.stop_all_animation(true);
                     animations.loop_animation("idle right");
@@ -138,9 +139,9 @@ impl Scene for MainScene {
             self.idle = false;
         }
         self.direction = direction;
-        if !self.jumping && !collisions.contains(&Direction::BOTTOM){
+        if !self.jumping && !collisions.contains(&Direction::BOTTOM) {
             self.vertical_force -= 1.0;
-        } else if !self.jumping && collisions.contains(&Direction::BOTTOM){
+        } else if !self.jumping && collisions.contains(&Direction::BOTTOM) {
             self.vertical_force = 0.0;
         }
         if self.jumping {
@@ -153,26 +154,26 @@ impl Scene for MainScene {
     }
 }
 
-impl MainScene{
+impl MainScene {
     fn compute_collision_directions(&mut self, data: &mut GameData, char_entity: Entity) -> Vec<Direction> {
         let current_pos = *data.entry_mut::<&Transform>(char_entity).expect("").global_translation();
         let current_collisions = data.entry_mut::<&Collider>(char_entity).expect("").collisions();
         let mut res = Vec::new();
         let mut y_bottom = None;
         current_collisions.iter().for_each(|col| {
-            if col.area().min_y() >= (current_pos.y() + 12.){
+            if col.area().min_y() >= (current_pos.y() + 12.) {
                 y_bottom = Some(col.area().min_y());
                 res.push(Direction::BOTTOM);
-            }else if col.area().max_x() >= current_pos.x() + 8.
+            } else if col.area().max_x() >= current_pos.x() + 8.
                 && col.area().max_x() < current_pos.x() + 32.
-                && col.area().min_y() <= (current_pos.y() + 8. + 47.){
+                && col.area().min_y() <= (current_pos.y() + 8. + 47.) {
                 res.push(Direction::LEFT);
-            } else if col.area().min_x() <= (current_pos.x() + 47.) && col.area().min_y() <= (current_pos.y() + 8. + 47.){
+            } else if col.area().min_x() <= (current_pos.x() + 47.) && col.area().min_y() <= (current_pos.y() + 8. + 47.) {
                 res.push(Direction::RIGHT);
             }
         });
 
-        if y_bottom.is_some(){
+        if y_bottom.is_some() {
             data.entry_mut::<&mut Transform>(char_entity).expect("").set_y(y_bottom.unwrap() - 9. - 45.);
             self.vertical_force = 0.;
         }
@@ -286,7 +287,7 @@ fn add_character(data: &mut GameData) -> Entity {
     let tileset_ref_run_left = data.assets_mut().register_tileset(tileset_run_left);
 
     let tileset_jump =
-        Tileset::new("Jump".to_string(), app_base_path().join("examples/pixel-adventures/assets/Main Characters/Ninja Frog/Jump.png").get(), 1, 1, 32,32);
+        Tileset::new("Jump".to_string(), app_base_path().join("examples/pixel-adventures/assets/Main Characters/Ninja Frog/Jump.png").get(), 1, 1, 32, 32);
     let tileset_ref_jump = data.assets_mut().register_tileset(tileset_jump);
 
     data.push((

@@ -65,14 +65,12 @@ impl RendererType {
 pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor;
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor;
-    fn layers_buffer_descriptor(&mut self, _material: Option<&Material>) -> Option<BufferInitDescriptor> { None }
     fn range(&self) -> Range<u32>;
     fn topology() -> wgpu::PrimitiveTopology;
     fn dirty(&self) -> bool;
     fn set_dirty(&mut self, is_dirty: bool);
     fn get_pivot_offset(&self, _material: Option<&Material>) -> Vector{ Vector::default() }
     fn get_pivot(&self) -> Pivot{Pivot::TopLeft}
-    fn texture_array_layer(&self) -> Option<u32> { None }
 }
 
 pub(crate) trait RenderableUi: Renderable2D {}
