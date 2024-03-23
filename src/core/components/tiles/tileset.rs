@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
+use log::error;
 
 use crate::core::components::tiles::atlas::data::{TileConfig, TilesetAtlas};
 
@@ -44,9 +45,9 @@ impl Tileset {
                     Ok(atlas) => {
                         return Ok(atlas.into_tileset(path_to_texture.to_string()));
                     }
-                    Err(e) => {println!("{}", e)}
+                    Err(e) => {error!("{}", e)}
                 },
-                Err(e) => {println!("{:?}", e)}
+                Err(e) => {error!("{:?}", e)}
             }
         }
         Err(())

@@ -24,24 +24,26 @@ use crate::scripts::ship::{add_ship, Ship};
 
 pub const ACTIVE_LVL_FLAG: &str = "current_scene_is_menu";
 pub const CURRENT_LEVEL: &str = "current-level";
-pub const GLOBAL_SCALE_MODIFIER: f32 = 2.5;
 
 #[derive(Default)]
 pub struct LevelScene {
     ship: Option<Entity>,
     explosion: Option<Entity>,
     exploded: bool,
+    global_scale_modifier: f32
 }
 
 impl Scene for LevelScene {
     fn on_start(&mut self, data: &mut GameData) {
+        self.compute_pixel_perfect_scaling(data);
+
         data.game_state_mut().set_bool(ACTIVE_LVL_FLAG, true);
         let lvl = data.game_state().get_text(CURRENT_LEVEL).unwrap();
-        let (atlas, _entity) = load_tilemap(data, &lvl);
+        let (atlas, _entity) = load_tilemap(data, &lvl, TransformBuilder::new().with_scale(self.global_scale_modifier).build());
 
 
-        add_colliders(data, &atlas);
-        let ship_entity = add_ship(data, &atlas);
+        add_colliders(data, &atlas, self.global_scale_modifier);
+        let ship_entity = add_ship(data, &atlas, self.global_scale_modifier);
 
         let camera_transform = Transform::from_xy(-318., -388.);
         let dimension = data.window().dimensions();
@@ -115,7 +117,7 @@ impl Scene for LevelScene {
                 t.append_vector(Vector::new(ship.x_force, ship.y_force));
                 if !ship.is_landed && c.is_colliding() {
                     should_explose = true;
-                    tr = TransformBuilder::new().with_xy(t.global_translation().x() -16., t.global_translation().y()-16.).with_scale(2.5).build();
+                    tr = TransformBuilder::new().with_xy(t.global_translation().x() -16., t.global_translation().y()-16.).with_scale(self.global_scale_modifier).build();
                 }
 
             }
@@ -155,27 +157,39 @@ impl Scene for LevelScene {
         }
     }
 
-
     fn on_stop(&mut self, data: &mut GameData) {
         data.game_state_mut().set_bool(ACTIVE_LVL_FLAG, false);
         data.clear();
     }
 }
 
-fn add_colliders(data: &mut GameData, atlas: &TilemapAtlas) {
+impl LevelScene {
+    fn compute_pixel_perfect_scaling(&mut self, data: &mut GameData) {
+        let desired_scaling = 4.0;
+        let dpi = data.window().dpi();
+        let real_scaling = if dpi % 1.0 != 0. {
+            (desired_scaling / (desired_scaling * dpi)) * desired_scaling
+        } else {
+            desired_scaling
+        };
+        self.global_scale_modifier = real_scaling as f32;
+    }
+}
+
+fn add_colliders(data: &mut GameData, atlas: &TilemapAtlas, global_scale_modifier: f32) {
     atlas.get_objects().iter().filter(|o| o.get_class() == &TileObjectClass::Collider)
         .for_each(|collider| {
             if collider.is_rect() {
                 let rec = collider.get_rect();
                 data.push((
-                    Collider::new(ColliderMask::Landscape, vec![], ColliderType::Rectangle((rec.width() * GLOBAL_SCALE_MODIFIER) as usize, (rec.height() * GLOBAL_SCALE_MODIFIER) as usize)),
-                    TransformBuilder::new().with_xy(collider.get_position().x() * GLOBAL_SCALE_MODIFIER, collider.get_position().y() * GLOBAL_SCALE_MODIFIER).build()
+                    Collider::new(ColliderMask::Landscape, vec![], ColliderType::Rectangle((rec.width() * global_scale_modifier) as usize, (rec.height() * global_scale_modifier) as usize)),
+                    TransformBuilder::new().with_xy(collider.get_position().x() * global_scale_modifier, collider.get_position().y() * global_scale_modifier).build()
                 ));
             } else {
-                let pol: Vec<Coordinates> = collider.get_polygon().iter().map(|c| Coordinates::new(c.x() * GLOBAL_SCALE_MODIFIER, c.y() * GLOBAL_SCALE_MODIFIER)).collect();
+                let pol: Vec<Coordinates> = collider.get_polygon().iter().map(|c| Coordinates::new(c.x() * global_scale_modifier, c.y() * global_scale_modifier)).collect();
                 data.push((
                     Collider::new(ColliderMask::Landscape, vec![], ColliderType::Polygon(pol)),
-                    TransformBuilder::new().with_xy(collider.get_position().x() * GLOBAL_SCALE_MODIFIER, collider.get_position().y() * GLOBAL_SCALE_MODIFIER).build()
+                    TransformBuilder::new().with_xy(collider.get_position().x() * global_scale_modifier, collider.get_position().y() * global_scale_modifier).build()
                 ));
             }
         });

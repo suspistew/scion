@@ -16,6 +16,7 @@ pub(crate) mod gl_representations;
 pub(crate) mod renderer_state;
 pub(crate) mod scion2d;
 pub(crate) mod shaders;
+mod rendering_texture_management;
 
 /// Trait to implement in order to create a renderer to use in a `Scion` application
 pub trait ScionRenderer {

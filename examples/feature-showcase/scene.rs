@@ -1,3 +1,4 @@
+use scion::core::components::maths::transform::Transform;
 use scion::core::components::tiles::atlas::importer::load_tilemap;
 use scion::core::resources::asset_manager::AssetType;
 
@@ -18,6 +19,6 @@ impl Scene for DemoScene{
         );
 
         data.assets_mut().register_atlas_path(AssetType::Tilemap("test-lvl".to_string()), &app_base_path_join("examples/feature-showcase/assets/test-lvl.scion"));
-        load_tilemap(data, "test-lvl");
+        load_tilemap(data, "test-lvl", Transform::default());
     }
 }

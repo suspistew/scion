@@ -93,6 +93,41 @@ pub(crate) struct TexturedGlVertex {
     pub tex_translation: [f32;2],
 }
 
+#[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+pub(crate) struct TexturedGlVertexWithLayer {
+    pub position: [f32;3],
+    pub tex_translation: [f32;2],
+    pub layer: u32
+}
+
+impl TexturedGlVertexWithLayer {
+    pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        use std::mem;
+        wgpu::VertexBufferLayout {
+            array_stride: mem::size_of::<TexturedGlVertexWithLayer>() as wgpu::BufferAddress,
+            step_mode: wgpu::VertexStepMode::Vertex,
+            attributes: &[
+                wgpu::VertexAttribute {
+                    offset: 0,
+                    shader_location: 0,
+                    format: wgpu::VertexFormat::Float32x3,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    shader_location: 1,
+                    format: wgpu::VertexFormat::Float32x2,
+                },
+                wgpu::VertexAttribute {
+                    offset: (mem::size_of::<[f32; 2]>() + mem::size_of::<[f32; 3]>()) as wgpu::BufferAddress,
+                    shader_location: 2,
+                    format: wgpu::VertexFormat::Uint32,
+                },
+            ],
+        }
+    }
+}
+
 impl TexturedGlVertex {
     pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         use std::mem;
@@ -120,6 +155,16 @@ impl From<(&Coordinates, &Coordinates)> for TexturedGlVertex {
         TexturedGlVertex {
             position: [positions.0.x(), positions.0.y(), 0.0 ],
             tex_translation: [positions.1.x(), positions.1.y],
+        }
+    }
+}
+
+impl From<(&Coordinates, &Coordinates, usize)> for TexturedGlVertexWithLayer {
+    fn from(positions: (&Coordinates, &Coordinates, usize)) -> Self {
+        TexturedGlVertexWithLayer {
+            position: [positions.0.x(), positions.0.y(), 0.0 ],
+            tex_translation: [positions.1.x(), positions.1.y()],
+            layer: positions.2 as u32
         }
     }
 }

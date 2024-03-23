@@ -14,7 +14,7 @@ pub mod importer {
     use crate::core::components::animations::{Animation, AnimationModifier};
 
     use crate::core::components::material::Material;
-    use crate::core::components::maths::transform::TransformBuilder;
+    use crate::core::components::maths::transform::{Transform, TransformBuilder};
     use crate::core::components::tiles::atlas::data::{TilemapAtlas, TilesetAtlas};
     use crate::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
     use crate::core::components::tiles::tileset::Tileset;
@@ -59,7 +59,7 @@ pub mod importer {
     /// To use this function, you need to have an entry into the registry for the `AssetType::Tilemap(name)` (see `AssetManager`)
     /// You also need to have an entry in the registry for each AssetType::Tileset used in the tilemap
     /// Scion will load the tilesets into the asset manager or reuse them if they exist
-    pub fn load_tilemap(data: &mut GameData, name: &str) -> (TilemapAtlas, Entity) {
+    pub fn load_tilemap(data: &mut GameData, name: &str, tilemap_transform: Transform) -> (TilemapAtlas, Entity) {
         let (subworld, resources) = data.split();
 
         let tilemap_path = resources.assets().get_atlas_path_for_asset_type(AssetType::Tilemap(name.to_string()));
@@ -78,7 +78,7 @@ pub mod importer {
         let opt_tileset = asset_manager.retrieve_tileset(tileset_ref);
         let tileset = opt_tileset.unwrap();
 
-        let tilemap_info = create_tilemap_info(&tilemap, tileset_refs);
+        let tilemap_info = create_tilemap_info(&tilemap, tileset_refs, tilemap_transform);
         let entity = Tilemap::create(tilemap_info, subworld, |p| {
             let tile = tilemap.tile_at(p);
             let animation = compute_animation(&tile, tileset);
@@ -126,9 +126,9 @@ pub mod importer {
         }
     }
 
-    fn create_tilemap_info(tilemap: &TilemapAtlas, mut tileset_refs: Vec<AssetRef<Material>>) -> TilemapInfo {
+    fn create_tilemap_info(tilemap: &TilemapAtlas, mut tileset_refs: Vec<AssetRef<Material>>, tilemap_transform: Transform) -> TilemapInfo {
         TilemapInfo::new(Dimensions::new(tilemap.width, tilemap.height, tilemap.layers.len()),
-                         TransformBuilder::new().with_scale(2.5).build(), // FIXME
+                         tilemap_transform,
                          tileset_refs.remove(0)) // TODO : When support for multi tileset is developped
     }
 }
