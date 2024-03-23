@@ -25,22 +25,25 @@ pub struct Sprite {
     dirty: bool,
     /// Pivot point of the sprite, default topleft
     pivot: Pivot,
+    /// Save of layers
+    layers: Vec<usize>,
 }
 
 impl Sprite {
     /// Creates a new sprite that will use the `tile_number` from the tileset associated in the same
     /// entity
     pub fn new(tile_number: usize) -> Self {
-        Self { tile_number, contents: None, dirty: false, pivot: Pivot::TopLeft }
+        Self { tile_number, contents: None, dirty: false, pivot: Pivot::TopLeft, layers: vec![tile_number] }
     }
 
     pub fn pivot(self, pivot: Pivot) -> Self {
-        Self { tile_number: self.tile_number, contents: None, dirty: false, pivot }
+        Self { tile_number: self.tile_number, contents: None, dirty: false, pivot, layers: self.layers }
     }
 
     /// Modify the current sprite tile number
     pub fn set_tile_nb(&mut self, new_tile_nb: usize) {
         self.tile_number = new_tile_nb;
+        self.layers = vec![new_tile_nb; self.layers.len()];
         self.dirty = true;
     }
 
@@ -52,21 +55,18 @@ impl Sprite {
         match pivot {
             Pivot::TopLeft => Vector::new(0., 0.),
             Pivot::Center => Vector::new(width as f32 / 2., height as f32 / 2.),
-            Pivot::Custom(x,y) => Vector::new(*x, *y)
+            Pivot::Custom(x, y) => Vector::new(*x, *y)
         }
     }
 
     fn uv_refs(&self, tileset: &Tileset) -> [Coordinates; 4] {
-        let line = (self.tile_number / tileset.width) as f32;
-        let column = (self.tile_number % tileset.width) as f32;
 
-        let unit_line = 1.0 / tileset.height as f32;
-        let unit_column = 1.0 / tileset.width as f32;
+        let decalage = 0.00000;
 
-        let a = Coordinates::new(column * unit_column, line * unit_line);
-        let b = Coordinates::new(a.x(), a.y() + unit_line);
-        let c = Coordinates::new(a.x() + unit_column, a.y() + unit_line);
-        let d = Coordinates::new(a.x() + unit_column, a.y());
+        let a = Coordinates::new(0. + decalage, 0. + decalage);
+        let b = Coordinates::new(0. + decalage, 1. - decalage);
+        let c = Coordinates::new(1. - decalage, 1. - decalage);
+        let d = Coordinates::new(1. - decalage, 0. + decalage);
         [a, b, c, d]
     }
 
@@ -90,12 +90,22 @@ impl Sprite {
         *self.contents.as_ref().expect("A computed content is missing in Sprite component")
     }
 
+    pub(crate) fn compute_layers(&self, material: Option<&Material>) -> Vec<usize> {
+        let len = if let Some(Material::Tileset(t)) = material {
+            t.tile_height * t.tile_width
+        } else { 1 };
+        vec![self.tile_number; 2]
+    }
+
     pub(crate) fn indices() -> Vec<u16> {
         INDICES.to_vec()
     }
 
     pub(crate) fn set_content(&mut self, content: [TexturedGlVertex; 4]) {
         self.contents = Some(content);
+    }
+    pub(crate) fn set_layers(&mut self, layers: Vec<usize>) {
+        self.layers = layers;
     }
 }
 
@@ -120,12 +130,22 @@ impl Renderable2D for Sprite {
         }
     }
 
+    fn layers_buffer_descriptor(&mut self, material: Option<&Material>) -> Option<BufferInitDescriptor> {
+        self.layers = self.compute_layers(material);
+        Some(BufferInitDescriptor {
+            label: Some("Sprite Layer Buffer"),
+            contents: bytemuck::cast_slice(&self.layers),
+            usage: wgpu::BufferUsages::UNIFORM,
+        })
+    }
+
+
     fn range(&self) -> Range<u32> {
         0..INDICES.len() as u32
     }
 
     fn topology() -> PrimitiveTopology {
-        wgpu::PrimitiveTopology::TriangleList
+        PrimitiveTopology::TriangleList
     }
 
     fn dirty(&self) -> bool {
@@ -145,5 +165,9 @@ impl Renderable2D for Sprite {
     }
     fn get_pivot(&self) -> Pivot {
         self.pivot
+    }
+
+    fn texture_array_layer(&self) -> Option<u32> {
+        Some(self.tile_number as u32)
     }
 }

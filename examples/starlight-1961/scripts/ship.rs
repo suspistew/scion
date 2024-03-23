@@ -32,7 +32,7 @@ pub fn add_ship(data: &mut GameData, atlas: &TilemapAtlas) -> Entity {
     animations.insert("booster".to_string(), Animation::looping(Duration::from_millis(500), vec![AnimationModifier::sprite(vec![1,2,3,2], 0)]));
 
     data.push((
-        Transform::from_xy(ship_start.x() * GLOBAL_SCALE_MODIFIER - 16., ship_start.y() * GLOBAL_SCALE_MODIFIER - 32.),
+        Transform::from_xy(ship_start.x() * GLOBAL_SCALE_MODIFIER -100., ship_start.y() * GLOBAL_SCALE_MODIFIER - 32.),
         Sprite::new(0).pivot(Pivot::Custom(16., 16.)),
         Collider::new(ColliderMask::Character, vec![ColliderMask::Landscape], ColliderType::Polygon(collider_coords)),
         ship_ref,

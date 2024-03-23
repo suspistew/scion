@@ -155,7 +155,6 @@ impl Scene for LevelScene {
         }
     }
 
-
     fn on_stop(&mut self, data: &mut GameData) {
         data.game_state_mut().set_bool(ACTIVE_LVL_FLAG, false);
         data.clear();

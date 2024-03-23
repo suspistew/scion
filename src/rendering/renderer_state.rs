@@ -1,5 +1,6 @@
 use std::sync::Arc;
-use wgpu::{CompositeAlphaMode, InstanceDescriptor, Surface, SurfaceConfiguration, TextureFormat};
+use log::info;
+use wgpu::{CompositeAlphaMode, InstanceDescriptor, Limits, Surface, SurfaceConfiguration, TextureFormat};
 use winit::{event::WindowEvent, window::Window};
 
 use crate::{config::scion_config::ScionConfig, rendering::ScionRenderer};
@@ -40,9 +41,12 @@ impl RendererState {
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
-                    required_features: wgpu::Features::empty(),
+                    required_features: wgpu::Features::TEXTURE_BINDING_ARRAY | wgpu::Features::ADDRESS_MODE_CLAMP_TO_BORDER,
                     // Make sure we use the texture resolution limits from the adapter, so we can support images the size of the swapchain.
-                    required_limits: wgpu::Limits::downlevel_webgl2_defaults()
+                    required_limits: Limits {
+                        max_texture_array_layers: 512,
+                        ..Limits::default()
+                    }
                         .using_resolution(adapter.limits()),
                 },
                 None,
@@ -61,6 +65,7 @@ impl RendererState {
     }
 
     pub(crate) fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>, _scale_factor: f64) {
+        info!("{} {} {}",new_size.width, new_size.height, _scale_factor );
         self.config.width = new_size.width;
         self.config.height = new_size.height;
         self.surface.configure(&self.device, &self.config);

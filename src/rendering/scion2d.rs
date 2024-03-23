@@ -1,5 +1,7 @@
 use hecs::{Component, Entity};
 use std::{cfg, collections::HashMap, ops::Range, path::Path, time::SystemTime};
+use std::num::NonZeroU64;
+use log::info;
 
 use wgpu::{util::DeviceExt, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView, SamplerBindingType, TextureFormat, StoreOp};
 
@@ -28,19 +30,26 @@ use crate::{
     },
     utils::file::{read_file_modification_time, FileReaderError},
 };
+use crate::core::components::material::TextureArray;
+use crate::rendering::rendering_texture_management::load_texture_array_to_queue;
+use crate::rendering::shaders::pipeline::pipeline_sprite;
 use crate::utils::maths::Vector;
 
 #[derive(Default)]
 pub(crate) struct Scion2D {
     vertex_buffers: HashMap<Entity, Buffer>,
     index_buffers: HashMap<Entity, Buffer>,
+    layer_buffers: HashMap<Entity, Buffer>,
     render_pipelines: HashMap<String, RenderPipeline>,
     texture_bind_group_layout: Option<BindGroupLayout>,
+    texture_array_bind_group_layout: Option<BindGroupLayout>,
+    layer_bind_group_layout: Option<BindGroupLayout>,
     transform_bind_group_layout: Option<BindGroupLayout>,
     diffuse_bind_groups: HashMap<String, (BindGroup, wgpu::Texture)>,
+    layer_bind_groups: HashMap<Entity, BindGroup>,
     transform_uniform_bind_groups: HashMap<Entity, (GlUniform, Buffer, BindGroup)>,
     assets_timestamps: HashMap<String, SystemTime>,
-    first_tick_passed: bool
+    first_tick_passed: bool,
 }
 
 #[derive(Debug)]
@@ -92,8 +101,47 @@ impl ScionRenderer for Scion2D {
                 label: Some("texture_bind_group_layout"),
             });
 
+        let texture_array_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            multisampled: false,
+                            view_dimension: wgpu::TextureViewDimension::D2Array,
+                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler(SamplerBindingType::Filtering),
+                        count: None,
+                    },
+                ],
+                label: Some("texture_bind_group_layout"),
+            });
+
+        let layer_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("layer_bind_group_layout"),
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: Some(NonZeroU64::new(4).unwrap()),
+                },
+                count: None,
+            }],
+        });
+
         self.transform_bind_group_layout = Some(uniform_bind_group_layout);
         self.texture_bind_group_layout = Some(texture_bind_group_layout);
+        self.texture_array_bind_group_layout = Some(texture_array_bind_group_layout);
+        self.layer_bind_group_layout = Some(layer_bind_group_layout);
         self.insert_components_pipelines::<Triangle>(&device, &surface_config);
         self.insert_components_pipelines::<Square>(&device, &surface_config);
         self.insert_components_pipelines::<Rectangle>(&device, &surface_config);
@@ -172,7 +220,7 @@ impl Scion2D {
         device: &&Device,
     ) {
         for (entity, (component, material, _)) in
-            data.query_mut::<(&mut T, &Material, &Transform)>()
+        data.query_mut::<(&mut T, &Material, &Transform)>()
         {
             if !self.vertex_buffers.contains_key(&entity) || component.dirty() {
                 let vertex_buffer =
@@ -186,40 +234,66 @@ impl Scion2D {
                 self.index_buffers.insert(entity, index_buffer);
             }
 
+            if !self.index_buffers.contains_key(&entity) || component.dirty() {
+                if let Some(layer_buffer) = component.layers_buffer_descriptor(Some(material)) {
+                    let buffer = device.create_buffer_init(&layer_buffer);
+                    let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                        layout: self.layer_bind_group_layout.as_ref().unwrap(),
+                        entries: &[
+                            wgpu::BindGroupEntry {
+                                binding: 0,
+                                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                                    buffer: &buffer,
+                                    offset: 0,
+                                    size: Some(NonZeroU64::new(4).unwrap()),
+                                }),
+                            },
+                        ],
+                        label: Some("diffuse_bind_group"),
+                    });
+                    self.layer_buffers.insert(entity, buffer);
+                    self.layer_bind_groups.insert(entity, bind_group);
+                }
+            }
+
             component.set_dirty(false);
         }
     }
 
     fn upsert_tilemaps_buffers(&mut self, data: &mut GameData, device: &&Device) {
-        let mut to_modify: Vec<(Entity, [TexturedGlVertex; 4])> = Vec::new();
+        let mut to_modify: Vec<(Entity, [TexturedGlVertex; 4], Vec<usize>)> = Vec::new();
 
         for (entity, (_, material, _)) in
-            data.query::<(&mut Tilemap, &Material, &Transform)>().iter()
+        data.query::<(&mut Tilemap, &Material, &Transform)>().iter()
         {
             let tile_size = Material::tile_size(material).expect("");
             let mut vertexes = Vec::new();
+            let mut layers = Vec::new();
             let mut position = 0;
             let mut indexes = Vec::new();
             let any_tile_modified = !self.vertex_buffers.contains_key(&entity)
                 || data
-                    .query::<(&Tile, &Sprite)>()
-                    .iter()
-                    .filter(|(_, (tile, sprite))| tile.tilemap == entity && sprite.dirty())
-                    .count()
-                    > 0;
+                .query::<(&Tile, &Sprite)>()
+                .iter()
+                .filter(|(_, (tile, sprite))| tile.tilemap == entity && sprite.dirty())
+                .count()
+                > 0;
 
             if any_tile_modified {
                 for (e, (tile, sprite)) in data.query::<(&Tile, &Sprite)>().iter() {
                     if tile.tilemap == entity {
-                        let res = sprite.compute_content(Some(material));
-                        to_modify.push((e, res));
-                        let mut vec = res.to_vec();
+                        let current_vertex = sprite.compute_content(Some(material));
+                        let current_layers = sprite.compute_layers(Some(material));
+                        let mut vec_layers = current_layers.to_vec();
+                        to_modify.push((e, current_vertex, current_layers));
+                        let mut vec = current_vertex.to_vec();
                         vec.iter_mut().for_each(|gl_vertex| {
                             gl_vertex.position[0] = gl_vertex.position[0] + tile_size as f32 * tile.position.x() as f32;
                             gl_vertex.position[1] = gl_vertex.position[1] + tile_size as f32 * tile.position.y() as f32;
                             gl_vertex.position[2] = gl_vertex.position[2] + tile.position.z() as f32 / 100.
                         });
                         vertexes.append(&mut vec);
+                        layers.append(&mut vec_layers);
                         let sprite_indexes = Sprite::indices();
                         let mut sprite_indexes: Vec<u16> = sprite_indexes
                             .iter()
@@ -244,12 +318,37 @@ impl Scion2D {
                     usage: wgpu::BufferUsages::INDEX,
                 });
                 self.index_buffers.insert(entity, index_buffer);
+
+                let layer_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("TileMap Layer Buffer"),
+                    contents: bytemuck::cast_slice(layers.as_slice()),
+                    usage: wgpu::BufferUsages::UNIFORM,
+                });
+
+                let layer_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    layout: self.layer_bind_group_layout.as_ref().unwrap(),
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                                buffer: &layer_buffer,
+                                offset: 0,
+                                size: None,
+                            }),
+                        },
+                    ],
+                    label: Some("diffuse_bind_group"),
+                });
+                self.layer_bind_groups.insert(entity, layer_bind_group);
+                self.layer_buffers.insert(entity, layer_buffer);
             }
         }
 
-        for (e, vertexes) in to_modify.drain(0..) {
-            data.entry_mut::<&mut Sprite>(e).expect("").set_dirty(false);
-            data.entry_mut::<&mut Sprite>(e).expect("").set_content(vertexes);
+        for (e, vertexes, layers) in to_modify.drain(0..) {
+            let mut sprite = data.entry_mut::<&mut Sprite>(e).expect("");
+            sprite.set_dirty(false);
+            sprite.set_content(vertexes);
+            sprite.set_layers(layers);
         }
     }
 
@@ -284,13 +383,26 @@ impl Scion2D {
         if !self.render_pipelines.contains_key(type_name) {
             self.render_pipelines.insert(
                 type_name.to_string(),
-                pipeline(
-                    device,
-                    surface_config,
-                    self.texture_bind_group_layout.as_ref().unwrap(),
-                    self.transform_bind_group_layout.as_ref().unwrap(),
-                    T::topology(),
-                ),
+                if type_name.eq_ignore_ascii_case("scion::core::components::tiles::sprite::Sprite") ||
+                    type_name.eq_ignore_ascii_case("scion::core::components::tiles::tilemap::Tilemap") {
+                    pipeline_sprite(
+                        device,
+                        surface_config,
+                        self.texture_array_bind_group_layout.as_ref().unwrap(),
+                        self.transform_bind_group_layout.as_ref().unwrap(),
+                        self.layer_bind_group_layout.as_ref().unwrap(),
+                        T::topology(),
+                    )
+                } else {
+                    pipeline(
+                        device,
+                        surface_config,
+                        self.texture_bind_group_layout.as_ref().unwrap(),
+                        self.transform_bind_group_layout.as_ref().unwrap(),
+                        T::topology(),
+                    )
+                }
+                ,
             );
         }
     }
@@ -307,7 +419,7 @@ impl Scion2D {
             color_attachments: &[get_default_color_attachment(texture_view, config)],
             depth_stencil_attachment: None,
             occlusion_query_set: None,
-            timestamp_writes: None
+            timestamp_writes: None,
         });
 
         while let Some(rendering_infos) = infos.pop() {
@@ -331,6 +443,14 @@ impl Scion2D {
                 render_pass.set_bind_group(
                     1,
                     &self.diffuse_bind_groups.get(path.as_str()).unwrap().0,
+                    &[],
+                );
+            }
+
+            if let Some(layer_bind_group) = self.layer_bind_groups.get(&rendering_infos.entity) {
+                render_pass.set_bind_group(
+                    2,
+                    layer_bind_group,
                     &[],
                 );
             }
@@ -406,10 +526,10 @@ impl Scion2D {
         let type_name = std::any::type_name::<T>();
         let mut render_infos = Vec::new();
         for (entity, (component, transform, material)) in
-            data.query::<(&mut T, &Transform, Option<&Material>)>()
-                .without::<&Hide>()
-                .without::<&HidePropagated>()
-                .iter()
+        data.query::<(&mut T, &Transform, Option<&Material>)>()
+            .without::<&Hide>()
+            .without::<&HidePropagated>()
+            .iter()
         {
             let path = if material.is_some() {
                 match material.unwrap() {
@@ -417,7 +537,7 @@ impl Scion2D {
                     Material::Texture(p) => Some(p.clone()),
                     _ => None
                 }
-            }else{
+            } else {
                 None
             };
 
@@ -464,7 +584,7 @@ impl Scion2D {
         let camera = (&camera1.0, &camera1.1);
 
         for (entity, (transform, optional_ui_component, renderable, optional_material)) in
-            data.query::<(&Transform, Option<&UiComponent>, &T, Option<&Material>)>().iter()
+        data.query::<(&Transform, Option<&UiComponent>, &T, Option<&Material>)>().iter()
         {
             if let std::collections::hash_map::Entry::Vacant(e) = self.transform_uniform_bind_groups.entry(entity) {
                 let (uniform, uniform_buffer, group) = create_transform_uniform_bind_group(
@@ -473,7 +593,7 @@ impl Scion2D {
                     camera,
                     optional_ui_component.is_some(),
                     self.transform_bind_group_layout.as_ref().unwrap(),
-                    renderable.get_pivot_offset(optional_material)
+                    renderable.get_pivot_offset(optional_material),
                 );
                 queue.write_buffer(&uniform_buffer, 0, bytemuck::cast_slice(&[uniform]));
                 e.insert((uniform, uniform_buffer, group));
@@ -486,7 +606,7 @@ impl Scion2D {
                     transform,
                     camera,
                     is_ui_component: optional_ui_component.is_some(),
-                    pivot_offset: renderable.get_pivot_offset(optional_material)
+                    pivot_offset: renderable.get_pivot_offset(optional_material),
                 }));
                 queue.write_buffer(uniform_buffer, 0, bytemuck::cast_slice(&[*uniform]));
             }
@@ -500,11 +620,11 @@ impl Scion2D {
     ) -> bool {
         !self.diffuse_bind_groups.contains_key(path.as_str())
             || if let Some(Ok(timestamp)) = new_timestamp {
-                !self.assets_timestamps.contains_key(path.as_str())
-                    || !self.assets_timestamps.get(path.as_str()).unwrap().eq(timestamp)
-            } else {
-                false
-            }
+            !self.assets_timestamps.contains_key(path.as_str())
+                || !self.assets_timestamps.get(path.as_str()).unwrap().eq(timestamp)
+        } else {
+            false
+        }
     }
 
     /// Loads in the queue materials that are not yet loaded.
@@ -540,13 +660,12 @@ impl Scion2D {
                             self.diffuse_bind_groups
                                 .get(texture_path.as_str())
                                 .expect("Unreachable diffuse bind group after check")
-                                .1
-                                .destroy();
+                                .1.destroy();
                             self.diffuse_bind_groups.remove(texture_path.as_str());
                         }
 
                         // Check if this is an in_memory_texture from font_atlas
-                        let loaded_texture = match data.font_atlas().get_texture_from_path(texture_path){
+                        let loaded_texture = match data.font_atlas().get_texture_from_path(texture_path) {
                             Some(t) => t.take_texture(),
                             None => Texture::from_png(path)
                         };
@@ -592,15 +711,10 @@ impl Scion2D {
                     };
 
                     if self.texture_should_be_reloaded(&tileset.texture, &new_timestamp) {
-                        let loaded_texture = Texture::from_png(Path::new(tileset.texture.as_str()));
+                        let loaded_texture_array = TextureArray::from_tileset(tileset);
                         self.diffuse_bind_groups.insert(
-                            tileset.texture.clone(),
-                            load_texture_to_queue(
-                                &loaded_texture,
-                                queue,
-                                device,
-                                self.texture_bind_group_layout.as_ref().unwrap(),
-                            ),
+                            tileset.texture.to_string(),
+                            load_texture_array_to_queue(loaded_texture_array, queue, device),
                         );
                         if let Some(Ok(timestamp)) = new_timestamp {
                             self.assets_timestamps.insert(tileset.texture.clone(), timestamp);
@@ -638,7 +752,7 @@ fn load_texture_to_queue(
         usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
         label: Some("diffuse_texture"),
         format: TextureFormat::Rgba8UnormSrgb,
-        view_formats: &[TextureFormat::Rgba8UnormSrgb]
+        view_formats: &[TextureFormat::Rgba8UnormSrgb],
     });
 
     queue.write_texture(
@@ -691,9 +805,9 @@ fn create_transform_uniform_bind_group(
     camera: (&Camera, &Transform),
     is_ui_component: bool,
     uniform_bind_group_layout: &BindGroupLayout,
-    offset: Vector
+    offset: Vector,
 ) -> (GlUniform, Buffer, BindGroup) {
-    let uniform = GlUniform::from(UniformData { transform, camera, is_ui_component, pivot_offset: offset});
+    let uniform = GlUniform::from(UniformData { transform, camera, is_ui_component, pivot_offset: offset });
     let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Uniform Buffer"),
         contents: bytemuck::cast_slice(&[uniform]),

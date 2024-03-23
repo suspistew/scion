@@ -1,11 +1,14 @@
+use std::fmt::{Display, format, Formatter, write};
 use std::path::Path;
 
-use image::{DynamicImage, ImageBuffer, ImageFormat};
+use image::{DynamicImage, GenericImage, ImageBuffer, ImageFormat};
+use image::imageops::tile;
 
 use crate::{
     core::components::{color::Color, tiles::tileset::Tileset},
     utils::file::read_file,
 };
+use crate::utils::file::app_base_path_join;
 
 /// Component used by the 2D Renderer to know which material to use when rendering a renderable object.
 #[derive(Clone)]
@@ -69,5 +72,70 @@ impl Texture {
         let bytes = image.into_raw();
 
         Texture { bytes, width, height }
+    }
+}
+
+pub(crate) struct TextureArray {
+    pub(crate) bytes_array: Vec<Vec<u8>>,
+    pub(crate) unit_width: u32,
+    pub(crate) unit_height: u32,
+    pub(crate) lines: u32,
+}
+
+impl TextureArray {
+    pub fn from_tileset(tileset: &Tileset) -> Self {
+        if let Ok(bytes) = read_file(Path::new(tileset.texture.as_str())) {
+            let converted_image = image::load_from_memory_with_format(&bytes, ImageFormat::Png);
+            if let Ok(image) = converted_image {
+                return Self::create_texture_array_from_dynamic_image(image, tileset.height as u32, tileset.width as u32, tileset.tile_width as u32, tileset.tile_height as u32);
+            }
+        }
+        log::error!("Error while loading your texture, loading fallback texture instead.");
+        TextureArray::fallback_texture_array(tileset.height, tileset.width, tileset.tile_width as u32, tileset.tile_height as u32)
+    }
+
+    fn create_texture_array_from_dynamic_image(mut dynamic_image: DynamicImage,
+                                               nb_lines: u32,
+                                               nb_columns: u32,
+                                               split_width: u32,
+                                               split_height: u32) -> Self {
+        let mut array: Vec<Vec<u8>> = Vec::new();
+
+        for x in 0..nb_lines {
+            for y in 0..nb_columns {
+                let sub_image = dynamic_image.sub_image(y * split_width, x * split_height, split_width, split_height);
+                let str= format!("examples/starlight-1961/test/{}-{}.png", x,y);
+                    sub_image.to_image().save(Path::new(&app_base_path_join(&str))).expect("failed");
+                array.push(sub_image.to_image().into_raw());
+            }
+        }
+
+        Self {
+            bytes_array: array,
+            unit_width: split_width,
+            unit_height: split_height,
+            lines: nb_lines
+        }
+    }
+
+    fn fallback_texture_array(nb_lines: usize, nb_columns: usize, split_width: u32, split_height: u32) -> TextureArray {
+        let mut array: Vec<Vec<u8>> = Vec::new();
+        for x in 0..nb_columns {
+            for y in 0..nb_lines {
+                array.push(Texture::fallback_texture().bytes);
+            }
+        }
+        Self {
+            bytes_array: array,
+            unit_width: split_width,
+            unit_height: split_height,
+            lines: nb_lines as u32
+        }
+    }
+}
+
+impl Display for TextureArray {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "array length : {}, unit width : {}, unit height : {}", self.bytes_array.len(), self.unit_width, self.unit_height)
     }
 }
