@@ -165,10 +165,10 @@ impl Scene for LevelScene {
 
 impl LevelScene {
     fn compute_pixel_perfect_scaling(&mut self, data: &mut GameData) {
-        let desired_scaling = 3.0;
+        let desired_scaling = 4.0;
         let dpi = data.window().dpi();
         let real_scaling = if dpi % 1.0 != 0. {
-            desired_scaling / (desired_scaling * dpi)
+            (desired_scaling / (desired_scaling * dpi)) * desired_scaling
         } else {
             desired_scaling
         };
