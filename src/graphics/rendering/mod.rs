@@ -1,4 +1,4 @@
-//! Everything that is relative to rendering to the window (Like renderable components, camera, transforms..)
+//! Everything that is relative to graphics to the window (Like renderable components, camera, transforms..)
 use std::ops::Range;
 
 use scion2d::Scion2D;

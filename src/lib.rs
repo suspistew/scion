@@ -17,5 +17,5 @@ pub use log;
 mod application;
 pub mod config;
 pub mod core;
-pub mod rendering;
+pub mod graphics;
 pub mod utils;

@@ -6,7 +6,7 @@ use log::info;
 use wgpu::{util::DeviceExt, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView, SamplerBindingType, TextureFormat, StoreOp};
 
 use crate::core::world::{GameData, World};
-use crate::rendering::gl_representations::{TexturedGlVertex, TexturedGlVertexWithLayer};
+use crate::graphics::rendering::gl_representations::{TexturedGlVertex, TexturedGlVertexWithLayer};
 use crate::{
     config::scion_config::ScionConfig,
     core::components::{
@@ -23,7 +23,7 @@ use crate::{
         ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
         Hide, HidePropagated,
     },
-    rendering::{
+    graphics::rendering::{
         gl_representations::{GlUniform, UniformData},
         shaders::pipeline::pipeline,
         Renderable2D, RenderableUi, ScionRenderer,
@@ -31,8 +31,8 @@ use crate::{
     utils::file::{read_file_modification_time, FileReaderError},
 };
 use crate::core::components::material::TextureArray;
-use crate::rendering::rendering_texture_management::load_texture_array_to_queue;
-use crate::rendering::shaders::pipeline::pipeline_sprite;
+use crate::graphics::rendering::rendering_texture_management::load_texture_array_to_queue;
+use crate::graphics::rendering::shaders::pipeline::pipeline_sprite;
 use crate::utils::maths::Vector;
 
 #[derive(Default)]

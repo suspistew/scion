@@ -7,7 +7,7 @@ use crate::{
         material::Material,
         ui::{font::Font, ui_image::UiImage},
     },
-    rendering::{Renderable2D, RenderableUi},
+    graphics::rendering::{Renderable2D, RenderableUi},
 };
 use crate::core::components::color::Color;
 use crate::core::components::maths::padding::Padding;

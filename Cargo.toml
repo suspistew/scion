@@ -18,7 +18,7 @@ atomic_refcell = "0.1.13"
 hecs = "0.10.4"
 downcast-rs = "1.2.0"
 
-# window & rendering
+# window & graphics
 winit = {version = "0.29", features = ["rwh_05"]}
 wgpu = { version = "0.19.3" }
 ab_glyph = "0.2.23"

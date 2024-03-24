@@ -4,7 +4,7 @@ use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
 
 use crate::{
     core::components::{material::Material, maths::coordinates::Coordinates, maths::Pivot},
-    rendering::{gl_representations::TexturedGlVertex, Renderable2D},
+    graphics::rendering::{gl_representations::TexturedGlVertex, Renderable2D},
     utils::maths::Vector,
 };
 

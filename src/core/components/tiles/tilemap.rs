@@ -21,7 +21,7 @@ use crate::{
         },
         resources::asset_manager::AssetRef,
     },
-    rendering::Renderable2D,
+    graphics::rendering::Renderable2D,
     utils::maths::{Dimensions, Position},
 };
 #[derive(Debug)]

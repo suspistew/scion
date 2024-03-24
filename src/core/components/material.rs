@@ -10,7 +10,7 @@ use crate::{
 };
 use crate::utils::file::app_base_path_join;
 
-/// Component used by the 2D Renderer to know which material to use when rendering a renderable object.
+/// Component used by the 2D Renderer to know which material to use when graphics a renderable object.
 #[derive(Clone)]
 pub enum Material {
     /// Fill with a color

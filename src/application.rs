@@ -21,7 +21,7 @@ use crate::core::world::GameData;
 use crate::{
     config::scion_config::{ScionConfig, ScionConfigReader},
     core::event_handler::update_input_events,
-    rendering::{renderer_state::RendererState, RendererType},
+    graphics::rendering::{renderer_state::RendererState, RendererType},
 };
 use crate::core::state::GameState;
 
@@ -208,7 +208,7 @@ impl ScionBuilder {
         self
     }
 
-    /// Specify which render type you want to use. Note that by default if not set, `Scion` will use [`crate::rendering::RendererType::Scion2D`].
+    /// Specify which render type you want to use. Note that by default if not set, `Scion` will use [`crate::graphics::RendererType::Scion2D`].
     pub fn with_renderer(mut self, renderer_type: RendererType) -> Self {
         self.renderer = renderer_type;
         self

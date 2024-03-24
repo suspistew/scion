@@ -15,7 +15,7 @@ use crate::core::components::{color::Color, material::Material, maths::{
 use crate::core::resources::global_storage::GlobalStorage;
 use crate::core::resources::inputs::types::{Input, KeyCode};
 use crate::core::world::{GameData, World};
-use crate::rendering::Renderable2D;
+use crate::graphics::rendering::Renderable2D;
 
 
 pub(crate) fn collider_cleaner_system(data: &mut GameData) {

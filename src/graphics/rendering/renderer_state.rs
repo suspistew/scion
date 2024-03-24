@@ -3,7 +3,7 @@ use log::info;
 use wgpu::{CompositeAlphaMode, InstanceDescriptor, Limits, Surface, SurfaceConfiguration, TextureFormat};
 use winit::{event::WindowEvent, window::Window};
 
-use crate::{config::scion_config::ScionConfig, rendering::ScionRenderer};
+use crate::{config::scion_config::ScionConfig, graphics::rendering::ScionRenderer};
 use crate::core::world::GameData;
 
 pub(crate) struct RendererState {

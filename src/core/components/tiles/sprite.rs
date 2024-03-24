@@ -1,17 +1,15 @@
 use std::ops::Range;
-use log::info;
 
-use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
+use wgpu::{PrimitiveTopology, util::BufferInitDescriptor};
 
 use crate::{
     core::components::{
-        material::Material, maths::coordinates::Coordinates, tiles::tileset::Tileset,
+        material::Material, maths::coordinates::Coordinates,
     },
-    rendering::{gl_representations::TexturedGlVertex, Renderable2D},
+    graphics::rendering::Renderable2D,
 };
 use crate::core::components::maths::Pivot;
-use crate::rendering::gl_representations::TexturedGlVertexWithLayer;
-
+use crate::graphics::rendering::gl_representations::TexturedGlVertexWithLayer;
 use crate::utils::maths::Vector;
 
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];

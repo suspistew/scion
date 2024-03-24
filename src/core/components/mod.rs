@@ -10,7 +10,7 @@ pub mod shapes;
 pub mod tiles;
 pub mod ui;
 
-/// Struct to add to any entity to 'hide' it during rendering
+/// Struct to add to any entity to 'hide' it during graphics
 pub struct Hide;
 
 pub(crate) struct HidePropagated;

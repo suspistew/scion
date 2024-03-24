@@ -8,7 +8,7 @@ use crate::{
         material::Material,
         maths::{coordinates::Coordinates, Pivot},
     },
-    rendering::{gl_representations::TexturedGlVertex, Renderable2D},
+    graphics::rendering::{gl_representations::TexturedGlVertex, Renderable2D},
 };
 use crate::utils::maths::Vector;
 
