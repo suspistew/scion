@@ -94,6 +94,30 @@ impl Color {
     pub fn alpha(&self) -> f32 {
         self.a
     }
+
+    pub fn to_linear(&self) -> wgpu::Color{
+        let (r, g, b) = ((self.red() as f32 / 255.) as f64,
+                         (self.green() as f32 / 255.) as f64,
+                         (self.blue() as f32 / 255.) as f64);
+
+        let f = |x: f64| {
+            if x > 0.04045 {
+                ((x + 0.055) / 1.055).powf(2.4)
+            } else {
+                x / 12.92
+            }
+        };
+        wgpu::Color {
+            r: f(r),
+            g: f(g),
+            b: f(b),
+            a: self.alpha() as f64,
+        }
+    }
+
+    pub(crate) fn to_texture_path(&self)-> String{
+        format!("color-{}-{}-{}-{}", self.red(), self.green(), self.blue(), self.alpha())
+    }
 }
 
 impl From<&Color> for GlColor {

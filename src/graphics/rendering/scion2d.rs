@@ -3,7 +3,7 @@ use std::{cfg, collections::HashMap, ops::Range, path::Path, time::SystemTime};
 use std::num::NonZeroU64;
 use log::info;
 
-use wgpu::{util::DeviceExt, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SurfaceConfiguration, TextureView, SamplerBindingType, TextureFormat, StoreOp};
+use wgpu::{BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SamplerBindingType, StoreOp, SurfaceConfiguration, TextureFormat, TextureView, util::DeviceExt};
 
 use crate::core::world::{GameData, World};
 use crate::graphics::rendering::gl_representations::{TexturedGlVertex, TexturedGlVertexWithLayer};
@@ -11,6 +11,8 @@ use crate::{
     config::scion_config::ScionConfig,
     core::components::{
         color::Color,
+        Hide,
+        HidePropagated,
         material::{Material, Texture},
         maths::{camera::Camera, transform::Transform},
         shapes::{
@@ -19,19 +21,18 @@ use crate::{
         tiles::{
             sprite::Sprite,
             tilemap::{Tile, Tilemap},
-        },
-        ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
-        Hide, HidePropagated,
+        }, ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
     },
     graphics::rendering::{
         gl_representations::{GlUniform, UniformData},
-        shaders::pipeline::pipeline,
-        Renderable2D, RenderableUi, ScionRenderer,
+        Renderable2D,
+        RenderableUi, ScionRenderer, shaders::pipeline::pipeline,
     },
-    utils::file::{read_file_modification_time, FileReaderError},
+    utils::file::{FileReaderError, read_file_modification_time},
 };
 use crate::core::components::material::TextureArray;
 use crate::graphics::rendering::rendering_texture_management::load_texture_array_to_queue;
+use crate::graphics::rendering::{RendererType, RenderingInfos, RenderingUpdate};
 use crate::graphics::rendering::shaders::pipeline::pipeline_sprite;
 use crate::utils::maths::Vector;
 
@@ -49,15 +50,6 @@ pub(crate) struct Scion2D {
     transform_uniform_bind_groups: HashMap<Entity, (GlUniform, Buffer, BindGroup)>,
     assets_timestamps: HashMap<String, SystemTime>,
     first_tick_passed: bool,
-}
-
-#[derive(Debug)]
-struct RenderingInfos {
-    layer: usize,
-    range: Range<u32>,
-    entity: Entity,
-    texture_path: Option<String>,
-    type_name: String,
 }
 
 impl ScionRenderer for Scion2D {
@@ -181,25 +173,25 @@ impl ScionRenderer for Scion2D {
     fn render(
         &mut self,
         data: &mut GameData,
-        config: &ScionConfig,
-        texture_view: &TextureView,
+        default_background: &Option<Color>,
+        texture_view: TextureView,
         encoder: &mut CommandEncoder,
     ) {
         if world_contains_camera(data) {
             let mut rendering_infos = Vec::new();
-            rendering_infos.append(&mut self.pre_render_component::<Triangle>(data));
-            rendering_infos.append(&mut self.pre_render_component::<Square>(data));
-            rendering_infos.append(&mut self.pre_render_component::<Rectangle>(data));
-            rendering_infos.append(&mut self.pre_render_component::<Sprite>(data));
-            rendering_infos.append(&mut self.pre_render_component::<Line>(data));
-            rendering_infos.append(&mut self.pre_render_component::<Polygon>(data));
-            rendering_infos.append(&mut self.pre_render_ui_component::<UiImage>(data));
-            rendering_infos.append(&mut self.pre_render_ui_component::<UiTextImage>(data));
-            rendering_infos.append(&mut self.pre_render_tilemaps(data));
+            rendering_infos.append(&mut Self::pre_render_component::<Triangle>(data));
+            rendering_infos.append(&mut Self::pre_render_component::<Square>(data));
+            rendering_infos.append(&mut Self::pre_render_component::<Rectangle>(data));
+            rendering_infos.append(&mut Self::pre_render_component::<Sprite>(data));
+            rendering_infos.append(&mut Self::pre_render_component::<Line>(data));
+            rendering_infos.append(&mut Self::pre_render_component::<Polygon>(data));
+            rendering_infos.append(&mut Self::pre_render_ui_component::<UiImage>(data));
+            rendering_infos.append(&mut Self::pre_render_ui_component::<UiTextImage>(data));
+            rendering_infos.append(&mut Self::pre_render_tilemaps(data));
 
             rendering_infos.sort_by(|a, b| b.layer.cmp(&a.layer));
 
-            self.render_component(config, texture_view, encoder, rendering_infos);
+            self.render_component(default_background, texture_view, encoder, rendering_infos);
         }
     }
 }
@@ -357,14 +349,14 @@ impl Scion2D {
 
     fn render_component(
         &mut self,
-        config: &ScionConfig,
-        texture_view: &TextureView,
+        default_background: &Option<Color>,
+        texture_view: TextureView,
         encoder: &mut CommandEncoder,
         mut infos: Vec<RenderingInfos>,
     ) {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: None,
-            color_attachments: &[get_default_color_attachment(texture_view, config)],
+            color_attachments: &[get_default_color_attachment(&texture_view, default_background)],
             depth_stencil_attachment: None,
             occlusion_query_set: None,
             timestamp_writes: None,
@@ -400,7 +392,6 @@ impl Scion2D {
     }
 
     fn pre_render_component<T: Component + Renderable2D>(
-        &mut self,
         data: &mut GameData,
     ) -> Vec<RenderingInfos> {
         let type_name = std::any::type_name::<T>();
@@ -428,7 +419,7 @@ impl Scion2D {
         render_infos
     }
 
-    fn pre_render_tilemaps(&mut self, data: &mut GameData) -> Vec<RenderingInfos> {
+    fn pre_render_tilemaps(data: &mut GameData) -> Vec<RenderingInfos> {
         let type_name = std::any::type_name::<Tilemap>();
         let mut render_infos = Vec::new();
 
@@ -460,7 +451,6 @@ impl Scion2D {
     }
 
     fn pre_render_ui_component<T: Component + Renderable2D + RenderableUi>(
-        &mut self,
         data: &mut GameData,
     ) -> Vec<RenderingInfos> {
         let type_name = std::any::type_name::<T>();
@@ -767,21 +757,16 @@ fn create_transform_uniform_bind_group(
 }
 
 fn get_default_color_attachment<'a>(
-    texture_view: &'a TextureView,
-    config: &'a ScionConfig,
+    texture_view:  &'a TextureView,
+    default_background: &'a Option<Color>,
 ) -> Option<RenderPassColorAttachment<'a>> {
     Some(RenderPassColorAttachment {
         view: texture_view,
         resolve_target: None,
         ops: wgpu::Operations {
             load: wgpu::LoadOp::Clear(
-                if let Some(color) = &config
-                    .window_config
-                    .as_ref()
-                    .expect("Window config is missing")
-                    .default_background_color
-                {
-                    to_linear_rgb(color)
+                if let Some(color) = &default_background {
+                    color.to_linear()
                 } else {
                     wgpu::Color { r: 1., g: 0., b: 0., a: 1.0 }
                 },
@@ -789,26 +774,6 @@ fn get_default_color_attachment<'a>(
             store: StoreOp::Store,
         },
     })
-}
-
-pub fn to_linear_rgb(color: &Color) -> wgpu::Color {
-    let (r, g, b) = ((color.red() as f32 / 255.) as f64,
-                     (color.green() as f32 / 255.) as f64,
-                     (color.blue() as f32 / 255.) as f64);
-
-    let f = |x: f64| {
-        if x > 0.04045 {
-            ((x + 0.055) / 1.055).powf(2.4)
-        } else {
-            x / 12.92
-        }
-    };
-    wgpu::Color {
-        r: f(r),
-        g: f(g),
-        b: f(b),
-        a: color.alpha() as f64,
-    }
 }
 
 fn get_path_from_color(color: &Color) -> String {

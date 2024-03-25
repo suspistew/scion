@@ -75,6 +75,7 @@ impl Texture {
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct TextureArray {
     pub(crate) bytes_array: Vec<Vec<u8>>,
     pub(crate) unit_width: u32,

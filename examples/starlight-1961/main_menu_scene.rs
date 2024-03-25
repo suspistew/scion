@@ -1,5 +1,6 @@
 use std::time::Duration;
 use hecs::Entity;
+use log::info;
 
 
 use scion::core::components::animations::{Animation, AnimationModifier, Animations};
@@ -79,16 +80,18 @@ impl Scene for Menu {
 
         // Ambient music
         {
-            let _r = data
+            /*let _r = data
                 .audio()
                 .play(app_base_path_join("examples/starlight-1961/assets/menu_music.ogg"),
-                      PlayConfig { volume: 0.1, looped: true, category: None });
+                      PlayConfig { volume: 0.1, looped: true, category: None });*/
         }
+    }
+
+    fn on_fixed_update(&mut self, data: &mut GameData) {
     }
 
     fn on_update(&mut self, data: &mut GameData) {
         self.animate_main_menu_ship(data);
-        
         if data.inputs().input_pressed(&Key(KeyCode::Enter)) {
             data.game_state_mut().set_text(CURRENT_LEVEL, "lvl1");
             data.scene_controller().switch::<LevelScene>();

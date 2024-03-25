@@ -6,7 +6,8 @@
 
 // Convenience reexport
 // Convenience uses
-pub use application::{Scion, ScionBuilder};
+pub use application::Scion;
+pub use core::application_builder::ScionBuilder;
 
 pub use ultraviolet;
 pub use hecs::Entity;

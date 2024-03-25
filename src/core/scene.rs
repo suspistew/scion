@@ -8,6 +8,8 @@ pub trait Scene {
     fn on_start(&mut self, _data: &mut GameData) {}
     /// Will be called each game loop, before the systems execution
     fn on_update(&mut self, _data: &mut GameData) {}
+    /// Will be called each game loop, 60 times per second
+    fn on_fixed_update(&mut self, _data: &mut GameData) {}
     /// Will be called each game loop, after the systems execution
     fn late_update(&mut self, _data: &mut GameData) {}
     /// Will be called for deleted scene at the end of the frame where it was deleted
@@ -16,6 +18,7 @@ pub trait Scene {
 
 pub(crate) enum SceneAction {
     Update,
+    FixedUpdate,
     Start,
     EndFrame,
     LateUpdate,
@@ -24,7 +27,7 @@ pub(crate) enum SceneAction {
 /// `SceneMachine` is the Resource used to control the game scene.
 #[derive(Default)]
 pub(crate) struct SceneMachine {
-    pub(crate) current_scene: Option<Box<dyn Scene>>,
+    pub(crate) current_scene: Option<Box<dyn Scene + Send>>,
     pub(crate) current_scene_started: bool
 }
 
@@ -43,7 +46,8 @@ impl SceneMachine {
                     scene.on_start(data);
                     self.current_scene_started = true;
                 },
-                SceneAction::EndFrame => {}
+                SceneAction::EndFrame => {},
+                SceneAction::FixedUpdate => scene.on_fixed_update(data),
                 SceneAction::LateUpdate => scene.late_update(data),
             };
         }
@@ -68,7 +72,7 @@ impl SceneMachine {
 }
 
 pub(crate) enum SceneTrans {
-    Switch(Box<dyn Scene>)
+    Switch(Box<dyn Scene + Send>)
 }
 
 /// `SceneController` is the Resource used to control the game scenes.
@@ -81,7 +85,7 @@ pub struct SceneController {
 impl SceneController {
     /// Replace the current scene with the name `` with the scene created from type `T`. (Useful for level switching).
     /// Note that the scene's stop will happen at the end of the frame.
-    pub fn switch<T: Scene + Default + 'static>(&mut self) {
+    pub fn switch<T: Scene + Default + Send + 'static>(&mut self) {
         self.action = Some(SceneTrans::Switch(Box::<T>::default()));
     }
 

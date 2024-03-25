@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::hash::Hasher;
 
-use crate::core::components::maths::camera::DefaultCamera;
+use crate::core::components::maths::camera::{Camera, DefaultCamera};
 use crate::core::resources::asset_manager::AssetManager;
 use crate::core::resources::audio::Audio;
 use crate::core::resources::events::Events;
@@ -154,6 +154,10 @@ impl GameData {
     pub(crate) fn focus_manager(&self) -> AtomicRefMut<FocusManager> {
         self.get_resource_mut::<FocusManager>()
             .expect("The engine is missing the mandatory focus manager resource")
+    }
+
+    pub(crate) fn has_camera(&self)-> bool{
+        self.subworld.query::<&Camera>().iter().count() > 0
     }
 }
 

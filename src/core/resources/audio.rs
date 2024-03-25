@@ -16,7 +16,6 @@ impl Audio {
         let (event_sender, receiver) = mpsc::channel();
 
         std::thread::spawn(move || audio_controller::audio_thread(AudioController::new(receiver)));
-
         Audio { event_sender, sounds_cursor: 0 }
     }
 
