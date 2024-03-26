@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+
 use log::trace;
 
 use crate::core::components::maths::{
@@ -90,10 +91,10 @@ pub(crate) fn dirty_transform_system(data: &mut GameData) {
 
 #[cfg(test)]
 mod tests {
+    use crate::core::{components::maths::hierarchy::Parent, systems::hierarchy_system::*};
+    use crate::core::world::World;
 
     use super::*;
-    use crate::core::world::World;
-    use crate::core::{components::maths::hierarchy::Parent, systems::hierarchy_system::*};
 
     #[test]
     fn dirty_parent_transform_test() {

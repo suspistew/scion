@@ -1,10 +1,8 @@
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
-use winit::{
-    window::WindowBuilder,
-};
 use winit::dpi::LogicalSize;
+use winit::window::WindowBuilder;
 use winit::window::WindowLevel;
 
 use crate::{config::scion_config::ScionConfig, core::components::color::Color};

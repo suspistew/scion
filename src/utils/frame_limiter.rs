@@ -1,5 +1,4 @@
 use std::time::{Duration, Instant};
-use log::info;
 
 use serde::{Deserialize, Serialize};
 
@@ -71,8 +70,8 @@ impl FrameLimiter {
     pub fn fixed_tick(&mut self) {
         self.last_fixed_tick_start = Instant::now();
     }
-    pub fn tick(&mut self) {
-        self.last_tick_start = Instant::now();
+    pub fn tick(&mut self, instant: &Instant) {
+        self.last_tick_start = instant.clone();
     }
 
     pub fn render_unlocked(&mut self) -> bool {
@@ -108,6 +107,7 @@ impl FrameLimiter {
         let frame_start = self.last_tick_start;
         let target_frame_duration = self.min_tick_duration;
         let elapsed = Instant::now() - frame_start;
+        //info!("target {:?} / elapsed {:?}", target_frame_duration, elapsed);
         if elapsed < target_frame_duration {
             false
         } else {

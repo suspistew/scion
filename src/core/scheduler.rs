@@ -1,6 +1,7 @@
-use crate::core::world::GameData;
 use std::collections::LinkedList;
+
 use crate::core::state::GameState;
+use crate::core::world::GameData;
 
 #[derive(Default)]
 pub(crate) struct Scheduler {

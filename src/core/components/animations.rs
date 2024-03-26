@@ -6,8 +6,8 @@ use std::{
     time::Duration,
 };
 
-use crate::core::components::animations::AnimationStatus::{ForceStopped, Stopped};
 use crate::{core::components::color::Color, utils::maths::Vector};
+use crate::core::components::animations::AnimationStatus::{ForceStopped, Stopped};
 
 pub struct Animations {
     animations: HashMap<String, Animation>,

@@ -1,7 +1,9 @@
+use std::sync::mpsc;
+
+use rodio::{OutputStream, Sink};
+
 use crate::core::audio_controller;
 use crate::core::audio_controller::AudioController;
-use rodio::{OutputStream, Sink};
-use std::sync::mpsc;
 
 /// `AudioPlayer` is the resource responsible to handle musics, sound effects, and action on them
 pub struct Audio {

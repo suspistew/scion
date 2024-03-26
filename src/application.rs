@@ -14,23 +14,20 @@ use winit::{
 use winit::dpi::{PhysicalSize, Size};
 use winit::event::StartCause;
 
-
-use crate::core::package::Package;
-use crate::core::resources::time::Time;
-use crate::core::scene::{Scene, SceneAction, SceneMachine};
-use crate::core::scheduler::Scheduler;
-
-use crate::core::systems::InternalPackage;
-use crate::core::world::GameData;
 use crate::{
     config::scion_config::{ScionConfig, ScionConfigReader},
     graphics::rendering::{renderer_state::RendererState, RendererType},
 };
 use crate::core::application_builder::ScionBuilder;
+use crate::core::package::Package;
+use crate::core::resources::time::Time;
+use crate::core::scene::{Scene, SceneAction, SceneMachine};
+use crate::core::scheduler::Scheduler;
 use crate::core::scion_runner::ScionRunner;
 use crate::core::state::GameState;
+use crate::core::systems::InternalPackage;
+use crate::core::world::GameData;
 use crate::graphics::rendering::scion2d::Scion2D;
-use crate::graphics::windowing::input_event_handler::update_input_events;
 use crate::graphics::windowing::WindowingEvent;
 
 /// `Scion` is the entry point of any application made with Scion's lib.

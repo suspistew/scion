@@ -1,7 +1,4 @@
-use std::num::{NonZeroU32, NonZeroU64};
-use log::info;
-
-use wgpu::{BindGroup, BindGroupEntry, Device, ImageDataLayout, Queue, SamplerBindingType, Texture, TextureFormat, TextureView, TextureViewDescriptor, TextureViewDimension};
+use wgpu::{BindGroup, BindGroupEntry, Device, ImageDataLayout, Queue, SamplerBindingType, Texture, TextureFormat, TextureViewDescriptor, TextureViewDimension};
 
 use crate::core::components::material::TextureArray;
 

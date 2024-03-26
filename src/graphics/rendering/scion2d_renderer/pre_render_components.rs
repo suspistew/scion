@@ -1,4 +1,5 @@
 use hecs::Component;
+
 use crate::core::components::{Hide, HidePropagated};
 use crate::core::components::material::Material;
 use crate::core::components::maths::transform::Transform;

@@ -4,15 +4,15 @@
 //!
 //! ```
 
+pub use hecs::Entity;
+pub use log;
+pub use ultraviolet;
+pub use winit::window::CursorIcon;
+
 // Convenience reexport
 // Convenience uses
 pub use application::Scion;
 pub use core::application_builder::ScionBuilder;
-
-pub use ultraviolet;
-pub use hecs::Entity;
-pub use winit::window::CursorIcon;
-pub use log;
 
 // internal export
 mod application;

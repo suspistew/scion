@@ -1,41 +1,35 @@
-use hecs::{Component, Entity};
-use std::{cfg, collections::HashMap, ops::Range, path::Path, time::SystemTime};
-use std::num::NonZeroU64;
-use log::info;
+use std::{collections::HashMap, time::SystemTime};
 
+use hecs::{Component, Entity};
 use wgpu::{BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SamplerBindingType, StoreOp, SurfaceConfiguration, TextureFormat, TextureView, util::DeviceExt};
 use wgpu::util::BufferInitDescriptor;
 
-use crate::core::world::{GameData, World};
-use crate::graphics::rendering::gl_representations::{TexturedGlVertex, TexturedGlVertexWithLayer};
 use crate::{
-    config::scion_config::ScionConfig,
     core::components::{
-        color::Color,
-        Hide,
-        HidePropagated,
-        material::{Material, Texture},
-        maths::{camera::Camera, transform::Transform},
+        color::Color
+
+        ,
+        material::Texture
+        ,
         shapes::{
             line::Line, polygon::Polygon, rectangle::Rectangle, square::Square, triangle::Triangle,
         },
         tiles::{
             sprite::Sprite,
-            tilemap::{Tile, Tilemap},
-        }, ui::{ui_image::UiImage, ui_text::UiTextImage, UiComponent},
+            tilemap::Tilemap,
+        }, ui::{ui_image::UiImage, ui_text::UiTextImage},
     },
     graphics::rendering::{
-        gl_representations::{GlUniform, UniformData},
-        Renderable2D,
-        RenderableUi, ScionRenderer, shaders::pipeline::pipeline,
-    },
-    utils::file::{FileReaderError, read_file_modification_time},
+        gl_representations::GlUniform,
+        Renderable2D
+        , ScionRenderer, shaders::pipeline::pipeline,
+    }
+    ,
 };
-use crate::core::components::material::TextureArray;
+use crate::core::world::World;
+use crate::graphics::rendering::{DiffuseBindGroupUpdate, RenderingInfos, RenderingUpdate};
 use crate::graphics::rendering::rendering_texture_management::load_texture_array_to_queue;
-use crate::graphics::rendering::{DiffuseBindGroupUpdate, RendererType, RenderingInfos, RenderingUpdate};
 use crate::graphics::rendering::shaders::pipeline::pipeline_sprite;
-use crate::utils::maths::Vector;
 
 #[derive(Default)]
 pub(crate) struct Scion2D {
@@ -74,8 +68,8 @@ impl ScionRenderer for Scion2D {
         surface_config: &SurfaceConfiguration,
         queue: &mut Queue,
     ) {
-        for update in data.drain(0..data.len()){
-            match update{
+        for update in data.drain(0..data.len()) {
+            match update {
                 RenderingUpdate::DiffuseBindGroup { data, path } => {
                     self.update_material(device, queue, data, path);
                 }
@@ -83,9 +77,8 @@ impl ScionRenderer for Scion2D {
                     self.update_transform_uniform(device, queue, entity, uniform);
                 }
                 RenderingUpdate::VertexBuffer { entity, label, contents, usage } => {
-                    info!("vertex buffer to render {:?}", entity);
                     let vertex_buffer =
-                        device.create_buffer_init(&BufferInitDescriptor{
+                        device.create_buffer_init(&BufferInitDescriptor {
                             label: Some("Vertex buffer"),
                             contents: contents.as_slice(),
                             usage,
@@ -93,9 +86,8 @@ impl ScionRenderer for Scion2D {
                     self.vertex_buffers.insert(entity, vertex_buffer);
                 }
                 RenderingUpdate::IndexBuffer { entity, label, contents, usage } => {
-                    info!("index buffer to render {:?}", entity);
                     let index_buffer =
-                        device.create_buffer_init(&BufferInitDescriptor{
+                        device.create_buffer_init(&BufferInitDescriptor {
                             label: Some("Index buffer"),
                             contents: contents.as_slice(),
                             usage,
@@ -128,115 +120,6 @@ impl Scion2D {
         surface_config: &&SurfaceConfiguration,
     ) {
         self.insert_pipeline_if_not_finded::<T>(device, surface_config);
-    }
-
-    fn upsert_component_buffers<T: Component + Renderable2D>(
-        &mut self,
-        data: &mut GameData,
-        device: &&Device,
-    ) {
-        for (entity, (component, material, _)) in
-        data.query_mut::<(&mut T, &Material, &Transform)>()
-        {
-            if !self.vertex_buffers.contains_key(&entity) || component.dirty() {
-                let vertex_buffer =
-                    device.create_buffer_init(&component.vertex_buffer_descriptor(Some(material)));
-                self.vertex_buffers.insert(entity, vertex_buffer);
-            }
-
-            if !self.index_buffers.contains_key(&entity) || component.dirty() {
-                let index_buffer =
-                    device.create_buffer_init(&component.indexes_buffer_descriptor());
-                self.index_buffers.insert(entity, index_buffer);
-            }
-
-            component.set_dirty(false);
-        }
-    }
-
-    fn upsert_tilemaps_buffers(&mut self, data: &mut GameData, device: &&Device) {
-        let mut to_modify: Vec<(Entity, [TexturedGlVertexWithLayer; 4])> = Vec::new();
-
-        for (entity, (_, material, _)) in
-        data.query::<(&mut Tilemap, &Material, &Transform)>().iter()
-        {
-            let tile_size = Material::tile_size(material).expect("");
-            let mut vertexes = Vec::new();
-            let mut position = 0;
-            let mut indexes = Vec::new();
-            let any_tile_modified = !self.vertex_buffers.contains_key(&entity)
-                || data
-                .query::<(&Tile, &Sprite)>()
-                .iter()
-                .filter(|(_, (tile, sprite))| tile.tilemap == entity && sprite.dirty())
-                .count()
-                > 0;
-
-            if any_tile_modified {
-                for (e, (tile, sprite)) in data.query::<(&Tile, &Sprite)>().iter() {
-                    if tile.tilemap == entity {
-                        let current_vertex = sprite.compute_content(Some(material));
-                        to_modify.push((e, current_vertex));
-                        let mut vec = current_vertex.to_vec();
-                        vec.iter_mut().for_each(|gl_vertex| {
-                            gl_vertex.position[0] = gl_vertex.position[0] + tile_size as f32 * tile.position.x() as f32;
-                            gl_vertex.position[1] = gl_vertex.position[1] + tile_size as f32 * tile.position.y() as f32;
-                            gl_vertex.position[2] = gl_vertex.position[2] + tile.position.z() as f32 / 100.
-                        });
-                        vertexes.append(&mut vec);
-                        let sprite_indexes = Sprite::indices();
-                        let mut sprite_indexes: Vec<u16> = sprite_indexes
-                            .iter()
-                            .map(|indice| (*indice as usize + (position * 4)) as u16)
-                            .collect();
-                        indexes.append(&mut sprite_indexes);
-                        position += 1;
-                    }
-                }
-                let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("TileMap Vertex Buffer"),
-                    contents: bytemuck::cast_slice(vertexes.as_slice()),
-                    usage: wgpu::BufferUsages::VERTEX,
-                });
-
-                self.vertex_buffers.insert(entity, buffer);
-
-                let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("TileMap Index Buffer"),
-                    contents: bytemuck::cast_slice(&indexes),
-                    usage: wgpu::BufferUsages::INDEX,
-                });
-                self.index_buffers.insert(entity, index_buffer);
-            }
-        }
-
-        for (e, vertexes) in to_modify.drain(0..) {
-            let mut sprite = data.entry_mut::<&mut Sprite>(e).expect("");
-            sprite.set_dirty(false);
-            sprite.set_content(vertexes);
-        }
-    }
-
-    fn upsert_ui_component_buffers<T: Component + Renderable2D + RenderableUi>(
-        &mut self,
-        data: &mut GameData,
-        device: &&Device,
-        _surface_config: &&SurfaceConfiguration,
-        _queue: &mut Queue,
-    ) {
-        for (entity, (component, _, m)) in data.query::<(&mut T, &Transform, Option<&Material>)>().iter() {
-            self.vertex_buffers.entry(entity).or_insert_with(|| {
-                let vertex_buffer =
-                    device.create_buffer_init(&component.vertex_buffer_descriptor(m));
-                vertex_buffer
-            });
-
-            self.index_buffers.entry(entity).or_insert_with(|| {
-                let index_buffer =
-                    device.create_buffer_init(&component.indexes_buffer_descriptor());
-                index_buffer
-            });
-        }
     }
 
     fn insert_pipeline_if_not_finded<T: Component + Renderable2D>(
@@ -292,7 +175,6 @@ impl Scion2D {
                 &self.transform_uniform_bind_groups.get(&rendering_infos.entity).unwrap().2,
                 &[],
             );
-            info!("trying to render {:?}", &rendering_infos.entity);
             render_pass.set_vertex_buffer(
                 0,
                 self.vertex_buffers.get(&rendering_infos.entity).as_ref().unwrap().slice(..),
@@ -314,12 +196,6 @@ impl Scion2D {
 
             render_pass.draw_indexed(rendering_infos.range, 0, 0..1);
         }
-    }
-
-    fn clean_buffers(&mut self, data: &mut GameData) {
-        self.vertex_buffers.retain(|&k, _| data.contains(k));
-        self.index_buffers.retain(|&k, _| data.contains(k));
-        self.transform_uniform_bind_groups.retain(|&k, _| data.contains(k));
     }
 
     fn update_material(&mut self, device: &Device, queue: &mut Queue, data: DiffuseBindGroupUpdate, path: String) {
@@ -367,7 +243,7 @@ impl Scion2D {
             let (uniform, uniform_buffer, group) = create_transform_uniform_bind_group(
                 device,
                 uniform,
-                self.transform_bind_group_layout.as_ref().unwrap()
+                self.transform_bind_group_layout.as_ref().unwrap(),
             );
             queue.write_buffer(&uniform_buffer, 0, bytemuck::cast_slice(&[uniform]));
             e.insert((uniform, uniform_buffer, group));
@@ -554,12 +430,4 @@ fn get_default_color_attachment<'a>(
             store: StoreOp::Store,
         },
     })
-}
-
-fn get_path_from_color(color: &Color) -> String {
-    format!("color-{}-{}-{}-{}", color.red(), color.green(), color.blue(), color.alpha())
-}
-
-fn world_contains_camera(data: &mut GameData) -> bool {
-    data.query::<&Camera>().iter().count() > 0
 }

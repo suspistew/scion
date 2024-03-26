@@ -1,7 +1,6 @@
 use std::ops::Range;
 
-
-use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
+use wgpu::{PrimitiveTopology, util::BufferInitDescriptor};
 
 use crate::{
     core::components::{

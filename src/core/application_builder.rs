@@ -1,6 +1,3 @@
-use std::sync::Arc;
-use winit::event_loop::{ControlFlow, EventLoop};
-use winit::window::WindowBuilder;
 use crate::config::scion_config::ScionConfig;
 use crate::core::package::Package;
 use crate::core::scene::{Scene, SceneMachine};
@@ -8,7 +5,6 @@ use crate::core::scheduler::Scheduler;
 use crate::core::state::GameState;
 use crate::core::systems::InternalPackage;
 use crate::core::world::GameData;
-use crate::graphics::rendering::renderer_state::RendererState;
 use crate::graphics::rendering::RendererType;
 use crate::Scion;
 

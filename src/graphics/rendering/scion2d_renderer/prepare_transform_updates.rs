@@ -1,4 +1,5 @@
 use hecs::Component;
+
 use crate::core::components::{Square, Triangle};
 use crate::core::components::material::Material;
 use crate::core::components::maths::camera::Camera;

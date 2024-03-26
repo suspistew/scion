@@ -36,7 +36,7 @@ impl Scene for Menu {
     fn on_start(&mut self, data: &mut GameData) {
         data.game_state_mut().set_bool(ACTIVE_MENU_FLAG, true);
         data.add_default_camera();
-        //add_parallax_backgrounds(data);
+        add_parallax_backgrounds(data);
 
         let font_asset = data.assets_mut().register_font(Font::TrueType {
             font_path: app_base_path_join("examples/starlight-1961/assets/pixel.ttf")
@@ -44,7 +44,6 @@ impl Scene for Menu {
 
         // Menu
         {
-            /*
             data.push((
                 UiText::new("NEW  GAME".to_string(), font_asset).with_font_size(45).with_font_color(Color::new(255, 255, 255, 0.5)),
                 Transform::new(Coordinates::new(225., 250.), 1.0, 0.),
@@ -62,7 +61,6 @@ impl Scene for Menu {
                 Animations::single("blink", Animation::new(Duration::from_millis(800), vec![AnimationModifier::blink(1)]))
             ));
 
-             */
         }
 
         // Animated ship on menu

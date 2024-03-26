@@ -1,16 +1,16 @@
 //! Everything that is relative to graphics to the window (Like renderable components, camera, transforms..)
 use std::ops::Range;
+
 use hecs::Entity;
+use wgpu::{BufferUsages, CommandEncoder, Device, Queue, SurfaceConfiguration, TextureView, util::BufferInitDescriptor};
+use winit::dpi::PhysicalSize;
 
 use scion2d::Scion2D;
-use wgpu::{BufferUsages, CommandEncoder, Device, Queue, SurfaceConfiguration, TextureView, util::BufferInitDescriptor};
 
-use crate::core::world::GameData;
-use crate::core::components::material::{Material, Texture, TextureArray};
 use crate::core::components::color::Color;
+use crate::core::components::material::{Material, Texture, TextureArray};
 use crate::core::components::maths::Pivot;
 use crate::graphics::rendering::gl_representations::GlUniform;
-
 use crate::utils::maths::Vector;
 
 pub(crate) mod gl_representations;
@@ -104,6 +104,11 @@ pub enum RenderingUpdate {
     },
     TilemapBuffer,
     UiComponentBuffer,
+}
+
+pub enum RendererEvent {
+    ForceRedraw,
+    Resize(PhysicalSize<u32>, f64)
 }
 
 #[derive(Debug)]

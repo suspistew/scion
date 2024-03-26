@@ -2,10 +2,8 @@ use std::collections::{HashMap, HashSet};
 use std::time::SystemTime;
 
 use hecs::Entity;
-use wgpu::{CommandEncoder, Device, Queue, SurfaceConfiguration, TextureView};
 
 use crate::core::components::{Square, Triangle};
-use crate::core::components::color::Color;
 use crate::core::components::shapes::line::Line;
 use crate::core::components::shapes::polygon::Polygon;
 use crate::core::components::shapes::rectangle::Rectangle;
@@ -13,11 +11,11 @@ use crate::core::components::tiles::sprite::Sprite;
 use crate::core::components::ui::ui_image::UiImage;
 use crate::core::components::ui::ui_text::UiTextImage;
 use crate::core::world::{GameData, World};
-use crate::graphics::rendering::{RenderingInfos, RenderingUpdate, ScionRenderer};
+use crate::graphics::rendering::{RenderingInfos, RenderingUpdate};
 use crate::graphics::rendering::scion2d_renderer::pre_render_components::{pre_render_component, pre_render_tilemaps, pre_render_ui_component};
+use crate::graphics::rendering::scion2d_renderer::prepare_component_buffer_updates;
 use crate::graphics::rendering::scion2d_renderer::prepare_material_updates;
 use crate::graphics::rendering::scion2d_renderer::prepare_transform_updates;
-use crate::graphics::rendering::scion2d_renderer::prepare_component_buffer_updates;
 use crate::utils::file::FileReaderError;
 
 #[derive(Default)]
@@ -37,6 +35,7 @@ impl ScionRenderer2D {
             updates.append(&mut prepare_transform_updates::call(self, data));
             updates.append(&mut prepare_component_buffer_updates::call(self, data));
         }
+        self.clean_buffers(data);
         updates
     }
 
@@ -91,5 +90,12 @@ impl ScionRenderer2D {
 
     pub(crate) fn upsert_indexes_buffer(&mut self, entity: Entity) {
         self.indexes_buffer.insert(entity);
+    }
+
+    fn clean_buffers(&mut self, data: &mut GameData) {
+        self.vertex_buffer.retain(|&k| data.contains(k));
+        self.indexes_buffer.retain(|&k| data.contains(k));
+        self.transform_uniform.retain(|&k| data.contains(k));
+        // TODO transfer a clean buffer update to the rendering thread
     }
 }

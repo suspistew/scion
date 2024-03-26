@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 use std::path::Path;
+
 use ab_glyph::{Font, FontVec, Glyph, Point, point, PxScale, ScaleFont};
 use image::{DynamicImage, Rgba};
+
 use crate::core::components::color::Color;
 use crate::core::components::material::Texture;
 use crate::utils::file::read_file;

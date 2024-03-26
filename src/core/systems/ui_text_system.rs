@@ -1,6 +1,7 @@
-use hecs::Entity;
 use std::collections::HashSet;
+
 use atomic_refcell::AtomicRefMut;
+use hecs::Entity;
 use log::debug;
 
 use crate::core::components::{
@@ -190,7 +191,6 @@ fn update_bitmap(texture_path: String,
 
     #[cfg(test)]
     mod tests {
-        use super::*;
         use crate::core::components::{
             maths::transform::Transform,
             ui::{
@@ -198,8 +198,10 @@ fn update_bitmap(texture_path: String,
                 ui_text::{UiText, UiTextImage},
             },
         };
-        use crate::core::resources::asset_manager::{AssetManager};
+        use crate::core::resources::asset_manager::AssetManager;
         use crate::core::world::World;
+
+        use super::*;
 
         fn get_test_ui_text(assets: &mut AssetManager) -> UiText {
             // First we add an UiText to the world

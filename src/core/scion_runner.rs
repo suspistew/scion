@@ -1,19 +1,22 @@
 use std::sync::{Arc, mpsc};
 use std::sync::mpsc::Receiver;
 use std::thread;
-use log::info;
+use std::time::Instant;
 
+use log::{debug, info};
 use winit::dpi::{PhysicalSize, Size};
+use winit::keyboard::KeyCode::Insert;
 use winit::window::Window;
 
 use crate::core::resources::time::Time;
 use crate::core::scene::{SceneAction, SceneMachine};
 use crate::core::scheduler::Scheduler;
 use crate::core::world::GameData;
+use crate::graphics::rendering::{RendererEvent, RenderingInfos, RenderingUpdate, ScionRenderer};
 use crate::graphics::rendering::renderer_state::RendererState;
+use crate::graphics::rendering::rendering_thread::ScionRenderingThread;
 use crate::graphics::rendering::scion2d_renderer::scion_renderer::ScionRenderer2D;
-use crate::graphics::rendering::{RenderingInfos, RenderingUpdate, ScionRenderer};
-use crate::graphics::rendering::rendering_thread::{ScionRenderingThread};
+use crate::graphics::windowing::window_event_handler::handle_window_event;
 use crate::graphics::windowing::WindowingEvent;
 use crate::utils::frame_limiter::{FrameLimiter, FrameLimiterConfig};
 
@@ -31,19 +34,28 @@ impl ScionRunner {
     pub(crate) fn launch_game_loop(mut self) {
         self.setup();
         let mut frame_limiter = FrameLimiter::new(FrameLimiterConfig::default());
-        let (render_sender, render_receiver) = mpsc::channel::<(Vec<RenderingUpdate>, Vec<RenderingInfos>)>();
+        let (render_sender, render_receiver) = mpsc::channel::<(Vec<RendererEvent>, Vec<RenderingUpdate>, Vec<RenderingInfos>)>();
         let renderer = self.renderer.take();
 
         thread::spawn(move || { ScionRenderingThread::new(renderer, render_receiver).run() });
 
+        let mut start_tick = Instant::now();
+        let mut fixed_tick = Instant::now();
+        let mut render_tick = Instant::now();
+
         loop {
-            if frame_limiter.is_min_tick() {
+            let should_tick = frame_limiter.is_min_tick();
+            if should_tick {
+                debug!("Infinite tick duration : {:?}", Instant::now().duration_since(start_tick));
+                start_tick = Instant::now();
                 let frame_duration = self
                     .game_data
                     .get_resource_mut::<Time>()
                     .expect("Time is an internal resource and can't be missing")
                     .frame();
                 self.game_data.timers().add_delta_duration(frame_duration);
+                let _r = render_sender.send((handle_window_event(&mut self), vec![], vec![]));
+
                 self.layer_machine.apply_scene_action(SceneAction::Update, &mut self.game_data);
                 self.scheduler.execute(&mut self.game_data);
                 self.layer_machine.apply_scene_action(SceneAction::LateUpdate, &mut self.game_data);
@@ -51,23 +63,27 @@ impl ScionRunner {
             }
 
             if frame_limiter.is_fixed_update() {
+                debug!("Fixed tick duration {:?}", Instant::now().duration_since(fixed_tick));
+                fixed_tick = Instant::now();
                 self.layer_machine.apply_scene_action(SceneAction::FixedUpdate, &mut self.game_data);
                 frame_limiter.fixed_tick();
             }
 
             if frame_limiter.render_unlocked() {
+                debug!("render tick duration {:?}", Instant::now().duration_since(render_tick));
+                render_tick = Instant::now();
                 let updates = self.scion_renderer.prepare_update(&mut self.game_data);
                 let rendering_infos = ScionRenderer2D::prepare_rendering(&mut self.game_data);
-                let _r = render_sender.send((updates, rendering_infos));
+                let _r = render_sender.send((vec![], updates, rendering_infos));
                 frame_limiter.render();
             }
 
-            if frame_limiter.is_min_tick() {
+            if should_tick {
                 self.game_data.inputs().reset_inputs();
                 self.game_data.events().cleanup();
                 self.layer_machine
                     .apply_scene_action(SceneAction::EndFrame, &mut self.game_data);
-                frame_limiter.tick();
+                frame_limiter.tick(&start_tick);
             }
         }
     }

@@ -1,12 +1,11 @@
 use std::sync::Arc;
-use log::info;
-use wgpu::{CompositeAlphaMode, InstanceDescriptor, Limits, Surface, SurfaceConfiguration, TextureFormat};
+
+use wgpu::{Limits, Surface, SurfaceConfiguration};
 use winit::{event::WindowEvent, window::Window};
 
-use crate::{config::scion_config::ScionConfig, graphics::rendering::ScionRenderer};
 use crate::core::components::color::Color;
-use crate::core::world::GameData;
 use crate::graphics::rendering::{RenderingInfos, RenderingUpdate};
+use crate::graphics::rendering::ScionRenderer;
 
 pub(crate) struct RendererState {
     surface: Surface<'static>,

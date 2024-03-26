@@ -1,16 +1,9 @@
-use hecs::Entity;
 use std::{collections::HashMap, ops::Range};
 
-
-
-
-
-
+use hecs::Entity;
 use serde::{Deserialize, Serialize};
-use wgpu::{util::BufferInitDescriptor, PrimitiveTopology};
+use wgpu::{PrimitiveTopology, util::BufferInitDescriptor};
 
-use crate::core::resources::asset_manager::AssetManager;
-use crate::core::world::{SubWorld, World};
 use crate::{
     core::{
         components::{
@@ -24,6 +17,9 @@ use crate::{
     graphics::rendering::Renderable2D,
     utils::maths::{Dimensions, Position},
 };
+use crate::core::resources::asset_manager::AssetManager;
+use crate::core::world::{SubWorld, World};
+
 #[derive(Debug)]
 pub struct Pathing {
     pathing_type: String,
