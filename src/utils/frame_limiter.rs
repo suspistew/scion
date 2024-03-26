@@ -34,7 +34,7 @@ pub(crate) struct FrameLimiter {
     strategy: FrameLimiterStrategy,
     target_render_duration: Duration,
     target_fixed_duration: Duration,
-    min_tick_duration: Duration,
+    pub(crate) min_tick_duration: Duration,
     last_render_frame_start: Instant,
     last_tick_start: Instant,
     last_fixed_tick_start: Instant,

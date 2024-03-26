@@ -22,7 +22,7 @@ pub(crate) fn audio_thread(controller: AudioController) {
     let mut sinks: HashMap<usize, Sink> = HashMap::new();
 
     loop {
-        if let Ok(message) = controller.receiver.try_recv() {
+        if let Ok(message) = controller.receiver.recv() {
             match message {
                 AudioEvent::PlaySound { path, config, sound_id } => {
                     debug!("Started to play sound {}", path);
@@ -45,9 +45,9 @@ pub(crate) fn audio_thread(controller: AudioController) {
                     }
                 }
             }
+            sinks.retain(|&_k, sink| {
+                !sink.empty()
+            });
         }
-        sinks.retain(|&_k, sink| {
-            !sink.empty()
-        });
     }
 }

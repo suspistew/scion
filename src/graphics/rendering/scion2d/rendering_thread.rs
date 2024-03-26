@@ -12,7 +12,7 @@ impl ScionRenderingThread{
     pub(crate) fn run(mut self) {
         info!("Initializing rendering thread");
         loop {
-            if let Ok((mut events, updates, rendering_infos)) = self.render_receiver.try_recv() {
+            if let Ok((mut events, updates, rendering_infos)) = self.render_receiver.recv() {
                 events.drain(0..events.len()).for_each(|event|{
                     match event {
                         RendererEvent::ForceRedraw => {

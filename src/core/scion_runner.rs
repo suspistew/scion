@@ -43,6 +43,9 @@ impl ScionRunner {
         let mut fixed_tick = Instant::now();
         let mut render_tick = Instant::now();
 
+        let spin_sleeper = spin_sleep::SpinSleeper::new(100_000)
+            .with_spin_strategy(spin_sleep::SpinStrategy::YieldThread);
+
         loop {
             let should_tick = frame_limiter.is_min_tick();
             if should_tick {
@@ -85,6 +88,7 @@ impl ScionRunner {
                     .apply_scene_action(SceneAction::EndFrame, &mut self.game_data);
                 frame_limiter.tick(&start_tick);
             }
+            spin_sleeper.sleep(frame_limiter.min_tick_duration.clone());
         }
     }
 
