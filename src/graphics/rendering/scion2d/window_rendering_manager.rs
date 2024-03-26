@@ -61,8 +61,6 @@ impl ScionWindowRenderingManager {
             .get_default_config(&adapter, width, height)
             .unwrap();
 
-        config.present_mode = wgpu::PresentMode::Immediate;
-
         surface.configure(&device, &config);
 
         let mut scion_renderer = Scion2D::default();

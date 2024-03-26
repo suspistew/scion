@@ -1,9 +1,11 @@
 use winit::event::WindowEvent;
 use winit::keyboard::Key;
+use crate::core::components::maths::camera::Camera;
 
 use crate::core::resources::inputs::mouse::MouseEvent;
 use crate::core::resources::inputs::types::{InputState, KeyboardEvent, KeyCode, MouseButton};
 use crate::core::scion_runner::ScionRunner;
+use crate::core::world::World;
 use crate::graphics::rendering::RendererEvent;
 
 pub fn handle_window_event(runner: &mut ScionRunner) -> Vec<RendererEvent> {
@@ -18,6 +20,9 @@ pub fn handle_window_event(runner: &mut ScionRunner) -> Vec<RendererEvent> {
                 match window_event {
                     WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                         update.push(RendererEvent::Resize(runner.window.as_ref().expect("Missing window").inner_size(), scale_factor));
+                        for (_, camera) in runner.game_data.query_mut::<&mut Camera>() {
+                            camera.dpi = scale_factor;
+                        }
                         force_redraw = true;
                     }
                     WindowEvent::Resized(physical_size) => {

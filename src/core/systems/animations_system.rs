@@ -1,3 +1,4 @@
+use measure_time::info_time;
 use crate::core::{
     components::{
         animations::{
@@ -25,6 +26,7 @@ enum BlinkResult {
 /// It will use timers to keep track of the animation and will merge keyframes in case
 /// of long frames.
 pub(crate) fn animation_executer_system(data: &mut GameData) {
+
     let (subworld, resources) = data.split();
     let mut timers = resources.timers();
     let mut remove_blink = Vec::new();

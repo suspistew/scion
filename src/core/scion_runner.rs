@@ -58,7 +58,6 @@ impl ScionRunner {
                     .frame();
                 self.game_data.timers().add_delta_duration(frame_duration);
                 let _r = render_sender.send((handle_window_event(&mut self), vec![], vec![]));
-
                 self.layer_machine.apply_scene_action(SceneAction::Update, &mut self.game_data);
                 self.scheduler.execute(&mut self.game_data);
                 self.layer_machine.apply_scene_action(SceneAction::LateUpdate, &mut self.game_data);
@@ -75,9 +74,11 @@ impl ScionRunner {
             if frame_limiter.render_unlocked() {
                 debug!("render tick duration {:?}", Instant::now().duration_since(render_tick));
                 render_tick = Instant::now();
+
                 let updates = self.scion_pre_renderer.prepare_update(&mut self.game_data);
                 let rendering_infos = Scion2DPreRenderer::prepare_rendering(&mut self.game_data);
                 let _r = render_sender.send((vec![], updates, rendering_infos));
+
                 frame_limiter.render();
             }
 

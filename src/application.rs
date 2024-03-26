@@ -1,8 +1,8 @@
-
 use std::path::Path;
 
 use std::sync::{Arc, mpsc};
 use std::thread;
+use std::time::Duration;
 
 
 use log::{info};
@@ -11,7 +11,6 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
     window::{WindowBuilder},
 };
-
 
 
 use crate::{
@@ -86,7 +85,7 @@ impl Scion {
             // Game is running in a window, it must be created & handled in the main thread, so
             // the game loop is going to another thread.
             let event_loop = EventLoop::new().expect("Event loop could not be created");
-            event_loop.set_control_flow(ControlFlow::Poll);
+            event_loop.set_control_flow(ControlFlow::Wait);
             let window_builder: WindowBuilder = self.config.window_config
                 .clone()
                 .expect("The window configuration has not been found")
@@ -102,32 +101,30 @@ impl Scion {
                     scheduler: self.scheduler,
                     layer_machine: self.layer_machine,
                     window_rendering_manager: Some(window_rendering_manager),
-                    window: Some(window),
+                    window: Some(window.clone()),
                     main_thread_receiver: Some(receiver),
                     scion_pre_renderer: Default::default(),
-                }.launch_game_loop()
+                }.launch_game_loop();
             });
-
-           let _result = event_loop.run(move |event,loopd| {
-               loopd.set_control_flow(ControlFlow::Poll);
-               match event {
-                   Event::WindowEvent { event, window_id: _ } => {
+            let _result = event_loop.run(move |event, loopd| {
+                match event {
+                    Event::WindowEvent { event, window_id: _ } => {
                         match event {
                             WindowEvent::CloseRequested => loopd.exit(),
                             WindowEvent::RedrawRequested => {
-                                let _r = event_sender.send(WindowingEvent{ window_event: Some(WindowEvent::RedrawRequested), redraw: true });
-                            },
+                                let _r = event_sender.send(WindowingEvent { window_event: Some(WindowEvent::RedrawRequested), redraw: true });
+                            }
                             e => {
-                                let _r = event_sender.send(WindowingEvent{ window_event: Some(e), redraw: false });
+                                let _r = event_sender.send(WindowingEvent { window_event: Some(e), redraw: false });
                             }
                         }
-                   },
-                   Event::AboutToWait => {
-                       //
-                   }
-                   _ => {}
-               }
-           });
+                    }
+                    Event::AboutToWait => {
+                        //
+                    }
+                    _ => {}
+                }
+            });
         }
     }
 }

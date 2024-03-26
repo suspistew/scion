@@ -80,10 +80,10 @@ impl Scene for Menu {
 
         // Ambient music
         {
-            let _r = data
+            /*let _r = data
                 .audio()
                 .play(app_base_path_join("examples/starlight-1961/assets/menu_music.ogg"),
-                      PlayConfig { volume: 0.1, looped: true, category: None });
+                      PlayConfig { volume: 0.1, looped: true, category: None });*/
         }
     }
 

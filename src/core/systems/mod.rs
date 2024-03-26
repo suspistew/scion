@@ -24,7 +24,6 @@ use crate::core::systems::animations_system::animation_executer_system;
 use crate::core::systems::asset_ref_resolver_system::asset_ref_resolver_system;
 use crate::core::systems::asset_ref_resolver_system::MaterialAssetResolverFn;
 use crate::core::systems::collider_systems::{collider_cleaner_system, collider_pivot_propagation_system, compute_collisions_system, debug_colliders_system};
-use crate::core::systems::default_camera_system::camera_dpi_system;
 use crate::core::systems::default_camera_system::default_camera_system;
 use crate::core::systems::focus_systems::focus_switcher_system;
 use crate::core::systems::hide_propagation_system::{
@@ -76,16 +75,16 @@ impl Package for InternalPackage {
         data.insert_resource(InputsController::default());
         data.insert_resource(GameState::default());
         data.insert_resource(SceneController::default());
-        data.insert_resource(Audio::default());
+        //data.insert_resource(Audio::default());
         data.insert_resource(FontAtlas::default());
         data.insert_resource(GlobalStorage::default());
     }
 
     fn load(&self, builder: ScionBuilder) -> ScionBuilder {
+
         builder
             .with_system(collider_cleaner_system)
             .with_system(default_camera_system)
-            .with_system(camera_dpi_system)
             .with_system(sync_text_value_system)
             .with_system(ui_text_bitmap_update_system)
             .with_system(debug_colliders_system)
