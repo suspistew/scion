@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::core::resources::inputs::types::{Input, InputState, KeyCode, KeyboardEvent};
+use crate::core::resources::inputs::types::{Input, InputState, KeyboardEvent, KeyCode};
 
 #[derive(Default)]
 /// Convenience resource used to keep track of keyboard inputs

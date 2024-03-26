@@ -1,35 +1,29 @@
-use crate::core::components::material::Material;
-use crate::core::components::shapes::rectangle::Rectangle;
 use crate::core::components::{Square, Triangle};
+use crate::core::components::material::Material;
 use crate::core::components::shapes::line::Line;
 use crate::core::components::shapes::polygon::Polygon;
+use crate::core::components::shapes::rectangle::Rectangle;
 use crate::core::components::tiles::sprite::Sprite;
 use crate::core::components::ui::ui_button::UiButton;
 use crate::core::components::ui::ui_image::UiImage;
 use crate::core::components::ui::ui_input::UiInput;
 use crate::core::components::ui::ui_text::{UiText, UiTextImage};
 use crate::core::package::Package;
-
-use crate::core::resources::events::topic::TopicConfiguration;
-use crate::core::resources::events::Events;
-
-use crate::core::resources::time::{Time, TimerType, Timers};
-
-use crate::ScionBuilder;
-
 use crate::core::resources::asset_manager::AssetManager;
 use crate::core::resources::audio::Audio;
+use crate::core::resources::events::Events;
+use crate::core::resources::events::topic::TopicConfiguration;
 use crate::core::resources::focus_manager::FocusManager;
 use crate::core::resources::font_atlas::FontAtlas;
 use crate::core::resources::global_storage::GlobalStorage;
 use crate::core::resources::inputs::inputs_controller::InputsController;
+use crate::core::resources::time::{Time, Timers, TimerType};
 use crate::core::scene::SceneController;
 use crate::core::state::GameState;
 use crate::core::systems::animations_system::animation_executer_system;
 use crate::core::systems::asset_ref_resolver_system::asset_ref_resolver_system;
 use crate::core::systems::asset_ref_resolver_system::MaterialAssetResolverFn;
 use crate::core::systems::collider_systems::{collider_cleaner_system, collider_pivot_propagation_system, compute_collisions_system, debug_colliders_system};
-use crate::core::systems::default_camera_system::camera_dpi_system;
 use crate::core::systems::default_camera_system::default_camera_system;
 use crate::core::systems::focus_systems::focus_switcher_system;
 use crate::core::systems::hide_propagation_system::{
@@ -42,6 +36,7 @@ use crate::core::systems::ui_button_systems::{compute_hover, set_childs_on_butto
 use crate::core::systems::ui_input_systems::{register_keyboard_inputs_on_ui_input, set_childs_on_inputs, synchronize_input_and_text};
 use crate::core::systems::ui_text_system::{sync_text_value_system, ui_text_bitmap_update_system};
 use crate::core::world::GameData;
+use crate::ScionBuilder;
 
 pub(crate) mod animations_system;
 pub(crate) mod asset_ref_resolver_system;
@@ -86,10 +81,10 @@ impl Package for InternalPackage {
     }
 
     fn load(&self, builder: ScionBuilder) -> ScionBuilder {
+
         builder
             .with_system(collider_cleaner_system)
             .with_system(default_camera_system)
-            .with_system(camera_dpi_system)
             .with_system(sync_text_value_system)
             .with_system(ui_text_bitmap_update_system)
             .with_system(debug_colliders_system)

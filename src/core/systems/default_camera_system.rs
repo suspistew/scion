@@ -1,4 +1,4 @@
-use log::{debug};
+use log::debug;
 
 use crate::core::components::maths::{
     camera::{Camera, DefaultCamera},
@@ -21,16 +21,7 @@ pub(crate) fn default_camera_system(data: &mut GameData) {
            window.height() as f32,
         );
         camera.dpi = window.dpi();
-        let _r = subworld.add_components(e, (camera,));
-        let _r = subworld.add_components(e, (Transform::default(),));
-    }
-}
-
-/// System responsible of applying dpi to each camera
-pub(crate) fn camera_dpi_system(data: &mut GameData) {
-    let (subworld, resources) = data.split();
-    let window = resources.window();
-    for (_, camera) in subworld.query_mut::<&mut Camera>() {
-        camera.dpi = window.dpi();
+        let _r = subworld.add_components(e, (camera,Transform::default()));
+        let _r = subworld.remove_component::<&DefaultCamera>(e);
     }
 }

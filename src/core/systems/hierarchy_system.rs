@@ -1,9 +1,4 @@
-
 use std::collections::{HashMap, HashSet};
-
-
-
-
 
 use crate::core::components::maths::hierarchy::{Children, Parent};
 use crate::core::world::{GameData, World};
@@ -54,10 +49,10 @@ fn fetch_parent_entities(data: &mut GameData) -> HashMap<hecs::Entity, Vec<hecs:
 
 #[cfg(test)]
 mod tests {
-
-    use super::*;
     use crate::core::components::maths::hierarchy::{Children, Parent};
     use crate::core::world::World;
+
+    use super::*;
 
     #[test]
     fn children_manager_system_test_children_delete() {

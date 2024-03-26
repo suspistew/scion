@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Convenience struct used in all `Scion` to specify any 2D position.
 #[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]

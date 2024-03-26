@@ -2,19 +2,17 @@
 
 
 pub mod importer {
-    
     use std::path::Path;
     use std::time::Duration;
-    use base64::Engine;
 
+    use base64::Engine;
     use base64::prelude::BASE64_STANDARD;
     use hecs::Entity;
-    
     use log::{debug, error};
-    use crate::core::components::animations::{Animation, AnimationModifier};
 
+    use crate::core::components::animations::{Animation, AnimationModifier};
     use crate::core::components::material::Material;
-    use crate::core::components::maths::transform::{Transform, TransformBuilder};
+    use crate::core::components::maths::transform::{Transform};
     use crate::core::components::tiles::atlas::data::{TilemapAtlas, TilesetAtlas};
     use crate::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
     use crate::core::components::tiles::tileset::Tileset;
@@ -135,6 +133,7 @@ pub mod importer {
 
 pub mod data {
     use std::collections::{HashMap, HashSet};
+
     use serde::{Deserialize, Serialize};
 
     use crate::core::components::maths::coordinates::Coordinates;

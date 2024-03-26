@@ -3,7 +3,7 @@
 use crate::core::resources::inputs::{
     keyboard::Keyboard,
     mouse::{Mouse, MouseEvent},
-    types::{Input, InputState, KeyCode, KeyboardEvent, Shortcut},
+    types::{Input, InputState, KeyboardEvent, KeyCode, Shortcut},
 };
 
 /// A resource updated by `Scion` to keep track of the core.resources.inputs

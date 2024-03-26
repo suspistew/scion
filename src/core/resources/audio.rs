@@ -1,7 +1,9 @@
+use std::sync::mpsc;
+
+use rodio::{OutputStream, Sink};
+
 use crate::core::audio_controller;
 use crate::core::audio_controller::AudioController;
-use rodio::{OutputStream, Sink};
-use std::sync::mpsc;
 
 /// `AudioPlayer` is the resource responsible to handle musics, sound effects, and action on them
 pub struct Audio {
@@ -11,12 +13,9 @@ pub struct Audio {
 
 impl Audio {
     pub(crate) fn default() -> Self {
-        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-        let _sink = Sink::try_new(&stream_handle).unwrap();
         let (event_sender, receiver) = mpsc::channel();
 
         std::thread::spawn(move || audio_controller::audio_thread(AudioController::new(receiver)));
-
         Audio { event_sender, sounds_cursor: 0 }
     }
 

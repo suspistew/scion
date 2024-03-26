@@ -1,5 +1,5 @@
-
 use serde::{Deserialize, Serialize};
+
 use crate::core::components::maths::coordinates::Coordinates;
 
 /// The standard way to communicate a position in 3 dimensions in `Scion`

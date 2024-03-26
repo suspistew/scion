@@ -59,6 +59,7 @@ impl Scene for Menu {
                 Transform::new(Coordinates::new(225., 400.), 1.0, 0.),
                 Animations::single("blink", Animation::new(Duration::from_millis(800), vec![AnimationModifier::blink(1)]))
             ));
+
         }
 
         // Animated ship on menu
@@ -88,7 +89,6 @@ impl Scene for Menu {
 
     fn on_update(&mut self, data: &mut GameData) {
         self.animate_main_menu_ship(data);
-        
         if data.inputs().input_pressed(&Key(KeyCode::Enter)) {
             data.game_state_mut().set_text(CURRENT_LEVEL, "lvl1");
             data.scene_controller().switch::<LevelScene>();

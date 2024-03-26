@@ -1,11 +1,11 @@
-pub mod topic;
-
 use std::collections::{HashMap, VecDeque};
 
 use serde::{de::DeserializeOwned, ser};
 use serde_json::{from_str, to_string};
 
 use crate::core::resources::events::topic::{Topic, TopicConfiguration};
+
+pub mod topic;
 
 pub type SubscriberId = usize;
 pub type Cursor = usize;

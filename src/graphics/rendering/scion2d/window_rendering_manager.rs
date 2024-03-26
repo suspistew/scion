@@ -1,22 +1,25 @@
 use std::sync::Arc;
-use log::info;
-use wgpu::{CompositeAlphaMode, InstanceDescriptor, Limits, Surface, SurfaceConfiguration, TextureFormat};
-use winit::{event::WindowEvent, window::Window};
 
-use crate::{config::scion_config::ScionConfig, rendering::ScionRenderer};
-use crate::core::world::GameData;
+use wgpu::{Limits, Surface, SurfaceConfiguration};
+use winit::{window::Window};
 
-pub(crate) struct RendererState {
+use crate::core::components::color::Color;
+use crate::graphics::rendering::{RenderingInfos, RenderingUpdate};
+use crate::graphics::rendering::scion2d::renderer::Scion2D;
+
+pub(crate) struct ScionWindowRenderingManager {
     surface: Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: SurfaceConfiguration,
-    scion_renderer: Box<dyn ScionRenderer>,
+    scion_renderer: Scion2D,
+    default_background_color: Option<Color>,
 }
 
-impl RendererState {
-    pub(crate) async fn new(window: Arc<Window>, mut scion_renderer: Box<dyn ScionRenderer>) -> Self {
-        let mut size = window.inner_size();
+impl ScionWindowRenderingManager {
+    pub(crate) async fn new(window: Arc<Window>,
+                            default_background : Option<Color>) -> Self {
+        let size = window.inner_size();
         let width = size.width.max(1);
         let height = size.height.max(1);
 
@@ -59,9 +62,11 @@ impl RendererState {
             .unwrap();
 
         surface.configure(&device, &config);
+
+        let mut scion_renderer = Scion2D::default();
         scion_renderer.start(&device, &config);
 
-        Self { surface, device, queue, config, scion_renderer }
+        Self { surface, device, queue, config, scion_renderer, default_background_color: default_background }
     }
 
     pub(crate) fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>, _scale_factor: f64) {
@@ -70,19 +75,13 @@ impl RendererState {
         self.surface.configure(&self.device, &self.config);
     }
 
-    pub(crate) fn _input(&mut self, _event: &WindowEvent) -> bool {
-        //todo!()
-        false
-    }
-
-    pub(crate) fn update(&mut self, data: &mut GameData) {
-        self.scion_renderer.update(data, &self.device, &self.config, &mut self.queue);
+    pub(crate) fn update(&mut self, updates: Vec<RenderingUpdate>) {
+        self.scion_renderer.update(updates, &self.device, &self.config, &mut self.queue);
     }
 
     pub(crate) fn render(
         &mut self,
-        data: &mut GameData,
-        config: &ScionConfig,
+        data: Vec<RenderingInfos>,
     ) -> Result<(), wgpu::SurfaceError> {
         let frame = self.surface.get_current_texture()?;
         let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -90,7 +89,7 @@ impl RendererState {
         let mut encoder =
             self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
-        self.scion_renderer.render(data, config, &view, &mut encoder);
+        self.scion_renderer.render(data, &self.default_background_color, view, &mut encoder);
 
         self.queue.submit(Some(encoder.finish()));
 

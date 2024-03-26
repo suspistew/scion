@@ -1,10 +1,11 @@
 use std::borrow::Cow;
+
 use wgpu::{
     BindGroupLayout, BlendComponent, BlendFactor, BlendOperation, Device, RenderPipeline,
     SurfaceConfiguration,
 };
 
-use crate::rendering::gl_representations::{TexturedGlVertex, TexturedGlVertexWithLayer};
+use crate::graphics::rendering::shaders::gl_representations::{TexturedGlVertex, TexturedGlVertexWithLayer};
 
 pub fn pipeline(
     device: &Device,
@@ -16,7 +17,7 @@ pub fn pipeline(
 
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: None,
-        source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("./main_shader.wgsl"))),
+        source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("main_shader.wgsl"))),
     });
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -79,12 +80,11 @@ pub fn pipeline_sprite(
     surface_config: &SurfaceConfiguration,
     texture_bind_group_layout: &BindGroupLayout,
     transform_bind_group_layout: &BindGroupLayout,
-    layer_bind_group_layout: &BindGroupLayout,
     topology: wgpu::PrimitiveTopology,
 ) -> RenderPipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: None,
-        source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("./sprite_shader.wgsl"))),
+        source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("sprite_shader.wgsl"))),
     });
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

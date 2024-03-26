@@ -1,25 +1,25 @@
 use std::any::TypeId;
-
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::hash::Hasher;
 
-use crate::core::components::maths::camera::DefaultCamera;
-use crate::core::resources::asset_manager::AssetManager;
-use crate::core::resources::audio::Audio;
-use crate::core::resources::events::Events;
-use crate::core::resources::inputs::inputs_controller::InputsController;
-use crate::core::resources::time::Timers;
-use crate::core::resources::window::Window;
-use crate::core::scene::SceneController;
 use atomic_refcell::{AtomicRef, AtomicRefCell, AtomicRefMut};
-use downcast_rs::{impl_downcast, Downcast};
+use downcast_rs::{Downcast, impl_downcast};
 use hecs::{
     Component, ComponentError, DynamicBundle, Entity, NoSuchEntity, Query, QueryBorrow,
     QueryMut, QueryOne, QueryOneError,
 };
+
+use crate::core::components::maths::camera::{Camera, DefaultCamera};
+use crate::core::resources::asset_manager::AssetManager;
+use crate::core::resources::audio::Audio;
+use crate::core::resources::events::Events;
 use crate::core::resources::focus_manager::FocusManager;
 use crate::core::resources::font_atlas::FontAtlas;
+use crate::core::resources::inputs::inputs_controller::InputsController;
+use crate::core::resources::time::Timers;
+use crate::core::resources::window::Window;
+use crate::core::scene::SceneController;
 use crate::core::state::GameState;
 
 pub trait World {
@@ -154,6 +154,10 @@ impl GameData {
     pub(crate) fn focus_manager(&self) -> AtomicRefMut<FocusManager> {
         self.get_resource_mut::<FocusManager>()
             .expect("The engine is missing the mandatory focus manager resource")
+    }
+
+    pub(crate) fn has_camera(&self)-> bool{
+        self.subworld.query::<&Camera>().iter().count() > 0
     }
 }
 

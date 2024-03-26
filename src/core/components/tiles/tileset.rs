@@ -1,9 +1,9 @@
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
+
 use log::error;
 
 use crate::core::components::tiles::atlas::data::{TileConfig, TilesetAtlas};
-
 use crate::utils::file::read_file;
 
 #[derive(Clone, Debug)]

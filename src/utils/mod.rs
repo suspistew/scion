@@ -2,6 +2,7 @@
 pub mod file;
 pub mod logger;
 pub mod maths;
+pub mod frame_limiter;
 
 #[derive(Debug)]
 #[allow(dead_code)]

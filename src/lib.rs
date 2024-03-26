@@ -4,18 +4,19 @@
 //!
 //! ```
 
+pub use hecs::Entity;
+pub use log;
+pub use ultraviolet;
+pub use winit::window::CursorIcon;
+
 // Convenience reexport
 // Convenience uses
-pub use application::{Scion, ScionBuilder};
-
-pub use ultraviolet;
-pub use hecs::Entity;
-pub use winit::window::CursorIcon;
-pub use log;
+pub use application::Scion;
+pub use core::application_builder::ScionBuilder;
 
 // internal export
 mod application;
 pub mod config;
 pub mod core;
-pub mod rendering;
+pub mod graphics;
 pub mod utils;
