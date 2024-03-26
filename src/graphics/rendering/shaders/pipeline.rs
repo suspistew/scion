@@ -79,7 +79,6 @@ pub fn pipeline_sprite(
     surface_config: &SurfaceConfiguration,
     texture_bind_group_layout: &BindGroupLayout,
     transform_bind_group_layout: &BindGroupLayout,
-    layer_bind_group_layout: &BindGroupLayout,
     topology: wgpu::PrimitiveTopology,
 ) -> RenderPipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {

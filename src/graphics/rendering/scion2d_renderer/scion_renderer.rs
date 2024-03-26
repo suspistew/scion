@@ -28,20 +28,6 @@ pub(crate) struct ScionRenderer2D {
     indexes_buffer: HashSet<Entity>,
 }
 
-impl ScionRenderer for ScionRenderer2D {
-    fn start(&mut self, device: &Device, surface_config: &SurfaceConfiguration) {
-        todo!()
-    }
-
-    fn update(&mut self, data: &mut GameData, device: &Device, surface_config: &SurfaceConfiguration, queue: &mut Queue) {
-        todo!()
-    }
-
-    fn render(&mut self, data: &mut GameData, default_background: &Option<Color>, texture_view: TextureView, encoder: &mut CommandEncoder) {
-        todo!()
-    }
-}
-
 impl ScionRenderer2D {
 
     pub(crate) fn prepare_update(&mut self, data: &mut GameData) -> Vec<RenderingUpdate> {

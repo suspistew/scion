@@ -4,6 +4,7 @@ use std::num::NonZeroU64;
 use log::info;
 
 use wgpu::{BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SamplerBindingType, StoreOp, SurfaceConfiguration, TextureFormat, TextureView, util::DeviceExt};
+use wgpu::util::BufferInitDescriptor;
 
 use crate::core::world::{GameData, World};
 use crate::graphics::rendering::gl_representations::{TexturedGlVertex, TexturedGlVertexWithLayer};
@@ -32,7 +33,7 @@ use crate::{
 };
 use crate::core::components::material::TextureArray;
 use crate::graphics::rendering::rendering_texture_management::load_texture_array_to_queue;
-use crate::graphics::rendering::{RendererType, RenderingInfos, RenderingUpdate};
+use crate::graphics::rendering::{DiffuseBindGroupUpdate, RendererType, RenderingInfos, RenderingUpdate};
 use crate::graphics::rendering::shaders::pipeline::pipeline_sprite;
 use crate::utils::maths::Vector;
 
@@ -40,11 +41,9 @@ use crate::utils::maths::Vector;
 pub(crate) struct Scion2D {
     vertex_buffers: HashMap<Entity, Buffer>,
     index_buffers: HashMap<Entity, Buffer>,
-    layer_buffers: HashMap<Entity, Buffer>,
     render_pipelines: HashMap<String, RenderPipeline>,
     texture_bind_group_layout: Option<BindGroupLayout>,
     texture_array_bind_group_layout: Option<BindGroupLayout>,
-    layer_bind_group_layout: Option<BindGroupLayout>,
     transform_bind_group_layout: Option<BindGroupLayout>,
     diffuse_bind_groups: HashMap<String, (BindGroup, wgpu::Texture)>,
     transform_uniform_bind_groups: HashMap<Entity, (GlUniform, Buffer, BindGroup)>,
@@ -54,85 +53,9 @@ pub(crate) struct Scion2D {
 
 impl ScionRenderer for Scion2D {
     fn start(&mut self, device: &Device, surface_config: &SurfaceConfiguration) {
-        let uniform_bind_group_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::VERTEX,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
-                }],
-                label: Some("uniform_bind_group_layout"),
-            });
-
-        let texture_bind_group_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            multisampled: false,
-                            view_dimension: wgpu::TextureViewDimension::D2,
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                        },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler(SamplerBindingType::Filtering),
-                        count: None,
-                    },
-                ],
-                label: Some("texture_bind_group_layout"),
-            });
-
-        let texture_array_bind_group_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            multisampled: false,
-                            view_dimension: wgpu::TextureViewDimension::D2Array,
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                        },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler(SamplerBindingType::Filtering),
-                        count: None,
-                    },
-                ],
-                label: Some("texture_bind_group_layout"),
-            });
-
-        let layer_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("layer_bind_group_layout"),
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: Some(NonZeroU64::new(4).unwrap()),
-                },
-                count: None,
-            }],
-        });
-
-        self.transform_bind_group_layout = Some(uniform_bind_group_layout);
-        self.texture_bind_group_layout = Some(texture_bind_group_layout);
-        self.texture_array_bind_group_layout = Some(texture_array_bind_group_layout);
-        self.layer_bind_group_layout = Some(layer_bind_group_layout);
+        self.transform_bind_group_layout = Some(Self::create_uniform_bind_group_layout(device));
+        self.texture_bind_group_layout = Some(Self::create_texture_bind_group_layout(device));
+        self.texture_array_bind_group_layout = Some(Self::create_texture_array_bind_group_layout(device));
         self.insert_components_pipelines::<Triangle>(&device, &surface_config);
         self.insert_components_pipelines::<Square>(&device, &surface_config);
         self.insert_components_pipelines::<Rectangle>(&device, &surface_config);
@@ -146,53 +69,55 @@ impl ScionRenderer for Scion2D {
 
     fn update(
         &mut self,
-        data: &mut GameData,
+        mut data: Vec<RenderingUpdate>,
         device: &Device,
         surface_config: &SurfaceConfiguration,
         queue: &mut Queue,
     ) {
-        if world_contains_camera(data) {
-            self.update_diffuse_bind_groups(data, device, queue);
-            self.update_transforms(data, &device, queue);
-            self.upsert_component_buffers::<Triangle>(data, &device);
-            self.upsert_component_buffers::<Square>(data, &device);
-            self.upsert_component_buffers::<Rectangle>(data, &device);
-            self.upsert_component_buffers::<Sprite>(data, &device);
-            self.upsert_component_buffers::<Line>(data, &device);
-            self.upsert_component_buffers::<Polygon>(data, &device);
-            self.upsert_tilemaps_buffers(data, &device);
-            self.upsert_ui_component_buffers::<UiImage>(data, &device, &surface_config, queue);
-            self.upsert_ui_component_buffers::<UiTextImage>(data, &device, &surface_config, queue);
-        } else if self.first_tick_passed {
-            log::warn!("No camera has been found in resources");
+        for update in data.drain(0..data.len()){
+            match update{
+                RenderingUpdate::DiffuseBindGroup { data, path } => {
+                    self.update_material(device, queue, data, path);
+                }
+                RenderingUpdate::TransformUniform { entity, uniform } => {
+                    self.update_transform_uniform(device, queue, entity, uniform);
+                }
+                RenderingUpdate::VertexBuffer { entity, label, contents, usage } => {
+                    info!("vertex buffer to render {:?}", entity);
+                    let vertex_buffer =
+                        device.create_buffer_init(&BufferInitDescriptor{
+                            label: Some("Vertex buffer"),
+                            contents: contents.as_slice(),
+                            usage,
+                        });
+                    self.vertex_buffers.insert(entity, vertex_buffer);
+                }
+                RenderingUpdate::IndexBuffer { entity, label, contents, usage } => {
+                    info!("index buffer to render {:?}", entity);
+                    let index_buffer =
+                        device.create_buffer_init(&BufferInitDescriptor{
+                            label: Some("Index buffer"),
+                            contents: contents.as_slice(),
+                            usage,
+                        });
+                    self.index_buffers.insert(entity, index_buffer);
+                }
+                RenderingUpdate::TilemapBuffer => {}
+                RenderingUpdate::UiComponentBuffer => {}
+            }
         }
-        self.first_tick_passed = true;
-        self.clean_buffers(data);
+
+        // FIXME : self.clean_buffers(data);
     }
 
     fn render(
         &mut self,
-        data: &mut GameData,
+        data: Vec<RenderingInfos>,
         default_background: &Option<Color>,
         texture_view: TextureView,
         encoder: &mut CommandEncoder,
     ) {
-        if world_contains_camera(data) {
-            let mut rendering_infos = Vec::new();
-            rendering_infos.append(&mut Self::pre_render_component::<Triangle>(data));
-            rendering_infos.append(&mut Self::pre_render_component::<Square>(data));
-            rendering_infos.append(&mut Self::pre_render_component::<Rectangle>(data));
-            rendering_infos.append(&mut Self::pre_render_component::<Sprite>(data));
-            rendering_infos.append(&mut Self::pre_render_component::<Line>(data));
-            rendering_infos.append(&mut Self::pre_render_component::<Polygon>(data));
-            rendering_infos.append(&mut Self::pre_render_ui_component::<UiImage>(data));
-            rendering_infos.append(&mut Self::pre_render_ui_component::<UiTextImage>(data));
-            rendering_infos.append(&mut Self::pre_render_tilemaps(data));
-
-            rendering_infos.sort_by(|a, b| b.layer.cmp(&a.layer));
-
-            self.render_component(default_background, texture_view, encoder, rendering_infos);
-        }
+        self.render_component(default_background, texture_view, encoder, data);
     }
 }
 
@@ -330,7 +255,6 @@ impl Scion2D {
                         surface_config,
                         self.texture_array_bind_group_layout.as_ref().unwrap(),
                         self.transform_bind_group_layout.as_ref().unwrap(),
-                        self.layer_bind_group_layout.as_ref().unwrap(),
                         T::topology(),
                     )
                 } else {
@@ -368,6 +292,7 @@ impl Scion2D {
                 &self.transform_uniform_bind_groups.get(&rendering_infos.entity).unwrap().2,
                 &[],
             );
+            info!("trying to render {:?}", &rendering_infos.entity);
             render_pass.set_vertex_buffer(
                 0,
                 self.vertex_buffers.get(&rendering_infos.entity).as_ref().unwrap().slice(..),
@@ -391,279 +316,138 @@ impl Scion2D {
         }
     }
 
-    fn pre_render_component<T: Component + Renderable2D>(
-        data: &mut GameData,
-    ) -> Vec<RenderingInfos> {
-        let type_name = std::any::type_name::<T>();
-        let mut render_infos = Vec::new();
-        for (entity, (component, material, transform)) in data
-            .query::<(&mut T, &Material, &Transform)>()
-            .without::<&Tile>()
-            .without::<&Hide>()
-            .without::<&HidePropagated>()
-            .iter()
-        {
-            let path = match material {
-                Material::Color(color) => Some(get_path_from_color(color)),
-                Material::Texture(p) => Some(p.clone()),
-                Material::Tileset(tileset) => Some(tileset.texture.clone()),
-            };
-            render_infos.push(RenderingInfos {
-                layer: transform.global_translation().z(),
-                range: component.range(),
-                entity,
-                texture_path: path,
-                type_name: type_name.to_string(),
-            });
-        }
-        render_infos
-    }
-
-    fn pre_render_tilemaps(data: &mut GameData) -> Vec<RenderingInfos> {
-        let type_name = std::any::type_name::<Tilemap>();
-        let mut render_infos = Vec::new();
-
-        let tiles = data.query::<(&Tile, &Sprite)>().iter().map(|(e, _)| e).collect::<Vec<_>>();
-
-        for (entity, (_, material, transform)) in data
-            .query::<(&mut Tilemap, &Material, &Transform)>()
-            .without::<(&Hide, &HidePropagated)>()
-            .iter()
-        {
-            let tiles_nb = tiles
-                .iter()
-                .filter(|t| data.entry::<&Tile>(**t).expect("").get().expect("").tilemap == entity)
-                .count();
-
-            let path = match material {
-                Material::Tileset(tileset) => Some(tileset.texture.clone()),
-                _ => None,
-            };
-            render_infos.push(RenderingInfos {
-                layer: transform.translation().z(),
-                range: 0..(tiles_nb * Sprite::indices().len()) as u32,
-                entity,
-                texture_path: path,
-                type_name: type_name.to_string(),
-            });
-        }
-        render_infos
-    }
-
-    fn pre_render_ui_component<T: Component + Renderable2D + RenderableUi>(
-        data: &mut GameData,
-    ) -> Vec<RenderingInfos> {
-        let type_name = std::any::type_name::<T>();
-        let mut render_infos = Vec::new();
-        for (entity, (component, transform, material)) in
-        data.query::<(&mut T, &Transform, Option<&Material>)>()
-            .without::<&Hide>()
-            .without::<&HidePropagated>()
-            .iter()
-        {
-            let path = if material.is_some() {
-                match material.unwrap() {
-                    Material::Color(color) => Some(get_path_from_color(color)),
-                    Material::Texture(p) => Some(p.clone()),
-                    _ => None
-                }
-            } else {
-                None
-            };
-
-            render_infos.push(RenderingInfos {
-                layer: transform.translation().z(),
-                range: component.range(),
-                entity,
-                texture_path: path,
-                type_name: type_name.to_string(),
-            });
-        }
-        render_infos
-    }
-
-    fn update_transforms(&mut self, data: &mut GameData, device: &&Device, queue: &mut Queue) {
-        self.update_transforms_for_type::<Triangle>(data, device, queue);
-        self.update_transforms_for_type::<Square>(data, device, queue);
-        self.update_transforms_for_type::<Rectangle>(data, device, queue);
-        self.update_transforms_for_type::<Sprite>(data, device, queue);
-        self.update_transforms_for_type::<Line>(data, device, queue);
-        self.update_transforms_for_type::<Polygon>(data, device, queue);
-        self.update_transforms_for_type::<UiImage>(data, device, queue);
-        self.update_transforms_for_type::<UiTextImage>(data, device, queue);
-        self.update_transforms_for_type::<Tilemap>(data, device, queue);
-    }
-
-    fn update_transforms_for_type<T: Component + Renderable2D>(
-        &mut self,
-        data: &mut GameData,
-        device: &&Device,
-        queue: &mut Queue,
-    ) {
-        let camera1 = {
-            let mut t = Transform::default();
-            let mut c = Camera::new(1.0, 1.0);
-
-            for (_, (cam, tra)) in data.query::<(&Camera, &Transform)>().iter() {
-                c = cam.clone();
-                t = *tra;
-            }
-            (c, t)
-        };
-
-        let camera = (&camera1.0, &camera1.1);
-
-        for (entity, (transform, optional_ui_component, renderable, optional_material)) in
-        data.query::<(&Transform, Option<&UiComponent>, &T, Option<&Material>)>().iter()
-        {
-            if let std::collections::hash_map::Entry::Vacant(e) = self.transform_uniform_bind_groups.entry(entity) {
-                let (uniform, uniform_buffer, group) = create_transform_uniform_bind_group(
-                    device,
-                    transform,
-                    camera,
-                    optional_ui_component.is_some(),
-                    self.transform_bind_group_layout.as_ref().unwrap(),
-                    renderable.get_pivot_offset(optional_material),
-                );
-                queue.write_buffer(&uniform_buffer, 0, bytemuck::cast_slice(&[uniform]));
-                e.insert((uniform, uniform_buffer, group));
-            } else {
-                let (uniform, uniform_buffer, _) = self
-                    .transform_uniform_bind_groups
-                    .get_mut(&entity)
-                    .expect("Fatal error, a transform has been marked as found but doesn't exist");
-                uniform.replace_with(GlUniform::from(UniformData {
-                    transform,
-                    camera,
-                    is_ui_component: optional_ui_component.is_some(),
-                    pivot_offset: renderable.get_pivot_offset(optional_material),
-                }));
-                queue.write_buffer(uniform_buffer, 0, bytemuck::cast_slice(&[*uniform]));
-            }
-        }
-    }
-
-    fn texture_should_be_reloaded(
-        &self,
-        path: &String,
-        new_timestamp: &Option<Result<SystemTime, FileReaderError>>,
-    ) -> bool {
-        !self.diffuse_bind_groups.contains_key(path.as_str())
-            || if let Some(Ok(timestamp)) = new_timestamp {
-            !self.assets_timestamps.contains_key(path.as_str())
-                || !self.assets_timestamps.get(path.as_str()).unwrap().eq(timestamp)
-        } else {
-            false
-        }
-    }
-
-    /// Loads in the queue materials that are not yet loaded.
-    fn update_diffuse_bind_groups(
-        &mut self,
-        data: &mut GameData,
-        device: &Device,
-        queue: &mut Queue,
-    ) {
-        let hot_timer_cycle = if cfg!(feature = "hot-reload") {
-            let mut timers = data.timers();
-            let hot_reload_timer =
-                timers.get_timer("hot-reload-timer").expect("Missing mandatory timer : hot_reload");
-            hot_reload_timer.cycle() > 0
-        } else {
-            false
-        };
-
-        for (_entity, material) in data.query::<&Material>().iter() {
-            match material {
-                Material::Texture(texture_path) => {
-                    let path = Path::new(texture_path.as_str());
-                    let new_timestamp = if hot_timer_cycle
-                        || !self.diffuse_bind_groups.contains_key(texture_path.as_str())
-                    {
-                        Some(read_file_modification_time(path))
-                    } else {
-                        None
-                    };
-
-                    if self.texture_should_be_reloaded(texture_path, &new_timestamp) {
-                        if self.diffuse_bind_groups.contains_key(texture_path.as_str()) {
-                            self.diffuse_bind_groups
-                                .get(texture_path.as_str())
-                                .expect("Unreachable diffuse bind group after check")
-                                .1.destroy();
-                            self.diffuse_bind_groups.remove(texture_path.as_str());
-                        }
-
-                        // Check if this is an in_memory_texture from font_atlas
-                        let loaded_texture = match data.font_atlas().get_texture_from_path(texture_path) {
-                            Some(t) => t.take_texture(),
-                            None => Texture::from_png(path)
-                        };
-
-                        self.diffuse_bind_groups.insert(
-                            texture_path.clone(),
-                            load_texture_to_queue(
-                                &loaded_texture,
-                                queue,
-                                device,
-                                self.texture_bind_group_layout.as_ref().unwrap(),
-                            ),
-                        );
-
-                        if let Some(Ok(timestamp)) = new_timestamp {
-                            self.assets_timestamps.insert(texture_path.clone(), timestamp);
-                        }
-                    }
-                }
-                Material::Color(color) => {
-                    let path = get_path_from_color(color);
-                    if !self.diffuse_bind_groups.contains_key(path.as_str()) {
-                        let loaded_texture = Texture::from_color(color);
-                        self.diffuse_bind_groups.insert(
-                            path.clone(),
-                            load_texture_to_queue(
-                                &loaded_texture,
-                                queue,
-                                device,
-                                self.texture_bind_group_layout.as_ref().unwrap(),
-                            ),
-                        );
-                    }
-                }
-                Material::Tileset(tileset) => {
-                    let path = Path::new(tileset.texture.as_str());
-                    let new_timestamp = if hot_timer_cycle
-                        || !self.diffuse_bind_groups.contains_key(tileset.texture.as_str())
-                    {
-                        Some(read_file_modification_time(path))
-                    } else {
-                        None
-                    };
-
-                    if self.texture_should_be_reloaded(&tileset.texture, &new_timestamp) {
-                        let loaded_texture_array = TextureArray::from_tileset(tileset);
-                        self.diffuse_bind_groups.insert(
-                            tileset.texture.to_string(),
-                            load_texture_array_to_queue(loaded_texture_array, queue, device),
-                        );
-                        if let Some(Ok(timestamp)) = new_timestamp {
-                            self.assets_timestamps.insert(tileset.texture.clone(), timestamp);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     fn clean_buffers(&mut self, data: &mut GameData) {
         self.vertex_buffers.retain(|&k, _| data.contains(k));
         self.index_buffers.retain(|&k, _| data.contains(k));
         self.transform_uniform_bind_groups.retain(|&k, _| data.contains(k));
     }
+
+    fn update_material(&mut self, device: &Device, queue: &mut Queue, data: DiffuseBindGroupUpdate, path: String) {
+        match data {
+            DiffuseBindGroupUpdate::ColorBindGroup(tex) => {
+                self.diffuse_bind_groups.insert(
+                    path,
+                    load_texture_to_queue(
+                        tex,
+                        queue,
+                        device,
+                        self.texture_bind_group_layout.as_ref().unwrap(),
+                    ),
+                );
+            }
+            DiffuseBindGroupUpdate::TextureBindGroup(tex) => {
+                if self.diffuse_bind_groups.contains_key(path.as_str()) {
+                    self.diffuse_bind_groups
+                        .get(path.as_str())
+                        .expect("Unreachable diffuse bind group after check")
+                        .1.destroy();
+                    self.diffuse_bind_groups.remove(path.as_str());
+                }
+                self.diffuse_bind_groups.insert(
+                    path,
+                    load_texture_to_queue(
+                        tex,
+                        queue,
+                        device,
+                        self.texture_bind_group_layout.as_ref().unwrap(),
+                    ),
+                );
+            }
+            DiffuseBindGroupUpdate::TilesetBindGroup(texture_array) => {
+                self.diffuse_bind_groups.insert(
+                    path,
+                    load_texture_array_to_queue(texture_array, queue, device),
+                );
+            }
+        }
+    }
+
+    fn update_transform_uniform(&mut self, device: &Device, queue: &mut Queue, entity: Entity, uniform: GlUniform) {
+        if let std::collections::hash_map::Entry::Vacant(e) = self.transform_uniform_bind_groups.entry(entity) {
+            let (uniform, uniform_buffer, group) = create_transform_uniform_bind_group(
+                device,
+                uniform,
+                self.transform_bind_group_layout.as_ref().unwrap()
+            );
+            queue.write_buffer(&uniform_buffer, 0, bytemuck::cast_slice(&[uniform]));
+            e.insert((uniform, uniform_buffer, group));
+        } else {
+            let (current_uniform, uniform_buffer, _) = self
+                .transform_uniform_bind_groups
+                .get_mut(&entity)
+                .expect("Fatal error, a transform has been marked as found but doesn't exist");
+            current_uniform.replace_with(uniform);
+            queue.write_buffer(uniform_buffer, 0, bytemuck::cast_slice(&[*current_uniform]));
+        }
+    }
+
+    fn create_uniform_bind_group_layout(device: &Device) -> BindGroupLayout {
+        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStages::VERTEX,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            }],
+            label: Some("uniform_bind_group_layout"),
+        })
+    }
+
+    fn create_texture_bind_group_layout(device: &Device) -> BindGroupLayout {
+        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        multisampled: false,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler(SamplerBindingType::Filtering),
+                    count: None,
+                },
+            ],
+            label: Some("texture_bind_group_layout"),
+        })
+    }
+
+    fn create_texture_array_bind_group_layout(device: &Device) -> BindGroupLayout {
+        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        multisampled: false,
+                        view_dimension: wgpu::TextureViewDimension::D2Array,
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler(SamplerBindingType::Filtering),
+                    count: None,
+                },
+            ],
+            label: Some("texture_bind_group_layout"),
+        })
+    }
 }
 
 fn load_texture_to_queue(
-    texture: &Texture,
+    texture: Texture,
     queue: &mut Queue,
     device: &Device,
     texture_bind_group_layout: &BindGroupLayout,
@@ -731,16 +515,12 @@ fn load_texture_to_queue(
 
 fn create_transform_uniform_bind_group(
     device: &Device,
-    transform: &Transform,
-    camera: (&Camera, &Transform),
-    is_ui_component: bool,
+    gl_uniform: GlUniform,
     uniform_bind_group_layout: &BindGroupLayout,
-    offset: Vector,
 ) -> (GlUniform, Buffer, BindGroup) {
-    let uniform = GlUniform::from(UniformData { transform, camera, is_ui_component, pivot_offset: offset });
     let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Uniform Buffer"),
-        contents: bytemuck::cast_slice(&[uniform]),
+        contents: bytemuck::cast_slice(&[gl_uniform]),
         usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
     });
 
@@ -753,11 +533,11 @@ fn create_transform_uniform_bind_group(
         label: Some("uniform_bind_group"),
     });
 
-    (uniform, uniform_buffer, uniform_bind_group)
+    (gl_uniform, uniform_buffer, uniform_bind_group)
 }
 
 fn get_default_color_attachment<'a>(
-    texture_view:  &'a TextureView,
+    texture_view: &'a TextureView,
     default_background: &'a Option<Color>,
 ) -> Option<RenderPassColorAttachment<'a>> {
     Some(RenderPassColorAttachment {

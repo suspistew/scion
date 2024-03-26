@@ -6,6 +6,7 @@ use winit::{event::WindowEvent, window::Window};
 use crate::{config::scion_config::ScionConfig, graphics::rendering::ScionRenderer};
 use crate::core::components::color::Color;
 use crate::core::world::GameData;
+use crate::graphics::rendering::{RenderingInfos, RenderingUpdate};
 
 pub(crate) struct RendererState {
     surface: Surface<'static>,
@@ -81,13 +82,13 @@ impl RendererState {
         false
     }
 
-    pub(crate) fn update(&mut self, data: &mut GameData) {
-        self.scion_renderer.update(data, &self.device, &self.config, &mut self.queue);
+    pub(crate) fn update(&mut self, updates: Vec<RenderingUpdate>) {
+        self.scion_renderer.update(updates, &self.device, &self.config, &mut self.queue);
     }
 
     pub(crate) fn render(
         &mut self,
-        data: &mut GameData,
+        data: Vec<RenderingInfos>,
     ) -> Result<(), wgpu::SurfaceError> {
         let frame = self.surface.get_current_texture()?;
         let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());

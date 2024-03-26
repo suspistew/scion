@@ -28,7 +28,7 @@ pub trait ScionRenderer {
     /// Will be called first, before render, each time the window request redraw.
     fn update(
         &mut self,
-        data: &mut GameData,
+        data: Vec<RenderingUpdate>,
         device: &Device,
         surface_config: &SurfaceConfiguration,
         queue: &mut Queue,
@@ -37,7 +37,7 @@ pub trait ScionRenderer {
     /// Will be called after render, each time the window request redraw.
     fn render(
         &mut self,
-        data: &mut GameData,
+        data: Vec<RenderingInfos>,
         default_background: &Option<Color>,
         texture_view: TextureView,
         encoder: &mut CommandEncoder,
@@ -89,12 +89,14 @@ pub enum RenderingUpdate {
         uniform: GlUniform,
     },
     VertexBuffer{
+        entity: Entity,
         label: String,
         contents: Vec<u8>,
         usage: BufferUsages
 
     },
     IndexBuffer{
+        entity: Entity,
         label: String,
         contents: Vec<u8>,
         usage: BufferUsages

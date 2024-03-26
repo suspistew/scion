@@ -13,7 +13,7 @@ use crate::core::world::GameData;
 use crate::graphics::rendering::renderer_state::RendererState;
 use crate::graphics::rendering::scion2d_renderer::scion_renderer::ScionRenderer2D;
 use crate::graphics::rendering::{RenderingInfos, RenderingUpdate, ScionRenderer};
-use crate::graphics::rendering::rendering_thread::rendering_thread;
+use crate::graphics::rendering::rendering_thread::{ScionRenderingThread};
 use crate::graphics::windowing::WindowingEvent;
 use crate::utils::frame_limiter::{FrameLimiter, FrameLimiterConfig};
 
@@ -34,7 +34,7 @@ impl ScionRunner {
         let (render_sender, render_receiver) = mpsc::channel::<(Vec<RenderingUpdate>, Vec<RenderingInfos>)>();
         let renderer = self.renderer.take();
 
-        thread::spawn(move || { rendering_thread(renderer, render_receiver); });
+        thread::spawn(move || { ScionRenderingThread::new(renderer, render_receiver).run() });
 
         loop {
             if frame_limiter.is_min_tick() {
@@ -59,12 +59,6 @@ impl ScionRunner {
                 let updates = self.scion_renderer.prepare_update(&mut self.game_data);
                 let rendering_infos = ScionRenderer2D::prepare_rendering(&mut self.game_data);
                 let _r = render_sender.send((updates, rendering_infos));
-                /*self.renderer.as_mut().unwrap().update(&mut self.game_data);
-                match self.renderer.as_mut().unwrap().render(&mut self.game_data) {
-                    Ok(_) => {}
-                    Err(e) => log::error!("{:?}", e),
-                }
-                */
                 frame_limiter.render();
             }
 

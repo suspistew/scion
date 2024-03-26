@@ -26,7 +26,7 @@ impl Default for FrameLimiterConfig {
     fn default() -> Self {
         Self {
             strategy: FrameLimiterStrategy::Sleep,
-            fps: Some(120),
+            fps: Some(60),
         }
     }
 }
@@ -47,7 +47,7 @@ impl FrameLimiter {
             match config.strategy {
                 FrameLimiterStrategy::Unlimited => Duration::from_secs(0),
                 FrameLimiterStrategy::Sleep => {
-                    let fps = config.fps.unwrap_or(120);
+                    let fps = config.fps.unwrap_or(30);
                     assert!(fps > 0, "FrameLimiter::config parameter `fps` is {}. This parameter must be greater than zero!", fps);
                     Duration::from_secs(1)/ fps
                 }
