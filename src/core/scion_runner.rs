@@ -3,16 +3,16 @@ use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::Instant;
 
-use log::{debug, info};
+use log::{debug};
 use winit::dpi::{PhysicalSize, Size};
-use winit::keyboard::KeyCode::Insert;
+
 use winit::window::Window;
 
 use crate::core::resources::time::Time;
 use crate::core::scene::{SceneAction, SceneMachine};
 use crate::core::scheduler::Scheduler;
 use crate::core::world::GameData;
-use crate::graphics::rendering::{RendererEvent, RenderingInfos, RenderingUpdate, ScionRenderer};
+use crate::graphics::rendering::{RendererEvent, RenderingInfos, RenderingUpdate};
 use crate::graphics::rendering::renderer_state::RendererState;
 use crate::graphics::rendering::rendering_thread::ScionRenderingThread;
 use crate::graphics::rendering::scion2d_renderer::scion_renderer::ScionRenderer2D;

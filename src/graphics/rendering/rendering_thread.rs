@@ -1,23 +1,23 @@
-use std::collections::HashMap;
-use std::num::NonZeroU64;
-use std::sync::mpsc::{Receiver, Sender};
-use std::time::SystemTime;
 
-use hecs::Entity;
-use log::{debug, info};
-use wgpu::{BindGroup, BindGroupLayout, Buffer, Device, RenderPipeline, SamplerBindingType, SurfaceConfiguration};
 
-use crate::core::audio_controller::AudioController;
-use crate::core::components::{Square, Triangle};
-use crate::core::components::shapes::line::Line;
-use crate::core::components::shapes::polygon::Polygon;
-use crate::core::components::shapes::rectangle::Rectangle;
-use crate::core::components::tiles::sprite::Sprite;
-use crate::core::components::tiles::tilemap::Tilemap;
-use crate::core::components::ui::ui_image::UiImage;
-use crate::core::components::ui::ui_text::UiTextImage;
+use std::sync::mpsc::{Receiver};
+
+
+
+use log::{info};
+
+
+
+
+
+
+
+
+
+
+
 use crate::graphics::rendering::{RendererEvent, RenderingInfos, RenderingUpdate};
-use crate::graphics::rendering::gl_representations::GlUniform;
+
 use crate::graphics::rendering::renderer_state::RendererState;
 
 pub(crate) struct ScionRenderingThread {

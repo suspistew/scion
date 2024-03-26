@@ -72,9 +72,6 @@ impl ScionRenderer2D {
         }
     }
 
-    pub(crate) fn missing_transform_uniform(&self, entity: &Entity)-> bool{
-        !self.transform_uniform.contains(entity)
-    }
     pub(crate) fn missing_vertex_buffer(&self, entity: &Entity)-> bool{
         !self.vertex_buffer.contains(entity)
     }

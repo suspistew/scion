@@ -5,7 +5,6 @@ use crate::core::scheduler::Scheduler;
 use crate::core::state::GameState;
 use crate::core::systems::InternalPackage;
 use crate::core::world::GameData;
-use crate::graphics::rendering::RendererType;
 use crate::Scion;
 
 /// Builder providing convenience functions to build the `Scion` application.
@@ -14,7 +13,6 @@ use crate::Scion;
 pub struct ScionBuilder {
     config: ScionConfig,
     scheduler: Scheduler,
-    renderer: RendererType,
     scene: Option<Box<dyn Scene + Send>>,
     world: GameData,
 }
@@ -24,7 +22,6 @@ impl ScionBuilder {
         let builder = Self {
             config,
             scheduler: Default::default(),
-            renderer: Default::default(),
             scene: Default::default(),
             world: Default::default(),
         };
@@ -43,12 +40,6 @@ impl ScionBuilder {
         self
     }
 
-    /// Specify which render type you want to use. Note that by default if not set, `Scion` will use [`crate::graphics::RendererType::Scion2D`].
-    pub fn with_renderer(mut self, renderer_type: RendererType) -> Self {
-        self.renderer = renderer_type;
-        self
-    }
-
     /// Set the scene to the given one. Only one scene can be executed at a time
     pub fn with_scene<T: Scene + Default + Send + 'static>(mut self) -> Self {
         self.scene = Some(Box::<T>::default());
@@ -62,13 +53,12 @@ impl ScionBuilder {
     }
 
     /// Builds, setups and runs the Scion application, must be called at the end of the building process.
-    pub fn run(mut self) {
-        let mut scion = Scion {
+    pub fn run(self) {
+        let scion = Scion {
             config: self.config,
             game_data: self.world,
             scheduler: self.scheduler,
             layer_machine: SceneMachine { current_scene: self.scene, current_scene_started: false },
-            renderer: self.renderer,
         };
         scion.run();
     }

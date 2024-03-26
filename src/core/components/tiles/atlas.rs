@@ -12,7 +12,7 @@ pub mod importer {
 
     use crate::core::components::animations::{Animation, AnimationModifier};
     use crate::core::components::material::Material;
-    use crate::core::components::maths::transform::{Transform, TransformBuilder};
+    use crate::core::components::maths::transform::{Transform};
     use crate::core::components::tiles::atlas::data::{TilemapAtlas, TilesetAtlas};
     use crate::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
     use crate::core::components::tiles::tileset::Tileset;

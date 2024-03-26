@@ -3,11 +3,11 @@ use wgpu::{BindGroup, BindGroupEntry, Device, ImageDataLayout, Queue, SamplerBin
 use crate::core::components::material::TextureArray;
 
 pub(crate) fn load_texture_array_to_queue(
-    mut texture_array: TextureArray,
+    texture_array: TextureArray,
     queue: &mut Queue,
     device: &Device,
 ) -> (BindGroup, Texture) {
-    let (unit_width, unit_height, lines, total_sprites, mut array)
+    let (unit_width, unit_height, _lines, total_sprites, mut array)
         = (texture_array.unit_width, texture_array.unit_height, texture_array.lines, texture_array.bytes_array.len(), texture_array.bytes_array);
 
     let texture_size = wgpu::Extent3d {

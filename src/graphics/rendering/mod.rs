@@ -5,8 +5,6 @@ use hecs::Entity;
 use wgpu::{BufferUsages, CommandEncoder, Device, Queue, SurfaceConfiguration, TextureView, util::BufferInitDescriptor};
 use winit::dpi::PhysicalSize;
 
-use scion2d::Scion2D;
-
 use crate::core::components::color::Color;
 use crate::core::components::material::{Material, Texture, TextureArray};
 use crate::core::components::maths::Pivot;
@@ -22,7 +20,7 @@ pub(crate) mod scion2d_renderer;
 pub(crate) mod rendering_thread;
 
 /// Trait to implement in order to create a renderer to use in a `Scion` application
-pub trait ScionRenderer {
+pub(crate) trait ScionRenderer {
     fn start(&mut self, device: &Device, surface_config: &SurfaceConfiguration);
 
     /// Will be called first, before render, each time the window request redraw.
@@ -44,26 +42,6 @@ pub trait ScionRenderer {
     );
 }
 
-/// Type of renderer to use to render the game.
-#[derive(Default)]
-pub enum RendererType {
-    /// Internal 2D Renderer. Will render everything that is in [`bidimensional`]
-    #[default]
-    Scion2D,
-    /// Provide your own renderer
-    Custom(Box<dyn ScionRenderer + Send>),
-}
-
-
-impl RendererType {
-    pub(crate) fn into_boxed_renderer(self) -> Box<dyn ScionRenderer + Send> {
-        match self {
-            RendererType::Scion2D => Box::<Scion2D>::default(),
-            RendererType::Custom(boxed) => boxed,
-        }
-    }
-}
-
 pub(crate) trait Renderable2D {
     fn vertex_buffer_descriptor(&mut self, material: Option<&Material>) -> BufferInitDescriptor;
     fn indexes_buffer_descriptor(&self) -> BufferInitDescriptor;
@@ -79,7 +57,7 @@ pub(crate) trait RenderableUi: Renderable2D {}
 
 
 #[derive(Debug)]
-pub enum RenderingUpdate {
+pub(crate) enum RenderingUpdate {
     DiffuseBindGroup {
         path: String,
         data: DiffuseBindGroupUpdate,
@@ -90,20 +68,15 @@ pub enum RenderingUpdate {
     },
     VertexBuffer{
         entity: Entity,
-        label: String,
         contents: Vec<u8>,
         usage: BufferUsages
 
     },
     IndexBuffer{
         entity: Entity,
-        label: String,
         contents: Vec<u8>,
         usage: BufferUsages
-
-    },
-    TilemapBuffer,
-    UiComponentBuffer,
+    }
 }
 
 pub enum RendererEvent {
@@ -112,7 +85,7 @@ pub enum RendererEvent {
 }
 
 #[derive(Debug)]
-pub enum DiffuseBindGroupUpdate {
+pub(crate) enum DiffuseBindGroupUpdate {
     ColorBindGroup(Texture),
     TextureBindGroup(Texture),
     TilesetBindGroup(TextureArray),

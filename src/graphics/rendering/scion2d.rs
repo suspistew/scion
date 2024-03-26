@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time::SystemTime};
+use std::{collections::HashMap};
 
 use hecs::{Component, Entity};
 use wgpu::{BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SamplerBindingType, StoreOp, SurfaceConfiguration, TextureFormat, TextureView, util::DeviceExt};
@@ -26,7 +26,6 @@ use crate::{
     }
     ,
 };
-use crate::core::world::World;
 use crate::graphics::rendering::{DiffuseBindGroupUpdate, RenderingInfos, RenderingUpdate};
 use crate::graphics::rendering::rendering_texture_management::load_texture_array_to_queue;
 use crate::graphics::rendering::shaders::pipeline::pipeline_sprite;
@@ -41,8 +40,6 @@ pub(crate) struct Scion2D {
     transform_bind_group_layout: Option<BindGroupLayout>,
     diffuse_bind_groups: HashMap<String, (BindGroup, wgpu::Texture)>,
     transform_uniform_bind_groups: HashMap<Entity, (GlUniform, Buffer, BindGroup)>,
-    assets_timestamps: HashMap<String, SystemTime>,
-    first_tick_passed: bool,
 }
 
 impl ScionRenderer for Scion2D {
@@ -65,7 +62,7 @@ impl ScionRenderer for Scion2D {
         &mut self,
         mut data: Vec<RenderingUpdate>,
         device: &Device,
-        surface_config: &SurfaceConfiguration,
+        _surface_config: &SurfaceConfiguration,
         queue: &mut Queue,
     ) {
         for update in data.drain(0..data.len()) {
@@ -76,7 +73,7 @@ impl ScionRenderer for Scion2D {
                 RenderingUpdate::TransformUniform { entity, uniform } => {
                     self.update_transform_uniform(device, queue, entity, uniform);
                 }
-                RenderingUpdate::VertexBuffer { entity, label, contents, usage } => {
+                RenderingUpdate::VertexBuffer { entity,  contents, usage } => {
                     let vertex_buffer =
                         device.create_buffer_init(&BufferInitDescriptor {
                             label: Some("Vertex buffer"),
@@ -85,7 +82,7 @@ impl ScionRenderer for Scion2D {
                         });
                     self.vertex_buffers.insert(entity, vertex_buffer);
                 }
-                RenderingUpdate::IndexBuffer { entity, label, contents, usage } => {
+                RenderingUpdate::IndexBuffer { entity, contents, usage } => {
                     let index_buffer =
                         device.create_buffer_init(&BufferInitDescriptor {
                             label: Some("Index buffer"),
@@ -94,8 +91,6 @@ impl ScionRenderer for Scion2D {
                         });
                     self.index_buffers.insert(entity, index_buffer);
                 }
-                RenderingUpdate::TilemapBuffer => {}
-                RenderingUpdate::UiComponentBuffer => {}
             }
         }
 

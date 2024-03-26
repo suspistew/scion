@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::time::SystemTime;
 
-use image::imageops::tile;
+
 
 use crate::core::components::color::Color;
 use crate::core::components::material::{Material, Texture, TextureArray};
@@ -74,7 +74,7 @@ fn try_texture_update(renderer: &mut ScionRenderer2D, data: &GameData, hot_timer
 fn try_tileset_update(renderer: &mut ScionRenderer2D, hot_timer_cycle: bool, tileset: &Tileset) -> Option<RenderingUpdate> {
     let new_timestamp = read_modification_timestamp(renderer, hot_timer_cycle, tileset.texture.as_str());
     if renderer.should_reload_texture(tileset.texture.as_str(), &new_timestamp) {
-        let path = Path::new(tileset.texture.as_str());
+        let _path = Path::new(tileset.texture.as_str());
         let update = RenderingUpdate::DiffuseBindGroup{ path: tileset.texture.to_string(), data: DiffuseBindGroupUpdate::TilesetBindGroup(TextureArray::from_tileset(tileset))};
         let timestamp_to_use = if let Some(Ok(timestamp)) = new_timestamp {
             timestamp

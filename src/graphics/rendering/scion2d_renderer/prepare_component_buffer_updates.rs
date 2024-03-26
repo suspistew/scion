@@ -39,7 +39,6 @@ fn prepare_buffer_update_for_component<T: Component + Renderable2D>(
             let descriptor = component.vertex_buffer_descriptor(Some(material));
             updates.push(RenderingUpdate::VertexBuffer {
                 entity,
-                label: descriptor.label.unwrap().to_string(),
                 contents: descriptor.contents.to_vec(), // TODO
                 usage: descriptor.usage,
             });
@@ -50,7 +49,6 @@ fn prepare_buffer_update_for_component<T: Component + Renderable2D>(
             let descriptor = component.indexes_buffer_descriptor();
             updates.push(RenderingUpdate::IndexBuffer {
                 entity,
-                label: descriptor.label.unwrap().to_string(),
                 contents: descriptor.contents.to_vec(), // TODO
                 usage: descriptor.usage,
             });
@@ -71,7 +69,6 @@ fn prepare_buffer_update_for_ui_component<T: Component + Renderable2D + Renderab
             let descriptor = component.vertex_buffer_descriptor(m);
             updates.push(RenderingUpdate::VertexBuffer {
                 entity,
-                label: descriptor.label.unwrap().to_string(),
                 contents: descriptor.contents.to_vec(), // TODO
                 usage: descriptor.usage,
             });
@@ -81,7 +78,6 @@ fn prepare_buffer_update_for_ui_component<T: Component + Renderable2D + Renderab
             let descriptor = component.indexes_buffer_descriptor();
             updates.push(RenderingUpdate::IndexBuffer {
                 entity,
-                label: descriptor.label.unwrap().to_string(),
                 contents: descriptor.contents.to_vec(), // TODO
                 usage: descriptor.usage,
             });
@@ -126,7 +122,6 @@ fn prepare_buffer_update_for_tilemap(renderer: &mut ScionRenderer2D, data: &mut 
                 let bytes_vertexes: &[u8] = bytemuck::cast_slice(vertexes.as_slice());
                 updates.push(RenderingUpdate::VertexBuffer {
                     entity,
-                    label: "Tilemap Vertex Buffer".to_string(),
                     contents: bytes_vertexes.to_vec(),
                     usage: BufferUsages::VERTEX
                 });
@@ -135,7 +130,6 @@ fn prepare_buffer_update_for_tilemap(renderer: &mut ScionRenderer2D, data: &mut 
                 let bytes_indexes: &[u8] = bytemuck::cast_slice(indexes.as_slice());
                 updates.push(RenderingUpdate::IndexBuffer {
                     entity,
-                    label: "TileMap Index Buffer".to_string(),
                     contents: bytes_indexes.to_vec(), // TODO
                     usage: BufferUsages::INDEX,
                 });
@@ -144,7 +138,7 @@ fn prepare_buffer_update_for_tilemap(renderer: &mut ScionRenderer2D, data: &mut 
         }
 
         for (e, vertexes) in to_modify.drain(0..) {
-            let mut sprite = data.entry_mut::<&mut Sprite>(e).expect("");
+            let sprite = data.entry_mut::<&mut Sprite>(e).expect("");
             sprite.set_dirty(false);
             sprite.set_content(vertexes);
         }

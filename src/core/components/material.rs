@@ -1,14 +1,14 @@
-use std::fmt::{Display, format, Formatter, write};
+use std::fmt::{Display, Formatter};
 use std::path::Path;
 
 use image::{DynamicImage, GenericImage, ImageBuffer, ImageFormat};
-use image::imageops::tile;
+
 
 use crate::{
     core::components::{color::Color, tiles::tileset::Tileset},
     utils::file::read_file,
 };
-use crate::utils::file::app_base_path_join;
+
 
 /// Component used by the 2D Renderer to know which material to use when graphics a renderable object.
 #[derive(Clone)]
@@ -119,8 +119,8 @@ impl TextureArray {
 
     fn fallback_texture_array(nb_lines: usize, nb_columns: usize, split_width: u32, split_height: u32) -> TextureArray {
         let mut array: Vec<Vec<u8>> = Vec::new();
-        for x in 0..nb_columns {
-            for y in 0..nb_lines {
+        for _x in 0..nb_columns {
+            for _y in 0..nb_lines {
                 array.push(Texture::fallback_texture().bytes);
             }
         }

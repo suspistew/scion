@@ -20,7 +20,7 @@ impl RendererState {
     pub(crate) async fn new(window: Arc<Window>,
                             mut scion_renderer: Box<dyn ScionRenderer + Send>,
                             default_background : Option<Color>) -> Self {
-        let mut size = window.inner_size();
+        let size = window.inner_size();
         let width = size.width.max(1);
         let height = size.height.max(1);
 

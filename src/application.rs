@@ -1,31 +1,31 @@
-use std::cell::RefCell;
+
 use std::path::Path;
-use std::rc::Rc;
+
 use std::sync::{Arc, mpsc};
 use std::thread;
-use std::time::Duration;
 
-use log::{debug, info};
+
+use log::{info};
 use winit::{
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
-    window::{Window, WindowBuilder},
+    window::{WindowBuilder},
 };
-use winit::dpi::{PhysicalSize, Size};
-use winit::event::StartCause;
+
+
 
 use crate::{
     config::scion_config::{ScionConfig, ScionConfigReader},
-    graphics::rendering::{renderer_state::RendererState, RendererType},
+    graphics::rendering::{renderer_state::RendererState},
 };
 use crate::core::application_builder::ScionBuilder;
-use crate::core::package::Package;
-use crate::core::resources::time::Time;
-use crate::core::scene::{Scene, SceneAction, SceneMachine};
+
+
+use crate::core::scene::{SceneMachine};
 use crate::core::scheduler::Scheduler;
 use crate::core::scion_runner::ScionRunner;
-use crate::core::state::GameState;
-use crate::core::systems::InternalPackage;
+
+
 use crate::core::world::GameData;
 use crate::graphics::rendering::scion2d::Scion2D;
 use crate::graphics::windowing::WindowingEvent;
@@ -37,7 +37,6 @@ pub struct Scion {
     pub(crate) game_data: GameData,
     pub(crate) scheduler: Scheduler,
     pub(crate) layer_machine: SceneMachine,
-    pub(crate) renderer: RendererType,
 }
 
 impl Scion {
@@ -71,7 +70,7 @@ impl Scion {
 
     // There was no technical need to have the run function inside the Scion struct, but I made it here because I wanted the
     // main window loop & game loop to be in the main application file.
-    pub(crate) fn run(mut self) {
+    pub(crate) fn run(self) {
         if self.config.window_config.is_none() {
             // Running window less mode, so launching the runner in the main thread
             info!("Launching game in text mode");
@@ -114,14 +113,14 @@ impl Scion {
            let _result = event_loop.run(move |event,loopd| {
                loopd.set_control_flow(ControlFlow::Poll);
                match event {
-                   Event::WindowEvent { event, window_id } => {
+                   Event::WindowEvent { event, window_id: _ } => {
                         match event {
                             WindowEvent::CloseRequested => loopd.exit(),
                             WindowEvent::RedrawRequested => {
-                                let _r = event_sender.send(WindowingEvent{ window_event: Some(WindowEvent::RedrawRequested), id: Some(window_id), redraw: true });
+                                let _r = event_sender.send(WindowingEvent{ window_event: Some(WindowEvent::RedrawRequested), redraw: true });
                             },
                             e => {
-                                let _r = event_sender.send(WindowingEvent{ window_event: Some(e), id: Some(window_id), redraw: false });
+                                let _r = event_sender.send(WindowingEvent{ window_event: Some(e), redraw: false });
                             }
                         }
                    },
