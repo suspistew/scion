@@ -13,8 +13,6 @@ pub struct Audio {
 
 impl Audio {
     pub(crate) fn default() -> Self {
-        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-        let _sink = Sink::try_new(&stream_handle).unwrap();
         let (event_sender, receiver) = mpsc::channel();
 
         std::thread::spawn(move || audio_controller::audio_thread(AudioController::new(receiver)));

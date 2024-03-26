@@ -28,7 +28,6 @@ futures = "0.3"
 ultraviolet = "0.9"
 geo-types = "0.7.13"
 geo-clipper = "0.8.0"
-spin_sleep= "1.2.0"
 
 # serialization
 serde = { version = "1.0.197", features = ["derive"] }
@@ -43,8 +42,6 @@ fern = { version = "0.6.2", features = ["colored"] }
 
 # sound
 rodio = "0.17"
-
-measure_time = "0.8"
 
 [profile.dev.package]
 image = { opt-level = 3 }
@@ -61,6 +58,3 @@ glob = "0.3"
 
 [dev-dependencies]
 rand = "0.8.4"
-
-[profile.release]
-debug = true

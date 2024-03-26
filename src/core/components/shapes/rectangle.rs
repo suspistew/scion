@@ -27,7 +27,7 @@ const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
 impl Rectangle {
     /// Creates a new rectangle using `length` and `height`.
-    /// When graphics using a texture, you can customize uvs map using `uvs`. By default it will
+    /// When rendering using a texture, you can customize uvs map using `uvs`. By default it will
     /// use 0 to 1 uvs
     pub fn new(width: f32, height: f32, uvs: Option<[Coordinates; 4]>) -> Self {
         Rectangle::new_with_pivot(width, height, uvs, Pivot::TopLeft)

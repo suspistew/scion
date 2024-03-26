@@ -3,9 +3,7 @@ use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::Instant;
 
-use log::{debug};
 use winit::dpi::{PhysicalSize, Size};
-
 use winit::window::Window;
 
 use crate::core::resources::time::Time;
@@ -43,13 +41,9 @@ impl ScionRunner {
         let mut fixed_tick = Instant::now();
         let mut render_tick = Instant::now();
 
-        let spin_sleeper = spin_sleep::SpinSleeper::new(100_000)
-            .with_spin_strategy(spin_sleep::SpinStrategy::YieldThread);
-
         loop {
             let should_tick = frame_limiter.is_min_tick();
             if should_tick {
-                debug!("Infinite tick duration : {:?}", Instant::now().duration_since(start_tick));
                 start_tick = Instant::now();
                 let frame_duration = self
                     .game_data
@@ -65,14 +59,12 @@ impl ScionRunner {
             }
 
             if frame_limiter.is_fixed_update() {
-                debug!("Fixed tick duration {:?}", Instant::now().duration_since(fixed_tick));
                 fixed_tick = Instant::now();
                 self.layer_machine.apply_scene_action(SceneAction::FixedUpdate, &mut self.game_data);
                 frame_limiter.fixed_tick();
             }
 
             if frame_limiter.render_unlocked() {
-                debug!("render tick duration {:?}", Instant::now().duration_since(render_tick));
                 render_tick = Instant::now();
 
                 let updates = self.scion_pre_renderer.prepare_update(&mut self.game_data);
@@ -89,7 +81,7 @@ impl ScionRunner {
                     .apply_scene_action(SceneAction::EndFrame, &mut self.game_data);
                 frame_limiter.tick(&start_tick);
             }
-            spin_sleeper.sleep(frame_limiter.min_tick_duration.clone());
+            thread::sleep(frame_limiter.min_tick_duration.clone());
         }
     }
 

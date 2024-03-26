@@ -25,7 +25,7 @@ pub struct Square {
 
 impl Square {
     /// Creates a new square using `length`.
-    /// When graphics using a texture, you can customize uvs map using `uvs`. By default it will
+    /// When rendering using a texture, you can customize uvs map using `uvs`. By default it will
     /// use 0 to 1 uvs
     pub fn new(length: f32, uvs: Option<[Coordinates; 4]>) -> Self {
         Square::new_with_pivot(length, uvs, Pivot::TopLeft)

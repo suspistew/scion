@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::io::BufReader;
 use std::sync::mpsc::Receiver;
+use std::time::Duration;
 
 use log::debug;
 use rodio::{OutputStream, Sink, Source};
@@ -22,7 +23,7 @@ pub(crate) fn audio_thread(controller: AudioController) {
     let mut sinks: HashMap<usize, Sink> = HashMap::new();
 
     loop {
-        if let Ok(message) = controller.receiver.recv() {
+        if let Ok(message) = controller.receiver.recv_timeout(Duration::from_secs(1)) {
             match message {
                 AudioEvent::PlaySound { path, config, sound_id } => {
                     debug!("Started to play sound {}", path);
@@ -45,9 +46,9 @@ pub(crate) fn audio_thread(controller: AudioController) {
                     }
                 }
             }
-            sinks.retain(|&_k, sink| {
-                !sink.empty()
-            });
         }
+        sinks.retain(|&_k, sink| {
+            !sink.empty()
+        });
     }
 }

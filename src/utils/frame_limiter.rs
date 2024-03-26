@@ -57,7 +57,7 @@ impl FrameLimiter {
             strategy: config.strategy,
             target_render_duration: target_frame_duration,
             target_fixed_duration:  Duration::from_secs(1) / 60,
-            min_tick_duration:  Duration::from_secs(1) / 144,
+            min_tick_duration:  Duration::from_secs(1) / 60,
             last_render_frame_start: Instant::now(),
             last_fixed_tick_start: Instant::now(),
             last_tick_start: Instant::now(),

@@ -112,7 +112,7 @@ impl WindowConfigBuilder {
         self
     }
 
-    /// When graphics to the window, which color to use as default
+    /// When rendering to the window, which color to use as default
     pub fn with_default_background_color(mut self, color: Option<Color>) -> Self {
         self.config.default_background_color = color;
         self

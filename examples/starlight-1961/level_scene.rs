@@ -80,10 +80,10 @@ impl Scene for LevelScene {
                 s.x_force += 0.04 * x_force;
                 s.is_landed = false;
                 if cycle_sound > 0 {
-                    /*let _r = data
+                    let _r = data
                         .audio()
                         .play(app_base_path_join("examples/starlight-1961/assets/fire.ogg"),
-                              PlayConfig { volume: 0.1, looped: false, category: None });*/
+                              PlayConfig { volume: 0.1, looped: false, category: None });
                 }
             } else {
                 let (s, a, sp) = data.entry_mut::<(&mut Ship, &mut Animations, &mut Sprite)>(self.ship.unwrap()).expect("");
@@ -136,10 +136,10 @@ impl Scene for LevelScene {
                     Animations::single("explode", Animation::running(Duration::from_millis(300), vec![AnimationModifier::sprite(vec![0, 1, 2, 3], 3)])),
                     tr,
                 )));
-                /*let _r = data
+                let _r = data
                     .audio()
                     .play(app_base_path_join("examples/starlight-1961/assets/explosion.ogg"),
-                          PlayConfig { volume: 0.1, looped: false, category: None });*/
+                          PlayConfig { volume: 0.1, looped: false, category: None });
             }
         } else if self.explosion.is_some() {
             let finished_explosion = {

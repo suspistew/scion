@@ -75,7 +75,7 @@ impl Package for InternalPackage {
         data.insert_resource(InputsController::default());
         data.insert_resource(GameState::default());
         data.insert_resource(SceneController::default());
-        //data.insert_resource(Audio::default());
+        data.insert_resource(Audio::default());
         data.insert_resource(FontAtlas::default());
         data.insert_resource(GlobalStorage::default());
     }
