@@ -7,8 +7,9 @@ use crate::{
         material::Material,
         maths::{coordinates::Coordinates, Pivot},
     },
-    graphics::rendering::{gl_representations::TexturedGlVertex, Renderable2D},
+    graphics::rendering::Renderable2D,
 };
+use crate::graphics::rendering::shaders::gl_representations::TexturedGlVertex;
 use crate::utils::maths::Vector;
 
 const INDICES: &[u16] = &[0, 1];

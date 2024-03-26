@@ -1,27 +1,10 @@
-
-
 use std::sync::mpsc::{Receiver};
-
-
-
 use log::{info};
-
-
-
-
-
-
-
-
-
-
-
 use crate::graphics::rendering::{RendererEvent, RenderingInfos, RenderingUpdate};
-
-use crate::graphics::rendering::renderer_state::RendererState;
+use crate::graphics::rendering::scion2d::window_rendering_manager::ScionWindowRenderingManager;
 
 pub(crate) struct ScionRenderingThread {
-    pub(crate) renderer_state: Option<RendererState>,
+    pub(crate) window_rendering_manager: Option<ScionWindowRenderingManager>,
     pub(crate) render_receiver: Receiver<(Vec<RendererEvent>, Vec<RenderingUpdate>, Vec<RenderingInfos>)>,
 }
 
@@ -36,14 +19,14 @@ impl ScionRenderingThread{
                             // TODO
                         }
                         RendererEvent::Resize(physical_size, scale_factor) => {
-                            self.renderer_state.as_mut().unwrap().resize(physical_size, scale_factor);
+                            self.window_rendering_manager.as_mut().unwrap().resize(physical_size, scale_factor);
                         }
                     }
                 });
 
                 if !updates.is_empty() || !rendering_infos.is_empty() {
-                    self.renderer_state.as_mut().unwrap().update(updates);
-                    match self.renderer_state.as_mut().unwrap().render(rendering_infos) {
+                    self.window_rendering_manager.as_mut().unwrap().update(updates);
+                    match self.window_rendering_manager.as_mut().unwrap().render(rendering_infos) {
                         Ok(_) => {}
                         Err(e) => log::error!("{:?}", e),
                     }
@@ -52,9 +35,9 @@ impl ScionRenderingThread{
         }
     }
 
-    pub fn new(renderer_state: Option<RendererState>, render_receiver: Receiver<(Vec<RendererEvent>, Vec<RenderingUpdate>, Vec<RenderingInfos>)>) -> Self{
+    pub fn new(window_rendering_manager: Option<ScionWindowRenderingManager>, render_receiver: Receiver<(Vec<RendererEvent>, Vec<RenderingUpdate>, Vec<RenderingInfos>)>) -> Self{
         Self{
-            renderer_state,
+            window_rendering_manager,
             render_receiver,
         }
     }

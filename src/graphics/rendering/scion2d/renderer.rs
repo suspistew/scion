@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use hecs::{Component, Entity};
 use wgpu::{BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, RenderPassColorAttachment, RenderPipeline, SamplerBindingType, StoreOp, SurfaceConfiguration, TextureFormat, TextureView, util::DeviceExt};
@@ -20,14 +20,14 @@ use crate::{
         }, ui::{ui_image::UiImage, ui_text::UiTextImage},
     },
     graphics::rendering::{
-        gl_representations::GlUniform,
         Renderable2D
-        , ScionRenderer, shaders::pipeline::pipeline,
+        , shaders::pipeline::pipeline,
     }
     ,
 };
 use crate::graphics::rendering::{DiffuseBindGroupUpdate, RenderingInfos, RenderingUpdate};
-use crate::graphics::rendering::rendering_texture_management::load_texture_array_to_queue;
+use crate::graphics::rendering::scion2d::rendering_texture_management::load_texture_array_to_queue;
+use crate::graphics::rendering::shaders::gl_representations::GlUniform;
 use crate::graphics::rendering::shaders::pipeline::pipeline_sprite;
 
 #[derive(Default)]
@@ -41,9 +41,9 @@ pub(crate) struct Scion2D {
     diffuse_bind_groups: HashMap<String, (BindGroup, wgpu::Texture)>,
     transform_uniform_bind_groups: HashMap<Entity, (GlUniform, Buffer, BindGroup)>,
 }
+impl Scion2D {
 
-impl ScionRenderer for Scion2D {
-    fn start(&mut self, device: &Device, surface_config: &SurfaceConfiguration) {
+    pub(crate) fn start(&mut self, device: &Device, surface_config: &SurfaceConfiguration) {
         self.transform_bind_group_layout = Some(Self::create_uniform_bind_group_layout(device));
         self.texture_bind_group_layout = Some(Self::create_texture_bind_group_layout(device));
         self.texture_array_bind_group_layout = Some(Self::create_texture_array_bind_group_layout(device));
@@ -58,7 +58,7 @@ impl ScionRenderer for Scion2D {
         self.insert_components_pipelines::<Tilemap>(&device, &surface_config);
     }
 
-    fn update(
+    pub(crate) fn update(
         &mut self,
         mut data: Vec<RenderingUpdate>,
         device: &Device,
@@ -97,7 +97,7 @@ impl ScionRenderer for Scion2D {
         // FIXME : self.clean_buffers(data);
     }
 
-    fn render(
+    pub(crate) fn render(
         &mut self,
         data: Vec<RenderingInfos>,
         default_background: &Option<Color>,
@@ -106,9 +106,7 @@ impl ScionRenderer for Scion2D {
     ) {
         self.render_component(default_background, texture_view, encoder, data);
     }
-}
 
-impl Scion2D {
     fn insert_components_pipelines<T: Component + Renderable2D>(
         &mut self,
         device: &&Device,

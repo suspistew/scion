@@ -13,9 +13,9 @@ use crate::core::scene::{SceneAction, SceneMachine};
 use crate::core::scheduler::Scheduler;
 use crate::core::world::GameData;
 use crate::graphics::rendering::{RendererEvent, RenderingInfos, RenderingUpdate};
-use crate::graphics::rendering::renderer_state::RendererState;
-use crate::graphics::rendering::rendering_thread::ScionRenderingThread;
-use crate::graphics::rendering::scion2d_renderer::scion_renderer::ScionRenderer2D;
+use crate::graphics::rendering::scion2d::pre_renderer::Scion2DPreRenderer;
+use crate::graphics::rendering::scion2d::rendering_thread::ScionRenderingThread;
+use crate::graphics::rendering::scion2d::window_rendering_manager::ScionWindowRenderingManager;
 use crate::graphics::windowing::window_event_handler::handle_window_event;
 use crate::graphics::windowing::WindowingEvent;
 use crate::utils::frame_limiter::{FrameLimiter, FrameLimiterConfig};
@@ -24,10 +24,10 @@ pub struct ScionRunner {
     pub(crate) game_data: GameData,
     pub(crate) scheduler: Scheduler,
     pub(crate) layer_machine: SceneMachine,
-    pub(crate) renderer: Option<RendererState>,
+    pub(crate) window_rendering_manager: Option<ScionWindowRenderingManager>,
     pub(crate) window: Option<Arc<Window>>,
     pub(crate) main_thread_receiver: Option<Receiver<WindowingEvent>>,
-    pub(crate) scion_renderer: ScionRenderer2D,
+    pub(crate) scion_pre_renderer: Scion2DPreRenderer,
 }
 
 impl ScionRunner {
@@ -35,9 +35,9 @@ impl ScionRunner {
         self.setup();
         let mut frame_limiter = FrameLimiter::new(FrameLimiterConfig::default());
         let (render_sender, render_receiver) = mpsc::channel::<(Vec<RendererEvent>, Vec<RenderingUpdate>, Vec<RenderingInfos>)>();
-        let renderer = self.renderer.take();
+        let window_rendering_manager = self.window_rendering_manager.take();
 
-        thread::spawn(move || { ScionRenderingThread::new(renderer, render_receiver).run() });
+        thread::spawn(move || { ScionRenderingThread::new(window_rendering_manager, render_receiver).run() });
 
         let mut start_tick = Instant::now();
         let mut fixed_tick = Instant::now();
@@ -72,8 +72,8 @@ impl ScionRunner {
             if frame_limiter.render_unlocked() {
                 debug!("render tick duration {:?}", Instant::now().duration_since(render_tick));
                 render_tick = Instant::now();
-                let updates = self.scion_renderer.prepare_update(&mut self.game_data);
-                let rendering_infos = ScionRenderer2D::prepare_rendering(&mut self.game_data);
+                let updates = self.scion_pre_renderer.prepare_update(&mut self.game_data);
+                let rendering_infos = Scion2DPreRenderer::prepare_rendering(&mut self.game_data);
                 let _r = render_sender.send((vec![], updates, rendering_infos));
                 frame_limiter.render();
             }

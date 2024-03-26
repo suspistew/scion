@@ -5,7 +5,7 @@ use wgpu::{
     SurfaceConfiguration,
 };
 
-use crate::graphics::rendering::gl_representations::{TexturedGlVertex, TexturedGlVertexWithLayer};
+use crate::graphics::rendering::shaders::gl_representations::{TexturedGlVertex, TexturedGlVertexWithLayer};
 
 pub fn pipeline(
     device: &Device,

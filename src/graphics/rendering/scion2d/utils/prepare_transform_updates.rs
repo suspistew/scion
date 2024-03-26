@@ -14,10 +14,10 @@ use crate::core::components::ui::ui_text::UiTextImage;
 use crate::core::components::ui::UiComponent;
 use crate::core::world::{GameData, World};
 use crate::graphics::rendering::{Renderable2D, RenderingUpdate};
-use crate::graphics::rendering::gl_representations::{GlUniform, UniformData};
-use crate::graphics::rendering::scion2d_renderer::scion_renderer::ScionRenderer2D;
+use crate::graphics::rendering::shaders::gl_representations::{GlUniform, UniformData};
+use crate::graphics::rendering::scion2d::pre_renderer::Scion2DPreRenderer;
 
-pub(crate) fn call(renderer: &mut ScionRenderer2D, data: &mut GameData) -> Vec<RenderingUpdate> {
+pub(crate) fn call(renderer: &mut Scion2DPreRenderer, data: &mut GameData) -> Vec<RenderingUpdate> {
     let mut updates = vec![];
     updates.append(&mut update_transforms_for_type::<Triangle>(renderer, data));
     updates.append(&mut update_transforms_for_type::<Square>(renderer, data));
@@ -32,7 +32,7 @@ pub(crate) fn call(renderer: &mut ScionRenderer2D, data: &mut GameData) -> Vec<R
 }
 
 fn update_transforms_for_type<T: Component + Renderable2D>(
-    _renderer: &mut ScionRenderer2D,
+    _renderer: &mut Scion2DPreRenderer,
     data: &mut GameData) -> Vec<RenderingUpdate> {
     let mut updates = vec![];
     let camera1 = {

@@ -1,24 +1,23 @@
 use std::sync::Arc;
 
 use wgpu::{Limits, Surface, SurfaceConfiguration};
-use winit::{event::WindowEvent, window::Window};
+use winit::{window::Window};
 
 use crate::core::components::color::Color;
 use crate::graphics::rendering::{RenderingInfos, RenderingUpdate};
-use crate::graphics::rendering::ScionRenderer;
+use crate::graphics::rendering::scion2d::renderer::Scion2D;
 
-pub(crate) struct RendererState {
+pub(crate) struct ScionWindowRenderingManager {
     surface: Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: SurfaceConfiguration,
-    scion_renderer: Box<dyn ScionRenderer + Send>,
+    scion_renderer: Scion2D,
     default_background_color: Option<Color>,
 }
 
-impl RendererState {
+impl ScionWindowRenderingManager {
     pub(crate) async fn new(window: Arc<Window>,
-                            mut scion_renderer: Box<dyn ScionRenderer + Send>,
                             default_background : Option<Color>) -> Self {
         let size = window.inner_size();
         let width = size.width.max(1);
@@ -65,6 +64,8 @@ impl RendererState {
         config.present_mode = wgpu::PresentMode::Immediate;
 
         surface.configure(&device, &config);
+
+        let mut scion_renderer = Scion2D::default();
         scion_renderer.start(&device, &config);
 
         Self { surface, device, queue, config, scion_renderer, default_background_color: default_background }
@@ -74,11 +75,6 @@ impl RendererState {
         self.config.width = new_size.width;
         self.config.height = new_size.height;
         self.surface.configure(&self.device, &self.config);
-    }
-
-    pub(crate) fn _input(&mut self, _event: &WindowEvent) -> bool {
-        //todo!()
-        false
     }
 
     pub(crate) fn update(&mut self, updates: Vec<RenderingUpdate>) {

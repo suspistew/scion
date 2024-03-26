@@ -8,14 +8,14 @@ use crate::core::components::material::{Material, Texture, TextureArray};
 use crate::core::components::tiles::tileset::Tileset;
 use crate::core::world::{GameData, World};
 use crate::graphics::rendering::{DiffuseBindGroupUpdate, RenderingUpdate};
-use crate::graphics::rendering::scion2d_renderer::scion_renderer::ScionRenderer2D;
+use crate::graphics::rendering::scion2d::pre_renderer::Scion2DPreRenderer;
 use crate::utils::file::{FileReaderError, read_file_modification_time};
 
 ///
 /// This function has the responsability to track material creation or updates
 /// If hot reload is activated, it will check file timestamp to reinsert the material if needed
 ///
-pub(crate) fn call(renderer: &mut ScionRenderer2D, data: &mut GameData) -> Vec<RenderingUpdate> {
+pub(crate) fn call(renderer: &mut Scion2DPreRenderer, data: &mut GameData) -> Vec<RenderingUpdate> {
     let mut updates = vec![];
     let hot_timer_cycle = should_try_to_hot_reload(data);
 
@@ -41,7 +41,7 @@ pub(crate) fn call(renderer: &mut ScionRenderer2D, data: &mut GameData) -> Vec<R
     updates
 }
 
-fn try_color_update(renderer: &mut ScionRenderer2D, color: &Color) -> Option<RenderingUpdate> {
+fn try_color_update(renderer: &mut Scion2DPreRenderer, color: &Color) -> Option<RenderingUpdate> {
     let path = color.to_texture_path();
     if renderer.missing_texture(&path) {
         let update = RenderingUpdate::DiffuseBindGroup{ path: path.to_string(), data: DiffuseBindGroupUpdate::ColorBindGroup(Texture::from_color(color)) };
@@ -51,7 +51,7 @@ fn try_color_update(renderer: &mut ScionRenderer2D, color: &Color) -> Option<Ren
     None
 }
 
-fn try_texture_update(renderer: &mut ScionRenderer2D, data: &GameData, hot_timer_cycle: bool, texture_path: &str) -> Option<RenderingUpdate> {
+fn try_texture_update(renderer: &mut Scion2DPreRenderer, data: &GameData, hot_timer_cycle: bool, texture_path: &str) -> Option<RenderingUpdate> {
     let new_timestamp = read_modification_timestamp(renderer, hot_timer_cycle, texture_path);
     if renderer.should_reload_texture(texture_path, &new_timestamp) {
         let path = Path::new(texture_path);
@@ -71,7 +71,7 @@ fn try_texture_update(renderer: &mut ScionRenderer2D, data: &GameData, hot_timer
     None
 }
 
-fn try_tileset_update(renderer: &mut ScionRenderer2D, hot_timer_cycle: bool, tileset: &Tileset) -> Option<RenderingUpdate> {
+fn try_tileset_update(renderer: &mut Scion2DPreRenderer, hot_timer_cycle: bool, tileset: &Tileset) -> Option<RenderingUpdate> {
     let new_timestamp = read_modification_timestamp(renderer, hot_timer_cycle, tileset.texture.as_str());
     if renderer.should_reload_texture(tileset.texture.as_str(), &new_timestamp) {
         let _path = Path::new(tileset.texture.as_str());
@@ -88,7 +88,7 @@ fn try_tileset_update(renderer: &mut ScionRenderer2D, hot_timer_cycle: bool, til
 }
 
 
-fn read_modification_timestamp(renderer: &mut ScionRenderer2D, hot_timer_cycle: bool, texture_path: &str) -> Option<Result<SystemTime, FileReaderError>> {
+fn read_modification_timestamp(renderer: &mut Scion2DPreRenderer, hot_timer_cycle: bool, texture_path: &str) -> Option<Result<SystemTime, FileReaderError>> {
     if hot_timer_cycle || renderer.missing_texture(texture_path) {
         let path = Path::new(texture_path);
         Some(read_file_modification_time(path))

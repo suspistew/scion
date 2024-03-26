@@ -12,21 +12,21 @@ use crate::core::components::ui::ui_image::UiImage;
 use crate::core::components::ui::ui_text::UiTextImage;
 use crate::core::world::{GameData, World};
 use crate::graphics::rendering::{RenderingInfos, RenderingUpdate};
-use crate::graphics::rendering::scion2d_renderer::pre_render_components::{pre_render_component, pre_render_tilemaps, pre_render_ui_component};
-use crate::graphics::rendering::scion2d_renderer::prepare_component_buffer_updates;
-use crate::graphics::rendering::scion2d_renderer::prepare_material_updates;
-use crate::graphics::rendering::scion2d_renderer::prepare_transform_updates;
+use crate::graphics::rendering::scion2d::utils::pre_render_components::{pre_render_component, pre_render_tilemaps, pre_render_ui_component};
+use crate::graphics::rendering::scion2d::utils::prepare_component_buffer_updates;
+use crate::graphics::rendering::scion2d::utils::prepare_material_updates;
+use crate::graphics::rendering::scion2d::utils::prepare_transform_updates;
 use crate::utils::file::FileReaderError;
 
 #[derive(Default)]
-pub(crate) struct ScionRenderer2D {
+pub(crate) struct Scion2DPreRenderer {
     textures_timestamps: HashMap<String, SystemTime>,
     transform_uniform: HashSet<Entity>,
     vertex_buffer: HashSet<Entity>,
     indexes_buffer: HashSet<Entity>,
 }
 
-impl ScionRenderer2D {
+impl Scion2DPreRenderer {
 
     pub(crate) fn prepare_update(&mut self, data: &mut GameData) -> Vec<RenderingUpdate> {
         let mut updates = vec![];

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::graphics::rendering::gl_representations::GlColor;
+use crate::graphics::rendering::shaders::gl_representations::GlColor;
 
 /// A struct that represents colors for graphics.
 #[derive(Clone, Debug, Serialize, Deserialize)]

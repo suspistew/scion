@@ -13,10 +13,10 @@ use crate::core::components::ui::ui_image::UiImage;
 use crate::core::components::ui::ui_text::UiTextImage;
 use crate::core::world::{GameData, World};
 use crate::graphics::rendering::{Renderable2D, RenderableUi, RenderingUpdate};
-use crate::graphics::rendering::gl_representations::TexturedGlVertexWithLayer;
-use crate::graphics::rendering::scion2d_renderer::scion_renderer::ScionRenderer2D;
+use crate::graphics::rendering::shaders::gl_representations::TexturedGlVertexWithLayer;
+use crate::graphics::rendering::scion2d::pre_renderer::Scion2DPreRenderer;
 
-pub(crate) fn call(renderer: &mut ScionRenderer2D, data: &mut GameData) -> Vec<RenderingUpdate> {
+pub(crate) fn call(renderer: &mut Scion2DPreRenderer, data: &mut GameData) -> Vec<RenderingUpdate> {
     let mut updates = vec![];
     updates.append(&mut prepare_buffer_update_for_component::<Triangle>(renderer, data));
     updates.append(&mut prepare_buffer_update_for_component::<Square>(renderer, data));
@@ -31,7 +31,7 @@ pub(crate) fn call(renderer: &mut ScionRenderer2D, data: &mut GameData) -> Vec<R
 }
 
 fn prepare_buffer_update_for_component<T: Component + Renderable2D>(
-    renderer: &mut ScionRenderer2D,
+    renderer: &mut Scion2DPreRenderer,
     data: &mut GameData) -> Vec<RenderingUpdate> {
     let mut updates = vec![];
     for (entity, (component, material, _)) in data.query_mut::<(&mut T, &Material, &Transform)>() {
@@ -61,7 +61,7 @@ fn prepare_buffer_update_for_component<T: Component + Renderable2D>(
 }
 
 fn prepare_buffer_update_for_ui_component<T: Component + Renderable2D + RenderableUi>(
-    renderer: &mut ScionRenderer2D,
+    renderer: &mut Scion2DPreRenderer,
     data: &mut GameData) -> Vec<RenderingUpdate> {
     let mut updates = vec![];
     for (entity, (component, _, m)) in data.query::<(&mut T, &Transform, Option<&Material>)>().iter() {
@@ -87,7 +87,7 @@ fn prepare_buffer_update_for_ui_component<T: Component + Renderable2D + Renderab
     updates
 }
 
-fn prepare_buffer_update_for_tilemap(renderer: &mut ScionRenderer2D, data: &mut GameData) -> Vec<RenderingUpdate> {
+fn prepare_buffer_update_for_tilemap(renderer: &mut Scion2DPreRenderer, data: &mut GameData) -> Vec<RenderingUpdate> {
     let mut updates = vec![];
     {
         let mut to_modify: Vec<(Entity, [TexturedGlVertexWithLayer; 4])> = Vec::new();

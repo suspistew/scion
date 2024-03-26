@@ -16,7 +16,6 @@ use winit::{
 
 use crate::{
     config::scion_config::{ScionConfig, ScionConfigReader},
-    graphics::rendering::{renderer_state::RendererState},
 };
 use crate::core::application_builder::ScionBuilder;
 
@@ -27,7 +26,7 @@ use crate::core::scion_runner::ScionRunner;
 
 
 use crate::core::world::GameData;
-use crate::graphics::rendering::scion2d::Scion2D;
+use crate::graphics::rendering::scion2d::window_rendering_manager::ScionWindowRenderingManager;
 use crate::graphics::windowing::WindowingEvent;
 
 /// `Scion` is the entry point of any application made with Scion's lib.
@@ -78,10 +77,10 @@ impl Scion {
                 game_data: self.game_data,
                 scheduler: self.scheduler,
                 layer_machine: self.layer_machine,
-                renderer: None,
+                window_rendering_manager: None,
                 window: None,
                 main_thread_receiver: None,
-                scion_renderer: Default::default(),
+                scion_pre_renderer: Default::default(),
             }.launch_game_loop();
         } else {
             // Game is running in a window, it must be created & handled in the main thread, so
@@ -95,18 +94,17 @@ impl Scion {
             let window = Arc::new(window_builder
                 .build(&event_loop)
                 .expect("An error occured while building the main game window"));
-            let renderer = Box::<Scion2D>::default();
-            let renderer_state = futures::executor::block_on(RendererState::new(window.clone(), renderer, self.config.window_config.as_ref().unwrap().default_background_color.clone()));
+            let window_rendering_manager = futures::executor::block_on(ScionWindowRenderingManager::new(window.clone(), self.config.window_config.as_ref().unwrap().default_background_color.clone()));
             let (event_sender, receiver) = mpsc::channel::<WindowingEvent>();
             thread::spawn(move || {
                 ScionRunner {
                     game_data: self.game_data,
                     scheduler: self.scheduler,
                     layer_machine: self.layer_machine,
-                    renderer: Some(renderer_state),
+                    window_rendering_manager: Some(window_rendering_manager),
                     window: Some(window),
                     main_thread_receiver: Some(receiver),
-                    scion_renderer: Default::default(),
+                    scion_pre_renderer: Default::default(),
                 }.launch_game_loop()
             });
 
