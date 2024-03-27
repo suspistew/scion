@@ -60,7 +60,7 @@ impl Scion2D {
 
     pub(crate) fn update(
         &mut self,
-        mut data: Vec<RenderingUpdate>,
+        mut data: &mut Vec<RenderingUpdate>,
         device: &Device,
         _surface_config: &SurfaceConfiguration,
         queue: &mut Queue,
