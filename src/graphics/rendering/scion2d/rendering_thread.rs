@@ -11,8 +11,9 @@ pub(crate) struct ScionRenderingThread {
 impl ScionRenderingThread{
     pub(crate) fn run(mut self) {
         info!("Initializing rendering thread");
+        let mut update_accumulator: Vec<RenderingUpdate> = Vec::new();
         loop {
-            if let Ok((mut events, updates, rendering_infos)) = self.render_receiver.recv() {
+            if let Ok((mut events, mut updates, rendering_infos)) = self.render_receiver.recv() {
                 events.drain(0..events.len()).for_each(|event|{
                     match event {
                         RendererEvent::ForceRedraw => {
@@ -24,11 +25,17 @@ impl ScionRenderingThread{
                     }
                 });
 
-                if !updates.is_empty() || !rendering_infos.is_empty() {
-                    self.window_rendering_manager.as_mut().unwrap().update(updates);
-                    match self.window_rendering_manager.as_mut().unwrap().render(rendering_infos) {
-                        Ok(_) => {}
-                        Err(e) => log::error!("{:?}", e),
+                if !updates.is_empty(){
+                    update_accumulator.append(&mut updates);
+                }
+
+                if !update_accumulator.is_empty() || !rendering_infos.is_empty() {
+                    if self.window_rendering_manager.as_ref().unwrap().should_render(){
+                        self.window_rendering_manager.as_mut().unwrap().update(&mut update_accumulator);
+                        match self.window_rendering_manager.as_mut().unwrap().render(rendering_infos) {
+                            Ok(_) => {}
+                            Err(e) => log::error!("{:?}", e),
+                        }
                     }
                 }
             }

@@ -14,6 +14,7 @@ pub(crate) struct ScionWindowRenderingManager {
     config: SurfaceConfiguration,
     scion_renderer: Scion2D,
     default_background_color: Option<Color>,
+    should_render: bool
 }
 
 impl ScionWindowRenderingManager {
@@ -66,16 +67,21 @@ impl ScionWindowRenderingManager {
         let mut scion_renderer = Scion2D::default();
         scion_renderer.start(&device, &config);
 
-        Self { surface, device, queue, config, scion_renderer, default_background_color: default_background }
+        Self { surface, device, queue, config, scion_renderer, default_background_color: default_background, should_render: true }
     }
 
     pub(crate) fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>, _scale_factor: f64) {
+        if new_size.width == 0 && new_size.height == 0 {
+            self.should_render = false;
+            return;
+        }
+        self.should_render = true;
         self.config.width = new_size.width;
         self.config.height = new_size.height;
         self.surface.configure(&self.device, &self.config);
     }
 
-    pub(crate) fn update(&mut self, updates: Vec<RenderingUpdate>) {
+    pub(crate) fn update(&mut self, updates: &mut Vec<RenderingUpdate>) {
         self.scion_renderer.update(updates, &self.device, &self.config, &mut self.queue);
     }
 
@@ -83,6 +89,9 @@ impl ScionWindowRenderingManager {
         &mut self,
         data: Vec<RenderingInfos>,
     ) -> Result<(), wgpu::SurfaceError> {
+        if !self.should_render {
+           return Ok(());
+        }
         let frame = self.surface.get_current_texture()?;
         let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
 
@@ -95,5 +104,9 @@ impl ScionWindowRenderingManager {
 
         frame.present();
         Ok(())
+    }
+
+    pub(crate) fn should_render(&self) -> bool {
+        self.should_render
     }
 }
