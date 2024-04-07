@@ -1,6 +1,6 @@
 use wgpu::{BindGroup, BindGroupEntry, Device, ImageDataLayout, Queue, SamplerBindingType, Texture, TextureFormat, TextureViewDescriptor, TextureViewDimension};
 
-use crate::core::components::material::TextureArray;
+use crate::graphics::components::material::TextureArray;
 
 pub(crate) fn load_texture_array_to_queue(
     texture_array: TextureArray,

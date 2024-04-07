@@ -1,20 +1,20 @@
 use hecs::Entity;
 use log::info;
 use scion::core::world::{GameData, World};
-use scion::core::{
-    components::{
-        maths::transform::Transform,
+use scion::{
+    graphics::components::{
         tiles::tileset::Tileset,
         ui::{font::Font, ui_image::UiImage, ui_text::UiText},
     },
-    resources::time::TimerType,
-    scene::Scene,
+    core::resources::time::TimerType,
+    core::scene::Scene,
 };
-use scion::core::components::color::Color;
-use scion::core::components::material::Material;
+use scion::graphics::components::color::Color;
+use scion::graphics::components::material::Material;
 use scion::core::components::maths::padding::Padding;
-use scion::core::components::ui::ui_button::UiButton;
-use scion::core::components::ui::ui_input::UiInput;
+use scion::core::components::maths::transform::Transform;
+use scion::graphics::components::ui::ui_button::UiButton;
+use scion::graphics::components::ui::ui_input::UiInput;
 use scion::core::resources::inputs::types::{Input, KeyCode};
 
 use crate::{asset_path, resources::TetrisResource};

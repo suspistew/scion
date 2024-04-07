@@ -1,14 +1,14 @@
 use hecs::Entity;
 use winit::window::CursorIcon;
 
-use crate::core::components::{Hide, HidePropagated};
-use crate::core::components::color::Color;
-use crate::core::components::material::Material;
+use crate::graphics::components::{Hide, HidePropagated};
+use crate::graphics::components::color::Color;
+use crate::graphics::components::material::Material;
 use crate::core::components::maths::hierarchy::{Children, Parent};
 use crate::core::components::maths::transform::Transform;
-use crate::core::components::ui::ui_button::UiButton;
-use crate::core::components::ui::ui_image::UiImage;
-use crate::core::components::ui::ui_text::UiText;
+use crate::graphics::components::ui::ui_button::UiButton;
+use crate::graphics::components::ui::ui_image::UiImage;
+use crate::graphics::components::ui::ui_text::UiText;
 use crate::core::resources::asset_manager::AssetRef;
 use crate::core::resources::inputs::types::{Input, MouseButton};
 use crate::core::world::{GameData, Resources, SubWorld, World};

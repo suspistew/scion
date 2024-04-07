@@ -1,17 +1,17 @@
 use std::time::Duration;
 use hecs::Entity;
 
-use scion::core::components::animations::{Animation, AnimationModifier, Animations};
-use scion::core::components::Hide;
+use scion::graphics::components::animations::{Animation, AnimationModifier, Animations};
+use scion::graphics::components::Hide;
 use scion::core::components::maths::camera::Camera;
 use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
 use scion::core::components::maths::coordinates::Coordinates;
 use scion::core::components::maths::hierarchy::Parent;
 use scion::core::components::maths::transform::{Transform, TransformBuilder};
-use scion::core::components::tiles::atlas::data::{TilemapAtlas, TileObjectClass};
-use scion::core::components::tiles::atlas::importer::load_tilemap;
-use scion::core::components::tiles::sprite::Sprite;
-use scion::core::components::tiles::tileset::Tileset;
+use scion::graphics::components::tiles::atlas::data::{TilemapAtlas, TileObjectClass};
+use scion::graphics::components::tiles::atlas::importer::load_tilemap;
+use scion::graphics::components::tiles::sprite::Sprite;
+use scion::graphics::components::tiles::tileset::Tileset;
 use scion::core::resources::audio::PlayConfig;
 use scion::core::resources::inputs::types::{Input, KeyCode};
 use scion::core::resources::time::TimerType;

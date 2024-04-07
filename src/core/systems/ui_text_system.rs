@@ -3,9 +3,11 @@ use std::collections::HashSet;
 use atomic_refcell::AtomicRefMut;
 use hecs::Entity;
 use log::debug;
+use crate::core::components::maths::coordinates::Coordinates;
+use crate::core::components::maths::hierarchy::Parent;
+use crate::core::components::maths::transform::Transform;
 
-use crate::core::components::{
-    maths::{coordinates::Coordinates, hierarchy::Parent, transform::Transform},
+use crate::graphics::components::{
     ui::{
         font::Font,
         ui_image::UiImage,
@@ -13,8 +15,8 @@ use crate::core::components::{
         UiComponent,
     },
 };
-use crate::core::components::color::Color;
-use crate::core::components::material::Material;
+use crate::graphics::components::color::Color;
+use crate::graphics::components::material::Material;
 use crate::core::resources::font_atlas::FontAtlas;
 use crate::core::world::{GameData, World};
 
@@ -191,8 +193,7 @@ fn update_bitmap(texture_path: String,
 
     #[cfg(test)]
     mod tests {
-        use crate::core::components::{
-            maths::transform::Transform,
+        use crate::graphics::components::{
             ui::{
                 font::Font,
                 ui_text::{UiText, UiTextImage},

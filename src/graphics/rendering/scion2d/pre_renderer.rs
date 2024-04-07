@@ -3,13 +3,13 @@ use std::time::SystemTime;
 
 use hecs::Entity;
 
-use crate::core::components::{Square, Triangle};
-use crate::core::components::shapes::line::Line;
-use crate::core::components::shapes::polygon::Polygon;
-use crate::core::components::shapes::rectangle::Rectangle;
-use crate::core::components::tiles::sprite::Sprite;
-use crate::core::components::ui::ui_image::UiImage;
-use crate::core::components::ui::ui_text::UiTextImage;
+use crate::graphics::components::{Square, Triangle};
+use crate::graphics::components::shapes::line::Line;
+use crate::graphics::components::shapes::polygon::Polygon;
+use crate::graphics::components::shapes::rectangle::Rectangle;
+use crate::graphics::components::tiles::sprite::Sprite;
+use crate::graphics::components::ui::ui_image::UiImage;
+use crate::graphics::components::ui::ui_text::UiTextImage;
 use crate::core::world::{GameData, World};
 use crate::graphics::rendering::{RenderingInfos, RenderingUpdate};
 use crate::graphics::rendering::scion2d::utils::pre_render_components::{pre_render_component, pre_render_tilemaps, pre_render_ui_component};

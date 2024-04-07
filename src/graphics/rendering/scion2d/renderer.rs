@@ -5,7 +5,7 @@ use wgpu::{BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Queue, Re
 use wgpu::util::BufferInitDescriptor;
 
 use crate::{
-    core::components::{
+    graphics::components::{
         color::Color
 
         ,
@@ -124,8 +124,8 @@ impl Scion2D {
         if !self.render_pipelines.contains_key(type_name) {
             self.render_pipelines.insert(
                 type_name.to_string(),
-                if type_name.eq_ignore_ascii_case("scion::core::components::tiles::sprite::Sprite") ||
-                    type_name.eq_ignore_ascii_case("scion::core::components::tiles::tilemap::Tilemap") {
+                if type_name.eq_ignore_ascii_case("scion::graphics::components::tiles::sprite::Sprite") ||
+                    type_name.eq_ignore_ascii_case("scion::graphics::components::tiles::tilemap::Tilemap") {
                     pipeline_sprite(
                         device,
                         surface_config,

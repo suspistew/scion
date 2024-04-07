@@ -1,12 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
 use hecs::{Component, Entity};
+use crate::core::components::maths::collider::{Collider, ColliderDebug, ColliderMask, Collision};
+use crate::core::components::maths::hierarchy::Parent;
+use crate::core::components::maths::transform::Transform;
 
-use crate::core::components::{color::Color, material::Material, maths::{
-    collider::{Collider, ColliderDebug, ColliderMask, Collision},
-    hierarchy::Parent,
-    transform::Transform,
-}, shapes::polygon::Polygon};
+use crate::graphics::components::{color::Color, material::Material, shapes::polygon::Polygon};
 use crate::core::resources::global_storage::GlobalStorage;
 use crate::core::resources::inputs::types::{Input, KeyCode};
 use crate::core::world::{GameData, World};

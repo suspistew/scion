@@ -3,13 +3,13 @@ use std::ops::Range;
 use wgpu::{PrimitiveTopology, util::BufferInitDescriptor};
 
 use crate::{
-    core::components::{
+    graphics::components::{
         material::Material,
         ui::{font::Font, ui_image::UiImage},
     },
     graphics::rendering::{Renderable2D, RenderableUi},
 };
-use crate::core::components::color::Color;
+use crate::graphics::components::color::Color;
 use crate::core::components::maths::padding::Padding;
 use crate::core::resources::asset_manager::AssetRef;
 use crate::core::world::Resources;

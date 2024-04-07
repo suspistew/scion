@@ -1,7 +1,7 @@
 use std::{collections::HashMap, time::Duration};
 
 use scion::{
-    core::components::animations::{Animation, AnimationModifier, Animations},
+    graphics::components::animations::{Animation, AnimationModifier, Animations},
     utils::{file::app_base_path, maths::Vector},
 };
 

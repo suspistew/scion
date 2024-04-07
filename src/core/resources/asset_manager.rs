@@ -2,8 +2,8 @@ use std::{collections::HashMap, marker::PhantomData};
 
 use log::debug;
 
-use crate::core::components::{material::Material, tiles::tileset::Tileset};
-use crate::core::components::ui::font::Font;
+use crate::graphics::components::{material::Material, tiles::tileset::Tileset};
+use crate::graphics::components::ui::font::Font;
 
 /// `AssetManager` is resource that will link assets to an asset ref to allow reusability of assets
 #[derive(Default)]

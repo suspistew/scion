@@ -1,14 +1,12 @@
 use scion::core::world::{GameData, World};
-use scion::core::{
-    components::{
-        maths::{
-            collider::{Collider, ColliderMask, ColliderType},
-            transform::Transform,
-        },
+use scion::{
+    graphics::components::{
         shapes::rectangle::Rectangle,
     },
-    resources::time::TimerType,
+    core::resources::time::TimerType,
 };
+use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
+use scion::core::components::maths::transform::Transform;
 
 use crate::main_scene::Line;
 use crate::main_scene::LineDirection;

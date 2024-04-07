@@ -5,18 +5,19 @@ use serde::{Deserialize, Serialize};
 use wgpu::{PrimitiveTopology, util::BufferInitDescriptor};
 
 use crate::{
-    core::{
+    graphics::{
         components::{
             animations::{Animation, Animations},
             material::Material,
-            maths::{hierarchy::Parent, transform::Transform},
             tiles::sprite::Sprite,
         },
-        resources::asset_manager::AssetRef,
     },
     graphics::rendering::Renderable2D,
+    core::resources::asset_manager::AssetRef,
     utils::maths::{Dimensions, Position},
 };
+use crate::core::components::maths::hierarchy::Parent;
+use crate::core::components::maths::transform::Transform;
 use crate::core::resources::asset_manager::AssetManager;
 use crate::core::world::{SubWorld, World};
 

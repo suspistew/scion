@@ -4,7 +4,7 @@ use log::LevelFilter;
 use scion::config::logger_config::LoggerConfig;
 use scion::config::scion_config::{ScionConfig, ScionConfigBuilder};
 use scion::config::window_config::WindowConfigBuilder;
-use scion::core::components::color::Color;
+use scion::graphics::components::color::Color;
 use scion::Scion;
 use crate::scene::DemoScene;
 

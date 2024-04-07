@@ -1,5 +1,5 @@
-use crate::core::{
-    components::{
+use crate::{
+    graphics::components::{
         animations::{
             AnimationModifier, AnimationModifierType, Animations, AnimationStatus,
             ComputedKeyframeModifier,
@@ -7,12 +7,12 @@ use crate::core::{
         color::Color,
         Hide,
         material::Material,
-        maths::transform::Transform,
         tiles::sprite::Sprite,
     },
-    resources::time::TimerType,
+    core::resources::time::TimerType,
 };
-use crate::core::components::ui::ui_text::UiText;
+use crate::core::components::maths::transform::Transform;
+use crate::graphics::components::ui::ui_text::UiText;
 use crate::core::world::{GameData, World};
 
 #[derive(PartialEq)]

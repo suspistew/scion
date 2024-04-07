@@ -1,8 +1,9 @@
 use scion::core::world::{GameData, World};
-use scion::core::{
-    components::{animations::Animations, maths::transform::Transform, tiles::sprite::Sprite},
-    resources::inputs::types::KeyCode,
+use scion::{
+    graphics::components::{animations::Animations, tiles::sprite::Sprite},
+    core::resources::inputs::types::KeyCode,
 };
+use scion::core::components::maths::transform::Transform;
 
 use crate::{bomb_animations, level_reader::Level, Bomb, BombermanInfos, BombermanRefs};
 

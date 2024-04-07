@@ -5,7 +5,7 @@ use image::{DynamicImage, GenericImage, ImageBuffer, ImageFormat};
 
 
 use crate::{
-    core::components::{color::Color, tiles::tileset::Tileset},
+    graphics::components::{color::Color, tiles::tileset::Tileset},
     utils::file::read_file,
 };
 

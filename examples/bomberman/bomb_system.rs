@@ -1,6 +1,6 @@
 use scion::core::world::{GameData, World};
 use scion::{
-    core::components::{animations::Animations, tiles::tilemap::Tilemap},
+    graphics::components::{animations::Animations, tiles::tilemap::Tilemap},
     utils::maths::Position,
 };
 

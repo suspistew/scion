@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 use std::time::Duration;
 use hecs::Entity;
-use scion::core::components::animations::{Animation, AnimationModifier, Animations};
+use scion::graphics::components::animations::{Animation, AnimationModifier, Animations};
 use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
 use scion::core::components::maths::coordinates::Coordinates;
 use scion::core::components::maths::Pivot;
 use scion::core::components::maths::transform::Transform;
-use scion::core::components::tiles::atlas::data::{TilemapAtlas, TileObjectClass};
-use scion::core::components::tiles::atlas::importer::import_tileset;
-use scion::core::components::tiles::sprite::Sprite;
-use scion::core::components::tiles::tileset::Tileset;
+use scion::graphics::components::tiles::atlas::data::{TilemapAtlas, TileObjectClass};
+use scion::graphics::components::tiles::atlas::importer::import_tileset;
+use scion::graphics::components::tiles::sprite::Sprite;
+use scion::graphics::components::tiles::tileset::Tileset;
 use scion::core::world::{GameData, World};
 use scion::utils::file::app_base_path_join;
 

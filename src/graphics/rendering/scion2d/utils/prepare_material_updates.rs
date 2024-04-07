@@ -3,9 +3,9 @@ use std::time::SystemTime;
 
 
 
-use crate::core::components::color::Color;
-use crate::core::components::material::{Material, Texture, TextureArray};
-use crate::core::components::tiles::tileset::Tileset;
+use crate::graphics::components::color::Color;
+use crate::graphics::components::material::{Material, Texture, TextureArray};
+use crate::graphics::components::tiles::tileset::Tileset;
 use crate::core::world::{GameData, World};
 use crate::graphics::rendering::{DiffuseBindGroupUpdate, RenderingUpdate};
 use crate::graphics::rendering::scion2d::pre_renderer::Scion2DPreRenderer;

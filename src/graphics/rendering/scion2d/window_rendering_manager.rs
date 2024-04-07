@@ -3,7 +3,7 @@ use std::sync::Arc;
 use wgpu::{Limits, Surface, SurfaceConfiguration};
 use winit::{window::Window};
 
-use crate::core::components::color::Color;
+use crate::graphics::components::color::Color;
 use crate::graphics::rendering::{RenderingInfos, RenderingUpdate};
 use crate::graphics::rendering::scion2d::renderer::Scion2D;
 

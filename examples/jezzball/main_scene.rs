@@ -2,26 +2,24 @@ use hecs::Entity;
 use std::fmt::{Display, Formatter};
 
 use rand::{thread_rng, Rng};
-use scion::core::components::color::Color;
-use scion::core::components::shapes::rectangle::Rectangle;
-use scion::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
+use scion::graphics::components::color::Color;
+use scion::graphics::components::shapes::rectangle::Rectangle;
+use scion::graphics::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
 use scion::core::resources::events::topic::TopicConfiguration;
 use scion::core::resources::events::{PollConfiguration, SubscriberId};
 
 use scion::core::world::{GameData, SubWorld, World};
-use scion::core::{
-    components::{
+use scion::{
+    graphics::components::{
         material::Material,
-        maths::{
-            collider::{Collider, ColliderMask, ColliderType},
-            transform::Transform,
-        },
         tiles::{sprite::Sprite, tileset::Tileset},
     },
-    resources::asset_manager::AssetRef,
-    scene::Scene,
+    core::resources::asset_manager::AssetRef,
+    core::scene::Scene,
 };
 use winit::window::CursorIcon;
+use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
+use scion::core::components::maths::transform::Transform;
 
 use crate::utils::{ball_animations, ball_asset, cases_asset};
 use scion::utils::maths::{Dimensions, Position, Vector};

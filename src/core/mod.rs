@@ -1,5 +1,4 @@
 pub(crate) mod audio_controller;
-pub mod components;
 pub mod package;
 pub mod resources;
 pub mod scene;
@@ -9,3 +8,4 @@ pub mod systems;
 pub mod world;
 pub mod application_builder;
 pub mod scion_runner;
+pub mod components;

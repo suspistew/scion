@@ -1,10 +1,10 @@
 use hecs::Component;
 
-use crate::core::components::{Hide, HidePropagated};
-use crate::core::components::material::Material;
+use crate::graphics::components::{Hide, HidePropagated};
+use crate::graphics::components::material::Material;
 use crate::core::components::maths::transform::Transform;
-use crate::core::components::tiles::sprite::Sprite;
-use crate::core::components::tiles::tilemap::{Tile, Tilemap};
+use crate::graphics::components::tiles::sprite::Sprite;
+use crate::graphics::components::tiles::tilemap::{Tile, Tilemap};
 use crate::core::world::{GameData, World};
 use crate::graphics::rendering::{Renderable2D, RenderableUi, RenderingInfos};
 

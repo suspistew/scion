@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::path::Path;
 
-use scion::core::components::tiles::tilemap::TileEvent;
+use scion::graphics::components::tiles::tilemap::TileEvent;
 
 use scion::utils::maths::Position;
 use serde::{Deserialize, Serialize};

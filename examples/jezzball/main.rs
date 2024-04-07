@@ -6,7 +6,7 @@ use scion::{
         logger_config::LoggerConfig, scion_config::ScionConfigBuilder,
         window_config::WindowConfigBuilder,
     },
-    core::components::color::Color,
+    graphics::components::color::Color,
     Scion,
 };
 

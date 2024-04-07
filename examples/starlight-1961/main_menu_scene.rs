@@ -2,14 +2,14 @@ use std::time::Duration;
 use hecs::Entity;
 
 
-use scion::core::components::animations::{Animation, AnimationModifier, Animations};
-use scion::core::components::color::Color;
+use scion::graphics::components::animations::{Animation, AnimationModifier, Animations};
+use scion::graphics::components::color::Color;
 use scion::core::components::maths::coordinates::Coordinates;
 use scion::core::components::maths::transform::Transform;
-use scion::core::components::tiles::sprite::Sprite;
-use scion::core::components::tiles::tileset::Tileset;
-use scion::core::components::ui::font::Font;
-use scion::core::components::ui::ui_text::UiText;
+use scion::graphics::components::tiles::sprite::Sprite;
+use scion::graphics::components::tiles::tileset::Tileset;
+use scion::graphics::components::ui::font::Font;
+use scion::graphics::components::ui::ui_text::UiText;
 use scion::core::resources::audio::PlayConfig;
 use scion::core::resources::inputs::types::{KeyCode};
 use scion::core::resources::inputs::types::Input::Key;

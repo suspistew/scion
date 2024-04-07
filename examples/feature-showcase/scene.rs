@@ -1,5 +1,5 @@
 use scion::core::components::maths::transform::Transform;
-use scion::core::components::tiles::atlas::importer::load_tilemap;
+use scion::graphics::components::tiles::atlas::importer::load_tilemap;
 use scion::core::resources::asset_manager::AssetType;
 
 use scion::core::scene::Scene;

@@ -115,7 +115,7 @@ impl Color {
         }
     }
 
-    pub(crate) fn to_texture_path(&self)-> String{
+    pub(crate) fn to_texture_path(&self) -> String{
         format!("color-{}-{}-{}-{}", self.red(), self.green(), self.blue(), self.alpha())
     }
 }

@@ -1,4 +1,4 @@
-use scion::core::{components::material::Material, resources::asset_manager::AssetRef};
+use scion::{graphics::components::material::Material, core::resources::asset_manager::AssetRef};
 
 use crate::components::Piece;
 

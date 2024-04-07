@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use scion::core::components::animations::{Animation, AnimationModifier};
+use scion::graphics::components::animations::{Animation, AnimationModifier};
 
 pub fn explode() -> Animation {
     Animation::new(

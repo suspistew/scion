@@ -7,17 +7,18 @@ use scion::core::world::{GameData, World};
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
     core::{
-        components::{
-            maths::{coordinates::Coordinates, transform::Transform},
-            tiles::{sprite::Sprite, tileset::Tileset},
-        },
         scene::Scene,
+    },
+    graphics::components::{
+        tiles::{sprite::Sprite, tileset::Tileset},
     },
     utils::file::app_base_path,
     Scion,
 };
-use scion::core::components::animations::Animations;
-use scion::core::components::color::Color;
+use scion::core::components::maths::coordinates::Coordinates;
+use scion::core::components::maths::transform::Transform;
+use scion::graphics::components::animations::Animations;
+use scion::graphics::components::color::Color;
 use crate::animations::get_case_animation;
 
 #[derive(Debug)]
