@@ -70,7 +70,7 @@ impl Scene for MainScene {
         self.fader = Some(data.push((
             Rectangle::new(384., 336., None),
             TransformBuilder::new().with_translation(0., 0., 10).with_screen_as_origin().build(),
-            Material::Color(Color::new(255, 255, 255, 1.)),
+            Material::Diffuse(Color::new(255, 255, 255, 1.)),
             Animations::new(switch_scene_animation()),
         )));
 

@@ -254,7 +254,7 @@ impl AnimationModifier {
     pub fn color(number_of_keyframes: usize, target_color: Color) -> Self {
         AnimationModifier::new(
             number_of_keyframes,
-            AnimationModifierType::Color { target: target_color },
+            AnimationModifierType::ColorModifier { target: target_color },
         )
     }
 
@@ -286,7 +286,7 @@ impl AnimationModifier {
 
     pub(crate) fn compute_keyframe_modifier_for_animation(&mut self, initial_color: &Color) {
         self.single_keyframe_modifier = match &self.modifier_type {
-            AnimationModifierType::Color { target } => {
+            AnimationModifierType::ColorModifier { target } => {
                 let r = (target.red() as i16 - initial_color.red() as i16)
                     / self.number_of_keyframes as i16;
                 let g = (target.green() as i16 - initial_color.green() as i16)
@@ -321,7 +321,7 @@ pub enum AnimationModifierType {
         tile_numbers_variant: Option<Vec<usize>>,
         end_tile_number: usize,
     },
-    Color {
+    ColorModifier {
         target: Color,
     },
     Text {
@@ -348,7 +348,7 @@ impl Display for AnimationModifier {
                 AnimationModifierType::SpriteModifier { .. } => {
                     "SpriteModifier"
                 }
-                AnimationModifierType::Color { .. } => {
+                AnimationModifierType::ColorModifier { .. } => {
                     "Color"
                 }
                 AnimationModifierType::Blink => {

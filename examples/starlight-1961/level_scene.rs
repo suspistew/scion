@@ -177,18 +177,18 @@ impl LevelScene {
 }
 
 fn add_colliders(data: &mut GameData, atlas: &TilemapAtlas, global_scale_modifier: f32) {
-    atlas.get_objects().iter().filter(|o| o.get_class() == &TileObjectClass::Collider)
+    atlas.get_objects().iter().filter(|o| o.get_class() == &TileObjectClass::CollisionArea)
         .for_each(|collider| {
             if collider.is_rect() {
                 let rec = collider.get_rect();
                 data.push((
-                    Collider::new(ColliderMask::Landscape, vec![], ColliderType::Rectangle((rec.width() * global_scale_modifier) as usize, (rec.height() * global_scale_modifier) as usize)),
+                    Collider::new(ColliderMask::Landscape, vec![], ColliderType::RectangleCollider((rec.width() * global_scale_modifier) as usize, (rec.height() * global_scale_modifier) as usize)),
                     TransformBuilder::new().with_xy(collider.get_position().x() * global_scale_modifier, collider.get_position().y() * global_scale_modifier).build()
                 ));
             } else {
                 let pol: Vec<Coordinates> = collider.get_polygon().iter().map(|c| Coordinates::new(c.x() * global_scale_modifier, c.y() * global_scale_modifier)).collect();
                 data.push((
-                    Collider::new(ColliderMask::Landscape, vec![], ColliderType::Polygon(pol)),
+                    Collider::new(ColliderMask::Landscape, vec![], ColliderType::PolygonCollider(pol)),
                     TransformBuilder::new().with_xy(collider.get_position().x() * global_scale_modifier, collider.get_position().y() * global_scale_modifier).build()
                 ));
             }

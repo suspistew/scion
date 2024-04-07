@@ -1,10 +1,12 @@
 use log::LevelFilter;
-use crate::scene::MainScene;
+
 use scion::config::logger_config::LoggerConfig;
 use scion::config::scion_config::ScionConfigBuilder;
 use scion::config::window_config::WindowConfigBuilder;
 use scion::graphics::components::color::Color;
 use scion::Scion;
+
+use crate::scene::MainScene;
 
 mod animations;
 mod character_control_system;

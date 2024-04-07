@@ -20,9 +20,9 @@ pub enum ColliderMask {
 /// `ColliderType` will determine the shape of the collider.
 #[derive(Clone)]
 pub enum ColliderType {
-    Square(usize),
-    Rectangle(usize, usize),
-    Polygon(Vec<Coordinates>)
+    SquareCollider(usize),
+    RectangleCollider(usize, usize),
+    PolygonCollider(Vec<Coordinates>)
 }
 
 /// The main collider representation to add to an entity, using the new function
@@ -151,7 +151,7 @@ impl Collider {
 
     pub(crate) fn collider_coordinates(&self, base_x: f32, base_y: f32) -> Vec<Coordinates> {
         match self.collider_type() {
-            ColliderType::Square(size) => {
+            ColliderType::SquareCollider(size) => {
                 vec![
                     Coordinates::new(base_x + 0., base_y + 0.),
                     Coordinates::new(base_x + *size as f32, base_y + 0.),
@@ -159,7 +159,7 @@ impl Collider {
                     Coordinates::new(base_x + 0., base_y + *size as f32),
                 ]
             }
-            ColliderType::Rectangle(width, height) => {
+            ColliderType::RectangleCollider(width, height) => {
                 vec![
                     Coordinates::new(base_x + 0., base_y + 0.),
                     Coordinates::new(base_x + *width as f32, base_y + 0.),
@@ -167,7 +167,7 @@ impl Collider {
                     Coordinates::new(base_x + 0., base_y + *height as f32),
                 ]
             }
-            ColliderType::Polygon(coordinates) => {
+            ColliderType::PolygonCollider(coordinates) => {
                 coordinates.iter().map(|c|  Coordinates::new(base_x + c.x, base_y + c.y)).collect()
             }
         }
@@ -270,13 +270,13 @@ mod tests {
 
     #[test]
     fn test_can_collide_with() {
-        let bullet = Collider::new(ColliderMask::Bullet, vec![], ColliderType::Square(5));
+        let bullet = Collider::new(ColliderMask::Bullet, vec![], ColliderType::SquareCollider(5));
         let ship = Collider::new(
             ColliderMask::Character,
             vec![ColliderMask::Bullet],
-            ColliderType::Square(5),
+            ColliderType::SquareCollider(5),
         );
-        let land = Collider::new(ColliderMask::Landscape, vec![], ColliderType::Square(5));
+        let land = Collider::new(ColliderMask::Landscape, vec![], ColliderType::SquareCollider(5));
 
         assert!(!ship.can_collide_with(&land));
         assert!(ship.can_collide_with(&bullet));
@@ -284,8 +284,8 @@ mod tests {
 
     #[test]
     fn test_collides_with_square() {
-        let bullet = Collider::new(ColliderMask::Bullet, vec![], ColliderType::Square(5));
-        let ship = Collider::new(ColliderMask::Character, vec![], ColliderType::Square(5));
+        let bullet = Collider::new(ColliderMask::Bullet, vec![], ColliderType::SquareCollider(5));
+        let ship = Collider::new(ColliderMask::Character, vec![], ColliderType::SquareCollider(5));
 
         let bullet_transform = Transform::from_xy(4., 4.);
         let bullet_transform2 = Transform::from_xy(9., 9.);
@@ -304,14 +304,14 @@ mod tests {
         let mut bullet = Collider::new(
             ColliderMask::Bullet,
             vec![ColliderMask::Character],
-            ColliderType::Square(5),
+            ColliderType::SquareCollider(5),
         );
         bullet = bullet.with_offset(Vector::new(-3., -3.));
 
         let mut ship = Collider::new(
             ColliderMask::Character,
             vec![ColliderMask::Bullet],
-            ColliderType::Square(5),
+            ColliderType::SquareCollider(5),
         );
         ship = ship.with_offset(Vector::new(3., 3.));
 
@@ -326,14 +326,14 @@ mod tests {
         let mut bullet = Collider::new(
             ColliderMask::Bullet,
             vec![ColliderMask::Character],
-            ColliderType::Square(5),
+            ColliderType::SquareCollider(5),
         );
         bullet = bullet.with_offset(Vector::new(-1., -1.));
 
         let mut ship = Collider::new(
             ColliderMask::Character,
             vec![ColliderMask::Bullet],
-            ColliderType::Square(5),
+            ColliderType::SquareCollider(5),
         );
         ship = ship.with_offset(Vector::new(1., 1.));
 

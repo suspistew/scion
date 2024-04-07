@@ -21,7 +21,7 @@ pub(crate) fn pre_render_component<T: Component + Renderable2D>(
         .iter()
     {
         let path = match material {
-            Material::Color(color) => Some(color.to_texture_path()),
+            Material::Diffuse(color) => Some(color.to_texture_path()),
             Material::Texture(p) => Some(p.clone()),
             Material::Tileset(tileset) => Some(tileset.texture.clone()),
         };
@@ -80,7 +80,7 @@ pub(crate) fn pre_render_ui_component<T: Component + Renderable2D + RenderableUi
     {
         let path = if material.is_some() {
             match material.unwrap() {
-                Material::Color(color) => Some(color.to_texture_path()),
+                Material::Diffuse(color) => Some(color.to_texture_path()),
                 Material::Texture(p) => Some(p.clone()),
                 _ => None
             }

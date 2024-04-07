@@ -48,7 +48,7 @@ mod tests {
     use crate::{
         graphics::components::{
             Hide,
-            HidePropagated, maths::hierarchy::{Children, Parent},
+            HidePropagated,
         },
         core::world::GameData,
     };

@@ -34,7 +34,6 @@ impl AssetResolverFn<Material> for MaterialAssetResolverFn {
 #[cfg(test)]
 mod tests {
     use crate::core::{
-        components::{color::Color, material::Material},
         resources::asset_manager::AssetManager,
         systems::asset_ref_resolver_system::MaterialAssetResolverFn,
     };
@@ -48,7 +47,7 @@ mod tests {
         let mut world = GameData::default();
 
         let mut manager = AssetManager::default();
-        let asset_ref = manager.register_material(Material::Color(Color::new(1, 1, 1, 1.)));
+        let asset_ref = manager.register_material(Material::Diffuse(Color::new(1, 1, 1, 1.)));
         world.insert_resource(manager);
 
         let e = world.push((1, asset_ref.clone()));

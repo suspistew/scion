@@ -237,7 +237,7 @@ pub mod data {
     #[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
     #[serde(tag = "tag", content = "content")]
     pub enum TileObjectClass {
-        Collider,
+        CollisionArea,
         Item,
         Door,
         Trigger,

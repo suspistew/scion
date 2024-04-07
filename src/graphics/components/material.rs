@@ -14,7 +14,7 @@ use crate::{
 #[derive(Clone)]
 pub enum Material {
     /// Fill with a color
-    Color(Color),
+    Diffuse(Color),
     /// Use a texture. Note that this means the target object will need to have uv maps.
     Texture(String),
     /// Tileset Texture. This will be added by the engine on entities with a sprite component.

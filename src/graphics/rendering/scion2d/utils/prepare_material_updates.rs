@@ -21,7 +21,7 @@ pub(crate) fn call(renderer: &mut Scion2DPreRenderer, data: &mut GameData) -> Ve
 
     for (_entity, material) in data.query::<&Material>().iter() {
         match material {
-            Material::Color(color) => {
+            Material::Diffuse(color) => {
                 if let Some(update) = try_color_update(renderer, color) {
                     updates.push(update);
                 }

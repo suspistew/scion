@@ -72,9 +72,9 @@ fn add_score_ui(data: &mut GameData) -> Entity {
         Transform::from_xyz(394., 330., 2)
     ));
 
-    let background_asset = data.assets_mut().register_material(Material::Color(Color::new_rgb(200, 200, 200)));
-    let hover_asset = data.assets_mut().register_material(Material::Color(Color::new_rgb(160, 160, 160)));
-    let clicked_asset = data.assets_mut().register_material(Material::Color(Color::new_rgb(120, 120, 120)));
+    let background_asset = data.assets_mut().register_material(Material::Diffuse(Color::new_rgb(200, 200, 200)));
+    let hover_asset = data.assets_mut().register_material(Material::Diffuse(Color::new_rgb(160, 160, 160)));
+    let clicked_asset = data.assets_mut().register_material(Material::Diffuse(Color::new_rgb(120, 120, 120)));
 
     let button = UiButton::new(70, 30, font_asset.clone())
         .with_font_size(16)

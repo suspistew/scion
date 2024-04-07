@@ -26,7 +26,7 @@ pub(crate) fn set_childs_on_buttons(data: &mut GameData) {
             ui_text = ui_text.with_font_color(color);
         }
         ui_text.set_padding(ui_button.padding());
-        let mut material = Material::Color(Color::new(0, 0, 0, 0.));
+        let mut material = Material::Diffuse(Color::new(0, 0, 0, 0.));
         if let Some(a) = ui_button.background() {
             let mat = resources.assets().get_material_for_ref(&a);
             material = mat;

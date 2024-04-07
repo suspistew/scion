@@ -78,7 +78,7 @@ pub fn line_update_system(data: &mut GameData) {
                                 Collider::new(
                                     ColliderMask::Custom("BORDER_CUSTOM_HORIZONTAL".to_string()),
                                     vec![],
-                                    ColliderType::Rectangle(
+                                    ColliderType::RectangleCollider(
                                         rectangle.width() as usize,
                                         rectangle.height() as usize,
                                     ),
@@ -104,7 +104,7 @@ pub fn line_update_system(data: &mut GameData) {
                                 Collider::new(
                                     ColliderMask::Custom("BORDER_CUSTOM_VERTICAL".to_string()),
                                     vec![],
-                                    ColliderType::Rectangle(
+                                    ColliderType::RectangleCollider(
                                         rectangle.width() as usize,
                                         rectangle.height() as usize,
                                     ),
@@ -129,7 +129,7 @@ pub fn line_update_system(data: &mut GameData) {
                             ColliderMask::Custom("BORDER_LEFT".to_string()),
                             ColliderMask::Custom("BORDER_RIGHT".to_string()),
                         ],
-                        ColliderType::Rectangle(
+                        ColliderType::RectangleCollider(
                             rectangle.width() as usize,
                             rectangle.height() as usize,
                         ),
