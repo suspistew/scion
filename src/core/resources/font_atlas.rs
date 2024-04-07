@@ -4,8 +4,8 @@ use std::path::Path;
 use ab_glyph::{Font, FontVec, Glyph, Point, point, PxScale, ScaleFont};
 use image::{DynamicImage, Rgba};
 
-use crate::core::components::color::Color;
-use crate::core::components::material::Texture;
+use crate::graphics::components::color::Color;
+use crate::graphics::components::material::Texture;
 use crate::utils::file::read_file;
 use crate::utils::ScionError;
 
@@ -80,8 +80,8 @@ impl FontAtlas {
     }
 }
 
-pub(crate) fn generate_bitmap(font: crate::core::components::ui::font::Font, font_size: usize, font_color: &Color) -> Result<TrueTypeData, ScionError> {
-    if let crate::core::components::ui::font::Font::TrueType { font_path } = font {
+pub(crate) fn generate_bitmap(font: crate::graphics::components::ui::font::Font, font_size: usize, font_color: &Color) -> Result<TrueTypeData, ScionError> {
+    if let crate::graphics::components::ui::font::Font::TrueType { font_path } = font {
         return match read_file(Path::new(&font_path)) {
             Ok(res) => {
                 let font = FontVec::try_from_vec(res);

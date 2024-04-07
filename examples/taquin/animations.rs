@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 use std::vec;
-use scion::core::components::animations::{Animation, AnimationModifier};
+use scion::graphics::components::animations::{Animation, AnimationModifier};
 use scion::utils::maths::Vector;
 use crate::MoveDirection;
 

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
-use scion::core::components::animations::{Animation, AnimationModifier};
-use scion::core::components::material::Material;
+use scion::graphics::components::animations::{Animation, AnimationModifier};
+use scion::graphics::components::material::Material;
 use scion::core::resources::asset_manager::AssetRef;
 
 pub struct Character{

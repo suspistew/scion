@@ -1,7 +1,8 @@
-use scion::core::components::material::Material;
-use scion::core::components::{maths::transform::Transform, tiles::sprite::Sprite};
+use scion::core::components::maths::transform::Transform;
+use scion::graphics::components::material::Material;
 use scion::core::resources::asset_manager::AssetRef;
 use scion::core::world::{GameData, World};
+use scion::graphics::components::tiles::sprite::Sprite;
 
 use crate::{
     components::{Bloc, BlocKind, NextBloc, BLOC_SIZE, BOARD_HEIGHT, BOARD_OFFSET},

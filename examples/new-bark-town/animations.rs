@@ -1,8 +1,8 @@
 use std::{collections::HashMap, time::Duration};
 
-use scion::core::components::color::Color;
+use scion::graphics::components::color::Color;
 use scion::{
-    core::components::animations::{Animation, AnimationModifier},
+    graphics::components::animations::{Animation, AnimationModifier},
     utils::maths::Vector,
 };
 

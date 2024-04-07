@@ -1,7 +1,7 @@
 use scion::core::world::{GameData, World};
-use scion::core::{
-    components::maths::transform::Transform,
-    resources::{
+use scion::{
+    core::components::maths::transform::Transform,
+    core::resources::{
         inputs::{inputs_controller::InputsController, types::KeyCode},
         time::Timers,
     },

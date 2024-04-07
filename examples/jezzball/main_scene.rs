@@ -2,26 +2,24 @@ use hecs::Entity;
 use std::fmt::{Display, Formatter};
 
 use rand::{thread_rng, Rng};
-use scion::core::components::color::Color;
-use scion::core::components::shapes::rectangle::Rectangle;
-use scion::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
+use scion::graphics::components::color::Color;
+use scion::graphics::components::shapes::rectangle::Rectangle;
+use scion::graphics::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
 use scion::core::resources::events::topic::TopicConfiguration;
 use scion::core::resources::events::{PollConfiguration, SubscriberId};
 
 use scion::core::world::{GameData, SubWorld, World};
-use scion::core::{
-    components::{
+use scion::{
+    graphics::components::{
         material::Material,
-        maths::{
-            collider::{Collider, ColliderMask, ColliderType},
-            transform::Transform,
-        },
         tiles::{sprite::Sprite, tileset::Tileset},
     },
-    resources::asset_manager::AssetRef,
-    scene::Scene,
+    core::resources::asset_manager::AssetRef,
+    core::scene::Scene,
 };
 use winit::window::CursorIcon;
+use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
+use scion::core::components::maths::transform::Transform;
 
 use crate::utils::{ball_animations, ball_asset, cases_asset};
 use scion::utils::maths::{Dimensions, Position, Vector};
@@ -195,7 +193,7 @@ impl Scene for MainScene {
                     world.push((
                         Transform::from_xyz(x as f32 * 16. + 10., y as f32 * 16. + 10., 20),
                         Rectangle::new(16., 16., None),
-                        Material::Color(Color::new_hex("#00ff664c")),
+                        Material::Diffuse(Color::new_hex("#00ff664c")),
                         Line { direction: LineDirection::TOP },
                         Collider::new(
                             ColliderMask::Landscape,
@@ -208,13 +206,13 @@ impl Scene for MainScene {
                                 ColliderMask::Custom("BORDER_LEFT".to_string()),
                                 ColliderMask::Custom("BORDER_RIGHT".to_string()),
                             ],
-                            ColliderType::Rectangle(16, 16),
+                            ColliderType::RectangleCollider(16, 16),
                         ),
                     ));
                     world.push((
                         Transform::from_xyz(x as f32 * 16. + 10., y as f32 * 16. + 26., 20),
                         Rectangle::new(16., 16., None),
-                        Material::Color(Color::new_hex("#008cae")),
+                        Material::Diffuse(Color::new_hex("#008cae")),
                         Line { direction: LineDirection::BOTTOM },
                         Collider::new(
                             ColliderMask::Landscape,
@@ -226,14 +224,14 @@ impl Scene for MainScene {
                                 ColliderMask::Custom("BORDER_LEFT".to_string()),
                                 ColliderMask::Custom("BORDER_RIGHT".to_string()),
                             ],
-                            ColliderType::Rectangle(16, 16),
+                            ColliderType::RectangleCollider(16, 16),
                         ),
                     ));
                 } else if self.mouse_state == CursorState::COLUMN {
                     world.push((
                         Transform::from_xyz(x as f32 * 16. + 10., y as f32 * 16. + 10., 20),
                         Rectangle::new(16., 16., None),
-                        Material::Color(Color::new_hex("#ff00004c")),
+                        Material::Diffuse(Color::new_hex("#ff00004c")),
                         Line { direction: LineDirection::LEFT },
                         Collider::new(
                             ColliderMask::Landscape,
@@ -245,13 +243,13 @@ impl Scene for MainScene {
                                 ColliderMask::Custom("BORDER_LEFT".to_string()),
                                 ColliderMask::Custom("BORDER_RIGHT".to_string()),
                             ],
-                            ColliderType::Rectangle(16, 16),
+                            ColliderType::RectangleCollider(16, 16),
                         ),
                     ));
                     world.push((
                         Transform::from_xyz(x as f32 * 16. + 26., y as f32 * 16. + 10., 20),
                         Rectangle::new(16., 16., None),
-                        Material::Color(Color::new_hex("#0000ff4c")),
+                        Material::Diffuse(Color::new_hex("#0000ff4c")),
                         Line { direction: LineDirection::RIGHT },
                         Collider::new(
                             ColliderMask::Landscape,
@@ -263,7 +261,7 @@ impl Scene for MainScene {
                                 ColliderMask::Custom("BORDER_LEFT".to_string()),
                                 ColliderMask::Custom("BORDER_RIGHT".to_string()),
                             ],
-                            ColliderType::Rectangle(16, 16),
+                            ColliderType::RectangleCollider(16, 16),
                         ),
                     ));
                 }
@@ -362,7 +360,7 @@ pub fn init_balls(world: &mut SubWorld, assets: &JezzBallAssets) {
                 ColliderMask::Custom("BORDER_LEFT".to_string()),
                 ColliderMask::Custom("BORDER_RIGHT".to_string()),
             ],
-            ColliderType::Square(38),
+            ColliderType::SquareCollider(38),
         )
         .with_offset(Vector::new(-5., -5.)),
         ball_animations(),
@@ -375,7 +373,7 @@ fn add_border(world: &mut SubWorld) {
         Collider::new(
             ColliderMask::Custom("BORDER_TOP".to_string()),
             vec![ColliderMask::None],
-            ColliderType::Rectangle(1104, 10),
+            ColliderType::RectangleCollider(1104, 10),
         ),
     ));
 
@@ -384,7 +382,7 @@ fn add_border(world: &mut SubWorld) {
         Collider::new(
             ColliderMask::Custom("BORDER_BOTTOM".to_string()),
             vec![ColliderMask::None],
-            ColliderType::Rectangle(1104, 10),
+            ColliderType::RectangleCollider(1104, 10),
         ),
     ));
 
@@ -393,7 +391,7 @@ fn add_border(world: &mut SubWorld) {
         Collider::new(
             ColliderMask::Custom("BORDER_LEFT".to_string()),
             vec![ColliderMask::None],
-            ColliderType::Rectangle(10, 609),
+            ColliderType::RectangleCollider(10, 609),
         ),
     ));
 
@@ -402,7 +400,7 @@ fn add_border(world: &mut SubWorld) {
         Collider::new(
             ColliderMask::Custom("BORDER_RIGHT".to_string()),
             vec![ColliderMask::None],
-            ColliderType::Rectangle(10, 609),
+            ColliderType::RectangleCollider(10, 609),
         ),
     ));
 }

@@ -5,7 +5,7 @@ use hecs::Entity;
 use wgpu::{BufferUsages, util::BufferInitDescriptor};
 use winit::dpi::PhysicalSize;
 
-use crate::core::components::material::{Material, Texture, TextureArray};
+use crate::graphics::components::material::{Material, Texture, TextureArray};
 use crate::core::components::maths::Pivot;
 use shaders::gl_representations::GlUniform;
 use crate::utils::maths::Vector;

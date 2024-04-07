@@ -10,12 +10,12 @@ pub mod importer {
     use hecs::Entity;
     use log::{debug, error};
 
-    use crate::core::components::animations::{Animation, AnimationModifier};
-    use crate::core::components::material::Material;
+    use crate::graphics::components::animations::{Animation, AnimationModifier};
+    use crate::graphics::components::material::Material;
     use crate::core::components::maths::transform::{Transform};
-    use crate::core::components::tiles::atlas::data::{TilemapAtlas, TilesetAtlas};
-    use crate::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
-    use crate::core::components::tiles::tileset::Tileset;
+    use crate::graphics::components::tiles::atlas::data::{TilemapAtlas, TilesetAtlas};
+    use crate::graphics::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
+    use crate::graphics::components::tiles::tileset::Tileset;
     use crate::core::resources::asset_manager::{AssetRef, AssetType};
     use crate::core::world::{GameData, Resources};
     use crate::utils::maths::Dimensions;
@@ -137,7 +137,7 @@ pub mod data {
     use serde::{Deserialize, Serialize};
 
     use crate::core::components::maths::coordinates::Coordinates;
-    use crate::core::components::tiles::tileset::Tileset;
+    use crate::graphics::components::tiles::tileset::Tileset;
     use crate::utils::maths::Position;
 
     #[derive(Serialize, Deserialize)]
@@ -237,7 +237,7 @@ pub mod data {
     #[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
     #[serde(tag = "tag", content = "content")]
     pub enum TileObjectClass {
-        Collider,
+        CollisionArea,
         Item,
         Door,
         Trigger,

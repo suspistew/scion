@@ -2,16 +2,16 @@ use hecs::Entity;
 use std::time::Duration;
 use log::{debug, info};
 
-use scion::core::components::animations::{Animation, AnimationModifier, Animations};
-use scion::core::components::color::Color;
-use scion::core::components::material::Material;
+use scion::graphics::components::animations::{Animation, AnimationModifier, Animations};
+use scion::graphics::components::color::Color;
+use scion::graphics::components::material::Material;
 use scion::core::components::maths::camera::Camera;
 use scion::core::components::maths::hierarchy::Parent;
 use scion::core::components::maths::transform::{Transform, TransformBuilder};
-use scion::core::components::shapes::rectangle::Rectangle;
-use scion::core::components::tiles::sprite::Sprite;
-use scion::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
-use scion::core::components::tiles::tileset::Tileset;
+use scion::graphics::components::shapes::rectangle::Rectangle;
+use scion::graphics::components::tiles::sprite::Sprite;
+use scion::graphics::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
+use scion::graphics::components::tiles::tileset::Tileset;
 use scion::core::resources::audio::PlayConfig;
 use scion::core::resources::inputs::types::KeyCode;
 use scion::core::resources::time::TimerType;
@@ -70,7 +70,7 @@ impl Scene for MainScene {
         self.fader = Some(data.push((
             Rectangle::new(384., 336., None),
             TransformBuilder::new().with_translation(0., 0., 10).with_screen_as_origin().build(),
-            Material::Color(Color::new(255, 255, 255, 1.)),
+            Material::Diffuse(Color::new(255, 255, 255, 1.)),
             Animations::new(switch_scene_animation()),
         )));
 

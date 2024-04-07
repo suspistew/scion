@@ -1,14 +1,14 @@
 use hecs::Entity;
 use winit::window::CursorIcon;
 
-use crate::core::components::{Hide, HidePropagated};
-use crate::core::components::color::Color;
-use crate::core::components::material::Material;
+use crate::graphics::components::{Hide, HidePropagated};
+use crate::graphics::components::color::Color;
+use crate::graphics::components::material::Material;
 use crate::core::components::maths::hierarchy::{Children, Parent};
 use crate::core::components::maths::transform::Transform;
-use crate::core::components::ui::ui_button::UiButton;
-use crate::core::components::ui::ui_image::UiImage;
-use crate::core::components::ui::ui_text::UiText;
+use crate::graphics::components::ui::ui_button::UiButton;
+use crate::graphics::components::ui::ui_image::UiImage;
+use crate::graphics::components::ui::ui_text::UiText;
 use crate::core::resources::asset_manager::AssetRef;
 use crate::core::resources::inputs::types::{Input, MouseButton};
 use crate::core::world::{GameData, Resources, SubWorld, World};
@@ -26,7 +26,7 @@ pub(crate) fn set_childs_on_buttons(data: &mut GameData) {
             ui_text = ui_text.with_font_color(color);
         }
         ui_text.set_padding(ui_button.padding());
-        let mut material = Material::Color(Color::new(0, 0, 0, 0.));
+        let mut material = Material::Diffuse(Color::new(0, 0, 0, 0.));
         if let Some(a) = ui_button.background() {
             let mat = resources.assets().get_material_for_ref(&a);
             material = mat;

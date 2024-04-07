@@ -1,5 +1,5 @@
 use scion::core::world::{GameData, World};
-use scion::core::{components::maths::transform::Transform, resources::inputs::types::KeyCode};
+use scion::{core::components::maths::transform::Transform, core::resources::inputs::types::KeyCode};
 
 use crate::components::NextBloc;
 use crate::{

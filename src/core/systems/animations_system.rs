@@ -1,5 +1,5 @@
-use crate::core::{
-    components::{
+use crate::{
+    graphics::components::{
         animations::{
             AnimationModifier, AnimationModifierType, Animations, AnimationStatus,
             ComputedKeyframeModifier,
@@ -7,12 +7,12 @@ use crate::core::{
         color::Color,
         Hide,
         material::Material,
-        maths::transform::Transform,
         tiles::sprite::Sprite,
     },
-    resources::time::TimerType,
+    core::resources::time::TimerType,
 };
-use crate::core::components::ui::ui_text::UiText;
+use crate::core::components::maths::transform::Transform;
+use crate::graphics::components::ui::ui_text::UiText;
 use crate::core::world::{GameData, World};
 
 #[derive(PartialEq)]
@@ -92,7 +92,7 @@ pub(crate) fn animation_executer_system(data: &mut GameData) {
                                 &tile_numbers_variant,
                                 end_tile_number,
                             ),
-                            AnimationModifierType::Color { .. } => {
+                            AnimationModifierType::ColorModifier { .. } => {
                                 apply_color_modifier(material.as_mut(), modifier, timer_cycle)
                             }
                             AnimationModifierType::Blink => {
@@ -215,7 +215,7 @@ fn apply_color_modifier(
     modifier: &mut AnimationModifier,
     timer_cycle: usize,
 ) {
-    if let Some(Material::Color(ref mut color)) = material {
+    if let Some(Material::Diffuse(ref mut color)) = material {
         if modifier.is_first_frame() {
             modifier.compute_keyframe_modifier_for_animation(color);
         }
@@ -224,7 +224,7 @@ fn apply_color_modifier(
         {
             for i in 0..timer_cycle {
                 if modifier.will_be_last_keyframe(i) {
-                    if let AnimationModifierType::Color { target } = &modifier.modifier_type {
+                    if let AnimationModifierType::ColorModifier { target } = &modifier.modifier_type {
                         color.replace(target.clone())
                     }
                 } else {

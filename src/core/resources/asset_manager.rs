@@ -2,8 +2,8 @@ use std::{collections::HashMap, marker::PhantomData};
 
 use log::debug;
 
-use crate::core::components::{material::Material, tiles::tileset::Tileset};
-use crate::core::components::ui::font::Font;
+use crate::graphics::components::{material::Material, tiles::tileset::Tileset};
+use crate::graphics::components::ui::font::Font;
 
 /// `AssetManager` is resource that will link assets to an asset ref to allow reusability of assets
 #[derive(Default)]
@@ -134,18 +134,20 @@ pub enum AssetType {
 #[cfg(test)]
 mod tests {
     use crate::core::{
-        components::{color::Color, material::Material, tiles::tileset::Tileset},
         resources::asset_manager::AssetManager,
     };
+    use crate::graphics::components::color::Color;
+    use crate::graphics::components::material::Material;
+    use crate::graphics::components::tiles::tileset::Tileset;
 
     #[test]
     fn register_material_test() {
         let mut manager = AssetManager::default();
-        let asset_ref = manager.register_material(Material::Color(Color::new(1, 1, 1, 1.)));
+        let asset_ref = manager.register_material(Material::Diffuse(Color::new(1, 1, 1, 1.)));
         assert_eq!(0, asset_ref.0);
         assert_eq!(1, manager.materials.len());
 
-        let asset_ref = manager.register_material(Material::Color(Color::new(2, 2, 2, 1.)));
+        let asset_ref = manager.register_material(Material::Diffuse(Color::new(2, 2, 2, 1.)));
         assert_eq!(1, asset_ref.0);
         assert_eq!(2, manager.materials.len());
     }

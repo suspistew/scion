@@ -4,23 +4,23 @@ use hecs::Entity;
 use scion::core::world::{GameData, World};
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
-    core::{
-        components::{
+    {
+        graphics::components::{
             animations::Animations,
             material::Material,
-            maths::transform::Transform,
             tiles::{
                 sprite::Sprite,
                 tilemap::{TileInfos, Tilemap, TilemapInfo},
                 tileset::Tileset,
             },
         },
-        resources::asset_manager::AssetRef,
-        scene::Scene,
+        core::resources::asset_manager::AssetRef,
+        core::scene::Scene,
     },
     utils::{file::app_base_path, maths::Dimensions},
     Scion,
 };
+use scion::core::components::maths::transform::Transform;
 
 use crate::level_reader::Level;
 

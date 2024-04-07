@@ -1,9 +1,9 @@
 use hecs::QueryMut;
 
-use scion::core::components::material::Material;
+use scion::graphics::components::material::Material;
 
 use scion::core::components::maths::transform::{Transform, TransformBuilder};
-use scion::core::components::ui::ui_image::UiImage;
+use scion::graphics::components::ui::ui_image::UiImage;
 use scion::core::world::{GameData, World};
 use scion::utils::file::app_base_path_join;
 

@@ -7,16 +7,16 @@ use hecs::Entity;
 use log::info;
 
 
-use scion::core::components::animations::{Animation, AnimationModifier, Animations};
-use scion::core::components::material::Material;
+use scion::graphics::components::animations::{Animation, AnimationModifier, Animations};
+use scion::graphics::components::material::Material;
 use scion::core::components::maths::camera::Camera;
 use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
 use scion::core::components::maths::hierarchy::Parent;
 
 use scion::core::components::maths::transform::{Transform, TransformBuilder};
-use scion::core::components::tiles::sprite::Sprite;
-use scion::core::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
-use scion::core::components::tiles::tileset::Tileset;
+use scion::graphics::components::tiles::sprite::Sprite;
+use scion::graphics::components::tiles::tilemap::{TileInfos, Tilemap, TilemapInfo};
+use scion::graphics::components::tiles::tileset::Tileset;
 use scion::core::resources::inputs::types::{Input, KeyCode};
 use scion::core::scene::Scene;
 use scion::core::world::{GameData, World};
@@ -240,7 +240,7 @@ fn add_cherries(data: &mut GameData) {
             Collider::new(
                 ColliderMask::Custom("Item".to_string()),
                 vec![ColliderMask::None],
-                ColliderType::Rectangle(28, 28),
+                ColliderType::RectangleCollider(28, 28),
             ).with_offset(Vector::new(13., 13.)),
             Animations::single("loop", Animation::looping(Duration::from_millis(900), vec![AnimationModifier::sprite(vec![0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], 0)]))
         ));
@@ -262,7 +262,7 @@ fn add_bananas(data: &mut GameData) {
             Collider::new(
                 ColliderMask::Custom("Item".to_string()),
                 vec![ColliderMask::None],
-                ColliderType::Rectangle(28, 28),
+                ColliderType::RectangleCollider(28, 28),
             ).with_offset(Vector::new(13., 11.)),
             Animations::single("loop", Animation::looping(Duration::from_millis(900), vec![AnimationModifier::sprite(vec![0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], 0)]))
         ));
@@ -304,7 +304,7 @@ fn add_character(data: &mut GameData) -> Entity {
         Collider::new(
             ColliderMask::Character,
             vec![ColliderMask::Landscape],
-            ColliderType::Rectangle(39, 47),
+            ColliderType::RectangleCollider(39, 47),
         ).with_offset(Vector::new(8., 8.)),
         Animations::new(get_animations_character())
     ))
@@ -343,7 +343,7 @@ fn add_colliders(data: &mut GameData) {
             Collider::new(
                 ColliderMask::Landscape,
                 vec![ColliderMask::None],
-                ColliderType::Rectangle(w, h),
+                ColliderType::RectangleCollider(w, h),
             ),
         ));
     }

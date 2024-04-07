@@ -1,20 +1,20 @@
 use hecs::Entity;
 use log::info;
 use scion::core::world::{GameData, World};
-use scion::core::{
-    components::{
-        maths::transform::Transform,
+use scion::{
+    graphics::components::{
         tiles::tileset::Tileset,
         ui::{font::Font, ui_image::UiImage, ui_text::UiText},
     },
-    resources::time::TimerType,
-    scene::Scene,
+    core::resources::time::TimerType,
+    core::scene::Scene,
 };
-use scion::core::components::color::Color;
-use scion::core::components::material::Material;
+use scion::graphics::components::color::Color;
+use scion::graphics::components::material::Material;
 use scion::core::components::maths::padding::Padding;
-use scion::core::components::ui::ui_button::UiButton;
-use scion::core::components::ui::ui_input::UiInput;
+use scion::core::components::maths::transform::Transform;
+use scion::graphics::components::ui::ui_button::UiButton;
+use scion::graphics::components::ui::ui_input::UiInput;
 use scion::core::resources::inputs::types::{Input, KeyCode};
 
 use crate::{asset_path, resources::TetrisResource};
@@ -72,9 +72,9 @@ fn add_score_ui(data: &mut GameData) -> Entity {
         Transform::from_xyz(394., 330., 2)
     ));
 
-    let background_asset = data.assets_mut().register_material(Material::Color(Color::new_rgb(200, 200, 200)));
-    let hover_asset = data.assets_mut().register_material(Material::Color(Color::new_rgb(160, 160, 160)));
-    let clicked_asset = data.assets_mut().register_material(Material::Color(Color::new_rgb(120, 120, 120)));
+    let background_asset = data.assets_mut().register_material(Material::Diffuse(Color::new_rgb(200, 200, 200)));
+    let hover_asset = data.assets_mut().register_material(Material::Diffuse(Color::new_rgb(160, 160, 160)));
+    let clicked_asset = data.assets_mut().register_material(Material::Diffuse(Color::new_rgb(120, 120, 120)));
 
     let button = UiButton::new(70, 30, font_asset.clone())
         .with_font_size(16)

@@ -3,11 +3,12 @@ use std::ops::Range;
 use wgpu::{PrimitiveTopology, util::BufferInitDescriptor};
 
 use crate::{
-    core::components::{
-        material::Material, maths::coordinates::Coordinates,
+    graphics::components::{
+        material::Material,
     },
     graphics::rendering::Renderable2D,
 };
+use crate::core::components::maths::coordinates::Coordinates;
 use crate::core::components::maths::Pivot;
 use crate::graphics::rendering::shaders::gl_representations::TexturedGlVertexWithLayer;
 use crate::utils::maths::Vector;

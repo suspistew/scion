@@ -5,7 +5,7 @@ use winit::dpi::LogicalSize;
 use winit::window::WindowBuilder;
 use winit::window::WindowLevel;
 
-use crate::{config::scion_config::ScionConfig, core::components::color::Color};
+use crate::{config::scion_config::ScionConfig, graphics::components::color::Color};
 
 /// Main configuration for the game window
 /// Please use [`WindowConfigBuilder`] if you want to build if from code.

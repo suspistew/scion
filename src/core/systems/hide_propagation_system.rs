@@ -1,6 +1,7 @@
-use crate::core::components::{
+use crate::core::components::maths::hierarchy::{Children, Parent};
+use crate::graphics::components::{
     Hide,
-    HidePropagated, maths::hierarchy::{Children, Parent},
+    HidePropagated
 };
 use crate::core::world::{GameData, World};
 
@@ -45,9 +46,9 @@ pub(crate) fn hide_propagated_deletion_system(data: &mut GameData) {
 #[cfg(test)]
 mod tests {
     use crate::{
-        core::components::{
+        graphics::components::{
             Hide,
-            HidePropagated, maths::hierarchy::{Children, Parent},
+            HidePropagated,
         },
         core::world::GameData,
     };

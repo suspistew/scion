@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 use std::time::Duration;
 use hecs::Entity;
-use scion::core::components::animations::{Animation, AnimationModifier, Animations};
+use scion::graphics::components::animations::{Animation, AnimationModifier, Animations};
 use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
 use scion::core::components::maths::coordinates::Coordinates;
 use scion::core::components::maths::Pivot;
 use scion::core::components::maths::transform::Transform;
-use scion::core::components::tiles::atlas::data::{TilemapAtlas, TileObjectClass};
-use scion::core::components::tiles::atlas::importer::import_tileset;
-use scion::core::components::tiles::sprite::Sprite;
-use scion::core::components::tiles::tileset::Tileset;
+use scion::graphics::components::tiles::atlas::data::{TilemapAtlas, TileObjectClass};
+use scion::graphics::components::tiles::atlas::importer::import_tileset;
+use scion::graphics::components::tiles::sprite::Sprite;
+use scion::graphics::components::tiles::tileset::Tileset;
 use scion::core::world::{GameData, World};
 use scion::utils::file::app_base_path_join;
 
@@ -23,7 +23,7 @@ pub fn add_ship(data: &mut GameData, atlas: &TilemapAtlas, global_scale_modifier
     let t = import_tileset(&app_base_path_join("examples/starlight-1961/assets/space_ship.scion"));
     let config = t.tile_config_for(0);
     let collider_coords: Vec<Coordinates> = {
-        let o = config.objects().iter().filter(|o| o.get_class() == &TileObjectClass::Collider).next().expect("");
+        let o = config.objects().iter().filter(|o| o.get_class() == &TileObjectClass::CollisionArea).next().expect("");
         o.get_polygon().iter().map(|c| Coordinates::new(c.x() + 14., c.y())).collect()
     };
 
@@ -33,7 +33,7 @@ pub fn add_ship(data: &mut GameData, atlas: &TilemapAtlas, global_scale_modifier
     data.push((
         Transform::from_xy(ship_start.x() * global_scale_modifier - 16., ship_start.y() * global_scale_modifier - 32.),
         Sprite::new(0).pivot(Pivot::Custom(16., 16.)),
-        Collider::new(ColliderMask::Character, vec![ColliderMask::Landscape], ColliderType::Polygon(collider_coords)),
+        Collider::new(ColliderMask::Character, vec![ColliderMask::Landscape], ColliderType::PolygonCollider(collider_coords)),
         ship_ref,
         Animations::new(animations),
         Ship{ y_force: 0.0, x_force: 0.0, is_landed: true }

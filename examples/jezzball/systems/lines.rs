@@ -1,14 +1,12 @@
 use scion::core::world::{GameData, World};
-use scion::core::{
-    components::{
-        maths::{
-            collider::{Collider, ColliderMask, ColliderType},
-            transform::Transform,
-        },
+use scion::{
+    graphics::components::{
         shapes::rectangle::Rectangle,
     },
-    resources::time::TimerType,
+    core::resources::time::TimerType,
 };
+use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
+use scion::core::components::maths::transform::Transform;
 
 use crate::main_scene::Line;
 use crate::main_scene::LineDirection;
@@ -80,7 +78,7 @@ pub fn line_update_system(data: &mut GameData) {
                                 Collider::new(
                                     ColliderMask::Custom("BORDER_CUSTOM_HORIZONTAL".to_string()),
                                     vec![],
-                                    ColliderType::Rectangle(
+                                    ColliderType::RectangleCollider(
                                         rectangle.width() as usize,
                                         rectangle.height() as usize,
                                     ),
@@ -106,7 +104,7 @@ pub fn line_update_system(data: &mut GameData) {
                                 Collider::new(
                                     ColliderMask::Custom("BORDER_CUSTOM_VERTICAL".to_string()),
                                     vec![],
-                                    ColliderType::Rectangle(
+                                    ColliderType::RectangleCollider(
                                         rectangle.width() as usize,
                                         rectangle.height() as usize,
                                     ),
@@ -131,7 +129,7 @@ pub fn line_update_system(data: &mut GameData) {
                             ColliderMask::Custom("BORDER_LEFT".to_string()),
                             ColliderMask::Custom("BORDER_RIGHT".to_string()),
                         ],
-                        ColliderType::Rectangle(
+                        ColliderType::RectangleCollider(
                             rectangle.width() as usize,
                             rectangle.height() as usize,
                         ),

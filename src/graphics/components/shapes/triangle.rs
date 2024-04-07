@@ -3,10 +3,12 @@ use std::ops::Range;
 use wgpu::{PrimitiveTopology, util::BufferInitDescriptor};
 
 use crate::{
-    core::components::{material::Material, maths::coordinates::Coordinates, maths::Pivot},
+    graphics::components::{material::Material},
     graphics::rendering::Renderable2D,
     utils::maths::Vector,
 };
+use crate::core::components::maths::coordinates::Coordinates;
+use crate::core::components::maths::Pivot;
 use crate::graphics::rendering::shaders::gl_representations::TexturedGlVertex;
 
 const INDICES: &[u16] = &[1, 0, 2];

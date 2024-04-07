@@ -1,18 +1,13 @@
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
+use scion::core::components::maths::collider::{Collider, ColliderMask};
+use scion::core::components::maths::transform::Transform;
+
 use scion::core::world::{GameData, World};
-use scion::core::{
-    components::{
-        animations::Animations,
-        maths::{
-            collider::{Collider, ColliderMask},
-            transform::Transform,
-        },
-    },
-    resources::audio::PlayConfig,
+use scion::graphics::components::{
+    animations::Animations,
 };
 
 use crate::main_scene::{Ball, BallDirection};
-use crate::utils::ball_bounce_effect;
 
 pub fn ball_control_system(data: &mut GameData) {
     let (world, resource) = data.split();

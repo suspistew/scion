@@ -3,9 +3,9 @@ use std::time::SystemTime;
 
 
 
-use crate::core::components::color::Color;
-use crate::core::components::material::{Material, Texture, TextureArray};
-use crate::core::components::tiles::tileset::Tileset;
+use crate::graphics::components::color::Color;
+use crate::graphics::components::material::{Material, Texture, TextureArray};
+use crate::graphics::components::tiles::tileset::Tileset;
 use crate::core::world::{GameData, World};
 use crate::graphics::rendering::{DiffuseBindGroupUpdate, RenderingUpdate};
 use crate::graphics::rendering::scion2d::pre_renderer::Scion2DPreRenderer;
@@ -21,7 +21,7 @@ pub(crate) fn call(renderer: &mut Scion2DPreRenderer, data: &mut GameData) -> Ve
 
     for (_entity, material) in data.query::<&Material>().iter() {
         match material {
-            Material::Color(color) => {
+            Material::Diffuse(color) => {
                 if let Some(update) = try_color_update(renderer, color) {
                     updates.push(update);
                 }

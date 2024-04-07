@@ -1,17 +1,17 @@
 use std::time::Duration;
 use hecs::Entity;
 
-use scion::core::components::animations::{Animation, AnimationModifier, Animations};
-use scion::core::components::Hide;
+use scion::graphics::components::animations::{Animation, AnimationModifier, Animations};
+use scion::graphics::components::Hide;
 use scion::core::components::maths::camera::Camera;
 use scion::core::components::maths::collider::{Collider, ColliderMask, ColliderType};
 use scion::core::components::maths::coordinates::Coordinates;
 use scion::core::components::maths::hierarchy::Parent;
 use scion::core::components::maths::transform::{Transform, TransformBuilder};
-use scion::core::components::tiles::atlas::data::{TilemapAtlas, TileObjectClass};
-use scion::core::components::tiles::atlas::importer::load_tilemap;
-use scion::core::components::tiles::sprite::Sprite;
-use scion::core::components::tiles::tileset::Tileset;
+use scion::graphics::components::tiles::atlas::data::{TilemapAtlas, TileObjectClass};
+use scion::graphics::components::tiles::atlas::importer::load_tilemap;
+use scion::graphics::components::tiles::sprite::Sprite;
+use scion::graphics::components::tiles::tileset::Tileset;
 use scion::core::resources::audio::PlayConfig;
 use scion::core::resources::inputs::types::{Input, KeyCode};
 use scion::core::resources::time::TimerType;
@@ -177,18 +177,18 @@ impl LevelScene {
 }
 
 fn add_colliders(data: &mut GameData, atlas: &TilemapAtlas, global_scale_modifier: f32) {
-    atlas.get_objects().iter().filter(|o| o.get_class() == &TileObjectClass::Collider)
+    atlas.get_objects().iter().filter(|o| o.get_class() == &TileObjectClass::CollisionArea)
         .for_each(|collider| {
             if collider.is_rect() {
                 let rec = collider.get_rect();
                 data.push((
-                    Collider::new(ColliderMask::Landscape, vec![], ColliderType::Rectangle((rec.width() * global_scale_modifier) as usize, (rec.height() * global_scale_modifier) as usize)),
+                    Collider::new(ColliderMask::Landscape, vec![], ColliderType::RectangleCollider((rec.width() * global_scale_modifier) as usize, (rec.height() * global_scale_modifier) as usize)),
                     TransformBuilder::new().with_xy(collider.get_position().x() * global_scale_modifier, collider.get_position().y() * global_scale_modifier).build()
                 ));
             } else {
                 let pol: Vec<Coordinates> = collider.get_polygon().iter().map(|c| Coordinates::new(c.x() * global_scale_modifier, c.y() * global_scale_modifier)).collect();
                 data.push((
-                    Collider::new(ColliderMask::Landscape, vec![], ColliderType::Polygon(pol)),
+                    Collider::new(ColliderMask::Landscape, vec![], ColliderType::PolygonCollider(pol)),
                     TransformBuilder::new().with_xy(collider.get_position().x() * global_scale_modifier, collider.get_position().y() * global_scale_modifier).build()
                 ));
             }

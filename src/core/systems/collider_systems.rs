@@ -1,12 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
 use hecs::{Component, Entity};
+use crate::core::components::maths::collider::{Collider, ColliderDebug, ColliderMask, Collision};
+use crate::core::components::maths::hierarchy::Parent;
+use crate::core::components::maths::transform::Transform;
 
-use crate::core::components::{color::Color, material::Material, maths::{
-    collider::{Collider, ColliderDebug, ColliderMask, Collision},
-    hierarchy::Parent,
-    transform::Transform,
-}, shapes::polygon::Polygon};
+use crate::graphics::components::{color::Color, material::Material, shapes::polygon::Polygon};
 use crate::core::resources::global_storage::GlobalStorage;
 use crate::core::resources::inputs::types::{Input, KeyCode};
 use crate::core::world::{GameData, World};
@@ -100,7 +99,7 @@ pub(crate) fn debug_colliders_system(data: &mut GameData) {
                 ColliderDebug,
                 Transform::from_xyz(offset.x(), offset.y(), 30),
                 polygon_collider,
-                Material::Color(color),
+                Material::Diffuse(color),
             ));
         } else if !collider.debug_lines() && !global_debug_activated && collider_debug.0.contains(&entity) {
             debug_lines_to_remove.push(entity);
@@ -167,7 +166,7 @@ mod tests {
         let e = world.push((
             1,
             t,
-            Collider::new(ColliderMask::Bullet, vec![], ColliderType::Square(5)),
+            Collider::new(ColliderMask::Bullet, vec![], ColliderType::SquareCollider(5)),
         ));
 
         let entry = world.entry_mut::<&mut Collider>(e).unwrap();
@@ -196,7 +195,7 @@ mod tests {
         let e = world.push((
             1,
             t,
-            Collider::new(ColliderMask::Bullet, vec![], ColliderType::Square(5)),
+            Collider::new(ColliderMask::Bullet, vec![], ColliderType::SquareCollider(5)),
         ));
         let e2 = world.push((
             2,
@@ -204,7 +203,7 @@ mod tests {
             Collider::new(
                 ColliderMask::Landscape,
                 vec![ColliderMask::Bullet],
-                ColliderType::Square(5),
+                ColliderType::SquareCollider(5),
             ),
         ));
 
@@ -222,7 +221,7 @@ mod tests {
 
         let _collider = world.push((
             Transform::default(),
-            Collider::new(ColliderMask::None, vec![], ColliderType::Square(100)).with_debug_lines(),
+            Collider::new(ColliderMask::None, vec![], ColliderType::SquareCollider(100)).with_debug_lines(),
         ));
 
         debug_colliders_system(&mut world);
