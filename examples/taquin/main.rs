@@ -1,8 +1,10 @@
 mod animations;
 
 use std::collections::HashMap;
+use log::info;
 use rand::rngs::ThreadRng;
 use rand::Rng;
+use scion::core::resources::audio::PlayConfig;
 use scion::core::world::{GameData, World};
 use scion::{
     config::{scion_config::ScionConfigBuilder, window_config::WindowConfigBuilder},
@@ -24,6 +26,7 @@ use crate::animations::get_case_animation;
 #[derive(Debug)]
 struct Case(Coordinates);
 
+#[derive(PartialEq)]
 pub(crate) enum MoveDirection {
     Left,
     Top,
@@ -74,6 +77,7 @@ impl Taquin {
 fn taquin_system(data: &mut GameData) {
     let (world, resources) = data.split();
     let inputs = resources.inputs();
+    let window_current_dimensions = resources.window().dimensions();
     let mut taquin = resources.get_resource_mut::<Taquin>().unwrap();
 
     let mut animation_running = false;
@@ -87,14 +91,20 @@ fn taquin_system(data: &mut GameData) {
         return;
     }
 
+    let (case_width, case_height) = (window_current_dimensions.0 as f32 / 4., window_current_dimensions.1 as f32/ 4.) ;
+
     for (_, (case, animations)) in world.query_mut::<(&mut Case, &mut Animations)>() {
         inputs.on_left_click_pressed(|mouse_x, mouse_y| {
-            if mouse_x > (case.0.x() * 192.) as f64
-                && mouse_y > (case.0.y() * 192.) as f64
-                && mouse_x < (case.0.x() * 192. + 192.) as f64
-                && mouse_y < (case.0.y() * 192. + 192.) as f64
+            if mouse_x > (case.0.x() *case_width) as f64
+                && mouse_y > (case.0.y() * case_height) as f64
+                && mouse_x < (case.0.x() * case_width +case_width) as f64
+                && mouse_y < (case.0.y() * case_height + case_height) as f64
             {
-                match taquin.try_move(case.0.x() as usize, case.0.y() as usize) {
+                let direction =  taquin.try_move(case.0.x() as usize, case.0.y() as usize);
+                if direction != MoveDirection::None{
+                    resources.audio().play( app_base_path().join("examples/taquin/assets/tap.ogg").get(), PlayConfig::default());
+                }
+                match direction {
                     MoveDirection::Left => {
                         case.0.set_x(case.0.x() - 1.);
                         animations.run_animation("LEFT");

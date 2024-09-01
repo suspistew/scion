@@ -7,6 +7,7 @@ use crate::core::resources::inputs::types::{InputState, KeyboardEvent, KeyCode, 
 use crate::core::scion_runner::ScionRunner;
 use crate::core::world::World;
 use crate::graphics::rendering::RendererEvent;
+use log::info;
 
 pub fn handle_window_event(runner: &mut ScionRunner) -> Vec<RendererEvent> {
     let mut update = vec![];
@@ -26,6 +27,7 @@ pub fn handle_window_event(runner: &mut ScionRunner) -> Vec<RendererEvent> {
                         force_redraw = true;
                     }
                     WindowEvent::Resized(physical_size) => {
+                        info!("Window has been resized !");
                         runner.game_data
                             .window()
                             .set_dimensions(physical_size.width, physical_size.height);
